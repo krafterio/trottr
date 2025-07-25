@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: cb6186850f48
+Revision ID: b67974558869
 Revises: 
-Create Date: 2025-07-25 21:08:07.656963
+Create Date: 2025-07-25 21:47:23.023522
 
 """
 
@@ -14,7 +14,7 @@ from edgy import monkay, run_sync
 
 
 # revision identifiers, used by Alembic.
-revision = 'cb6186850f48'
+revision = 'b67974558869'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -98,7 +98,6 @@ def upgrade_ZLTGSQOZ566UATSNRB2Y5JTWOA():
     sa.Column('stripe_customer_id', sa.String(length=255), autoincrement=False, nullable=True),
     sa.Column('trial_end', sa.DateTime(timezone=True), autoincrement=False, nullable=True),
     sa.Column('comply_with_local_privacy_laws', sa.Boolean(), server_default=sa.text('true'), autoincrement=False, nullable=False),
-    sa.Column('icp', sa.Text(), autoincrement=False, nullable=True),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
@@ -145,8 +144,8 @@ def upgrade_ZLTGSQOZ566UATSNRB2Y5JTWOA():
     sa.Column('workspace', sa.Integer(), autoincrement=False, nullable=True),
     sa.ForeignKeyConstraint(['workspace'], ['workspaces.id'], name='fk_workspace_invitations_workspaces_workspace', onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email', 'workspace', name='uc_JM3CQM7RSMQTWELZRHD7VIJ5P4'),
-    sa.UniqueConstraint('invitation_token')
+    sa.UniqueConstraint('invitation_token'),
+    sa.UniqueConstraint('workspace', 'email', name='uc_JM3CQM7RSMQTWELZRHD7VIJ5P4')
     )
     op.create_table('workspace_users',
     sa.Column('workspace', sa.Integer(), autoincrement=False, nullable=False),

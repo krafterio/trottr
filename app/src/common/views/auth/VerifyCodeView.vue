@@ -8,17 +8,17 @@
           </AlertDescription>
         </Alert>
 
-        <Card>
+        <Card class="pt-0">
           <CardHeader class="text-center">
-            <div class="flex justify-center mb-4">
-              <img src="@/common/assets/img/logo.svg" alt="Smashr" class="w-24 h-8" />
+            <div class="flex justify-center mb-4 -mt-8">
+              <img src="/favicon.svg" alt="Smashr" class="rounded-full w-16 h-16" />
             </div>
             <CardTitle class="text-2xl">
               Code de vérification
             </CardTitle>
             <CardDescription class="space-y-2">
               <p>
-                Un code de vérification a été envoyé à <strong>{{ email }}</strong>. 
+                Un code de vérification a été envoyé à <strong>{{ email }}</strong>.
                 Entrez ce code à 6 chiffres ci-dessous pour accéder à votre compte.
               </p>
               <p class="text-xs text-muted-foreground">
@@ -32,17 +32,10 @@
                 <div class="grid gap-6">
                   <!-- PIN Input -->
                   <div class="flex justify-center">
-                    <PinInput
-                      id="pin-input"
-                      v-model="pinValue"
-                      placeholder="○"
-                      class="gap-2"
-                      :length="6"
-                      @complete="handlePinComplete"
-                      @update:model-value="handlePinUpdate"
-                    >
+                    <PinInput id="pin-input" v-model="pinValue" placeholder="○" class="gap-2" :length="6"
+                      @complete="handlePinComplete" @update:model-value="handlePinUpdate">
                       <PinInputGroup class="gap-2">
-                        <PinInputSlot v-for="(id, index) in 6" :key="id" :index="index" 
+                        <PinInputSlot v-for="(id, index) in 6" :key="id" :index="index"
                           class="w-12 h-12 text-center border rounded-md text-lg font-semibold" />
                       </PinInputGroup>
                     </PinInput>
@@ -113,15 +106,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '@/common/stores/auth'
-import { useFetcher } from '@/common/composables/fetcher'
+import { Alert, AlertDescription } from '@/common/components/ui/alert'
 import { Button } from '@/common/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/common/components/ui/card'
-import { Alert, AlertDescription } from '@/common/components/ui/alert'
 import { PinInput, PinInputGroup, PinInputSlot } from '@/common/components/ui/pin-input'
+import { useFetcher } from '@/common/composables/fetcher'
+import { useAuthStore } from '@/common/stores/auth'
 import { Mail, Shield } from 'lucide-vue-next'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const router = useRouter()
 const route = useRoute()

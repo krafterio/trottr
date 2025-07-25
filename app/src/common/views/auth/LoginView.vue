@@ -8,12 +8,6 @@
 					</AlertDescription>
 				</Alert>
 
-				<Alert v-if="error" variant="destructive">
-					<AlertDescription>
-						{{ error }}
-					</AlertDescription>
-				</Alert>
-
 				<Card class="pt-0">
 					<CardHeader class="text-center">
 						<div class="flex justify-center mb-4 -mt-8">
@@ -27,6 +21,12 @@
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
+						<Alert v-if="error" variant="default" class="mb-4 border-0 bg-red-50">
+							<AlertDescription class="text-red-800 flex items-center gap-2">
+								<TriangleAlert class="h-4 w-4" />
+								{{ error }}
+							</AlertDescription>
+						</Alert>
 						<form @submit.prevent="handleLogin">
 							<div class="grid gap-6">
 								<div class="grid gap-6">
@@ -83,6 +83,7 @@ import { Input } from '@/common/components/ui/input'
 import { Label } from '@/common/components/ui/label'
 import useRecaptcha from '@/common/composables/useRecaptcha'
 import { useAuthStore } from '@/common/stores/auth'
+import { TriangleAlert } from 'lucide-vue-next'
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 

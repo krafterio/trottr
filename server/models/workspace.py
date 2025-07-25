@@ -45,7 +45,6 @@ class Workspace(BaseModel):
     stripe_customer_id: str | None = fields.CharField(max_length=255, null=True, unique=True, label="ID Client Stripe")  # type: ignore
     trial_end: datetime | None = fields.DateTimeField(null=True, label="Fin essai")  # type: ignore
     comply_with_local_privacy_laws: bool = fields.BooleanField(default=True, label="Je respecte les lois locales sur la confidentialité lors de la gestion des données de mes prospects") # type: ignore
-    icp: str | None = fields.TextField(null=True, label="ICP (Ideal Customer Profile)") # type: ignore
 
     @property
     def is_trial(self) -> bool:

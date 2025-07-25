@@ -2,13 +2,16 @@
 	<div id="app" class="h-screen flex flex-col">
 		<template v-if="authStore.isAuthenticated">
 			<AppNavbar />
-			<main>
-				<router-view />
-			</main>
+			<div class="flex flex-1">
+				<AppSidebar />
+				<main class="flex-1 overflow-hidden">
+					<router-view />
+				</main>
+			</div>
 		</template>
 
 		<template v-else>
-			<main>
+			<main class="h-full">
 				<router-view />
 			</main>
 		</template>
@@ -18,7 +21,10 @@
 </template>
 
 <script setup>
+import { Toaster } from '@/common/components/ui/sonner'
+import { websocketService } from '@/common/services/websocket'
 import { useAuthStore } from '@/common/stores/auth'
+import AppSidebar from '@/main/components/AppSidebar.vue'
 import AppNavbar from '@/main/components/navbar/AppNavbar.vue'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -35,8 +41,13 @@ watch(() => authStore.isAuthenticated, (isAuthenticated) => {
 	}
 })
 
-onMounted(() => {
+onMounted(async () => {
 	if (authStore.isAuthenticated) {
+		try {
+			await authStore.fetchUser()
+		} catch (error) {
+			console.error('Erreur lors du chargement des données utilisateur:', error)
+		}
 		websocketService.connect()
 	}
 })
