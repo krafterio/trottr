@@ -1,0 +1,25 @@
+{% block subject %}Code de connexion sécurisée - {{ app_name }}{% endblock %}
+
+{% block body_html %}
+{% set content %}
+<h1>Votre code de connexion Smashr</h1>
+
+<p>Bonjour {{ customer_name }},</p>
+
+<p>Une tentative de connexion a été détectée sur votre compte {{ app_name }}.</p>
+
+<p>Pour sécuriser votre connexion, veuillez entrer le code de vérification suivant :</p>
+
+<div style="background-color: #f8f9fa; border: 2px solid #e9ecef; border-radius: 8px; padding: 20px; text-align: center; margin: 24px 0;">
+    <h3 style="color: #333; font-size: 24px; font-weight: bold; letter-spacing: 4px; margin: 0;">{{ verification_code }}</h3>
+</div>
+
+<p>Ce code est valide pendant 15 minutes.</p>
+
+<p style="margin-bottom: 0; color: #d5d5d5">Si ce n'est pas vous qui tentez de vous connecter, celà signifie que votre compte a peut être été compromis. Modifiez votre mot de passe de votre compte le plus rapidement possible.</p>
+{% endset %}
+
+{% set footer_text %}Vous avez reçu cet email pour sécuriser votre connexion à {{ app_name }}.{% endset %}
+
+{% include 'emails/layout.html' %}
+{% endblock %}

@@ -1,0 +1,28 @@
+{% block subject %}Invitation à rejoindre {{ workspace_name }} sur {{ app_name }}{% endblock %}
+
+{% block body_html %}
+{% set content %}
+<h1>Vous êtes invité(e) à rejoindre {{ workspace_name }} !</h1>
+
+<p>Bonjour,</p>
+
+<p>{{ inviter_name }} vous invite à rejoindre l'espace de travail <strong>{{ workspace_name }}</strong> sur <strong>{{ app_name }}</strong></p>
+
+<p>Pour accepter cette invitation et créer votre compte, cliquez sur le bouton ci-dessous :</p>
+
+<div style="text-align: center; margin: 32px 0;">
+    <a href="{{ register_url }}" style="background-color: #222; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Rejoindre {{ workspace_name }}</a>
+</div>
+
+<p>Si le bouton ne fonctionne pas, vous pouvez copier et coller ce lien dans votre navigateur :</p>
+<p style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; padding: 12px; word-break: break-all; font-family: monospace; font-size: 12px;">{{ register_url }}</p>
+
+<p><strong>Important :</strong> Cette invitation expirera dans 7 jours. Si vous avez des questions, n'hésitez pas à contacter {{ inviter_name }}.</p>
+
+<p>L'équipe {{ app_name }}</p>
+{% endset %}
+
+{% set footer_text %}Vous avez reçu cet email car {{ inviter_name }} vous a invité(e) à rejoindre {{ workspace_name }} sur {{ app_name }}.{% endset %}
+
+{% include 'emails/layout.html' %}
+{% endblock %} 

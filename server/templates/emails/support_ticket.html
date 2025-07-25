@@ -1,0 +1,32 @@
+{% block subject %}Nouveau ticket de support #{{ ticket.reference }} - {{ ticket.subject }}{% endblock %}
+
+{% block body_html %}
+{% set content %}
+<h1>Nouveau ticket de support</h1>
+
+<p>Un nouveau ticket de support a été créé dans l'espace de travail <strong>{{ workspace.name }}</strong>.</p>
+
+<div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 24px 0;">
+    <h3 style="color: #333; margin: 0 0 16px 0;">Détails du ticket</h3>
+    
+    <p style="margin: 8px 0;"><strong>Référence :</strong> #{{ ticket.reference }}</p>
+    <p style="margin: 8px 0;"><strong>Sujet :</strong> {{ ticket.subject }}</p>
+    <p style="margin: 8px 0;"><strong>Priorité :</strong> {{ ticket.priority }}</p>
+    <p style="margin: 8px 0;"><strong>Statut :</strong> {{ ticket.status }}</p>
+    <p style="margin: 8px 0;"><strong>Créé par :</strong> {{ user.name }} ({{ user.email }})</p>
+    <p style="margin: 8px 0;"><strong>Espace de travail :</strong> {{ workspace.name }}</p>
+    <p style="margin: 8px 0;"><strong>Date de création :</strong> {{ ticket.created_at.strftime('%d/%m/%Y à %H:%M') }}</p>
+</div>
+
+<div style="background-color: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 24px 0;">
+    <h3 style="color: #333; margin: 0 0 16px 0;">Description</h3>
+    <p style="white-space: pre-wrap; margin: 0;">{{ ticket.description }}</p>
+</div>
+
+<p>Ce ticket nécessite votre attention dans l'interface d'administration de Smashr.</p>
+{% endset %}
+
+{% set footer_text %}Vous avez reçu cet email car un nouveau ticket de support a été créé sur {{ app_name }}.{% endset %}
+
+{% include 'emails/layout.html' %}
+{% endblock %} 

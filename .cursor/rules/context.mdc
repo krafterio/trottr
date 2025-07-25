@@ -1,0 +1,108 @@
+---
+description: "General context and best practices for the Smashr SaaS project"
+globs: 
+alwaysApply: true
+---
+# GLOBAL RULES
+0. User updates are ABOVE you in priority, you never edit user changes without asking first
+1. NEVER WRITE COMMENT IN CODE !!! NEVER COMMENT IN FRENCH OR ENGLISH !! 
+2. Don't expose your logic and ask for permission, do right away what is needed to be done, EXCEPT is user ask you to explain first before doing
+3. You NEVER do setTimeOut logic without explicit approval of user
+
+# Context
+
+This fill describe general information according the current project you're in.
+Project is called Trottr.
+It is a SaaS platform that helps company to manage field service management. It is dedicated to company that are doing jobs on sites with their customer.
+
+# About user
+User is high experiences developer and will expect AI to deliver only what is asked, nothing more. 
+
+# Global rules (DO NOT IGNORE)
+1. NO COMMENT in the code: we avoid comment writing in code in order to MINIMIZE code length 
+2. NEVER touch requirements.txt without EXPLICIT APPROVAL from user
+3. You ALWAYS ask user before creating new CSS classes
+4. NEVER reboot backend or fronted server, ask user to do it since he's working trough Visual Code Studio with server parameters
+5. If user is asking for specific approach you NEVER change it, or try other approach, without USER CONSENT
+6. NEVER add a line containing only spaces, CLEAN this line so that it is empty
+7. ALWAYS insure that API endpoint api check authentification sicne you're in a SaaS environment, except if user asks you not to.
+
+## Project structure
+
+Root folder is divided with 2 main folders :
+
+### /app : frontend structure made with the following technologies :
+- VueJS (^3.4.15)
+- reka-ui: (^2.3.2),
+- shadcn-vue: (^2.2.0),
+- Vite (^6.2.6)
+- Pinia (^2.1.7)
+- Axios (^1.8.4)
+
+When user asks you a shadcn component you have to do CLI command to get component from shadcn directly. Make sure to use nvm use 22 first and to be in /app folder.
+
+All informations according Frontend technologies available in : app/src/package.json
+
+app folder contains folowing main folders:
+- app/src/assets
+- app/src/components
+- app/src/views -> all the views are in this folder, except reused components that are in components.
+
+In the app/src/views, subfolders are dedidacated to different section of SaaS app:
+- app/src/views/website -> view dedicated to websites (WebsiteXXX.vue)
+- app/src/views/workspace -> view dedicated to workspace management (WorkspaceXXX.vue)
+
+### /server : backend structure mage with the following technologies :
+- FastAPI (^0.115.11)
+- Edgy (^0.31.0) (Documentation: https://edgy.dymmond.com/)
+
+All information according Backend technologies available in : /server/requirements.txt
+
+server folder contains following main folders:
+- server/models -> all the models used, made with Edgy
+- server/api -> API endpoints
+- server/cli -> CLI commands
+- server/services -> main services used for data treatment
+
+## General practice
+Router:
+When you're asked to create new pages or routes in router.js, you only have to focus on adding new pages.
+You never touch active routes EXCEPT if user STRICTLY ask to, otherwise you would break entire app.
+
+STRICT CSS GUIDELINES:
+1. ONLY use existing Vuetify classes for styling (such as pa-4, d-flex, etc.).
+2. NEVER create new custom CSS classes, unless absolutely necessary and justified.
+3. NEVER add <style> tags inside components.
+4. ALWAYS consult the Vuetify documentation before considering any custom CSS solution.
+5. If a style is truly necessary and cannot be achieved with Vuetify, add it ONLY in the dedicated .scss files and document the reason.
+6. Use Vuetify’s native spacing, color, alignment, and positioning classes IN PRIORITY.
+7. Any proposal to create a CSS class must be submitted for approval before implementation.
+8. When a specific need arises, ALWAYS search for a Vuetify class that addresses it first.
+9. AVOID using v-card components in your templates EXCEPT if it's asked by user
+10. When asked for ICON added in template, ALWAYS use PHOSPHOR ICONS and NOT MDI. Add Phosphor icons using vue Phosphor.
+11. If user remove your CSS Style, NEVER PUT IT BACK.
+12. NEVER recommands or add inline CSS in html or vue 
+
+Backend : 
+When you need to create a new model, you need to create Model Class that extends BaseModel.
+
+Migration :
+Create a new migration:
+```bash
+./kt db makemigrations -m "migration description"
+```
+
+Apply pending migrations:
+```bash
+./kt db migrate
+```
+
+Revert the last migration:
+```bash
+./kt db downgrade
+```
+
+View migration history:
+```bash
+./kt db history
+```

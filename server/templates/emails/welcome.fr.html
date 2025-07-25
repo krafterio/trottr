@@ -1,0 +1,26 @@
+{% block subject %}Bienvenue sur Smashr !{% endblock %}
+
+{% block body_html %}
+{% set content %}
+<h2 style="color: #333; margin-bottom: 20px;">Bienvenue {{ user.name | default('cher utilisateur') }} !</h2>
+
+<p style="margin-bottom: 16px;">Merci de vous être inscrit sur notre CRM Smashr.</p>
+
+<p style="margin-bottom: 16px;">Pour commencer, vous pouvez dès maintenant vous connecter à votre tableau de bord.</p>
+{% endset %}
+
+{% set footer_text %}Vous avez reçu cet email car vous vous êtes inscrit sur Smashr.{% endset %}
+
+{% include 'emails/layout.html' %}
+{% endblock %}
+
+{% block body_text %}
+Smashr
+
+Bienvenue {{ user.name | default('cher utilisateur') }} !
+
+Merci de vous être inscrit sur notre CRM Smashr.
+Pour commencer, vous pouvez dès maintenant vous connecter à votre tableau de bord.
+
+Vous avez reçu cet email car vous vous êtes inscrit sur Smashr.
+{% endblock %}

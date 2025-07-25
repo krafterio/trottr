@@ -1,0 +1,24 @@
+{% block subject %}Nouvelle demande d'accès - {{ request_name }}{% endblock %}
+
+{% block body_html %}
+{% set content %}
+<h1>Nouvelle demande d'accès</h1>
+
+<p>Une nouvelle demande d'accès a été soumise sur la plateforme Smashr.</p>
+
+<div style="background-color: #f8f9fa; border-left: 4px solid #007bff; padding: 20px; margin: 24px 0;">
+    <h3 style="color: #333; margin-top: 0;">Détails du demandeur</h3>
+    <p style="margin-bottom: 8px;"><strong>Nom :</strong> {{ request_name }}</p>
+    <p style="margin-bottom: 8px;"><strong>Email :</strong> {{ request_email }}</p>
+    <p style="margin-bottom: 8px;"><strong>Société :</strong> {{ request_company or 'Non spécifiée' }}</p>
+    <p style="margin-bottom: 0;"><strong>Effectif :</strong> {{ request_staff_range or 'Non spécifié' }}</p>
+    <p style="margin-bottom: 0;"><strong>Date de la demande :</strong> {{ request_date }}</p>
+</div>
+
+<p>Cette demande a été automatiquement enregistrée dans le système. Vous pouvez la consulter et la traiter depuis l'interface d'administration.</p>
+{% endset %}
+
+{% set footer_text %}Vous recevez cet email car vous êtes configuré comme destinataire des notifications de demandes d'accès à {{ app_name }}.{% endset %}
+
+{% include 'emails/layout.html' %}
+{% endblock %}
