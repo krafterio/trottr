@@ -8,16 +8,16 @@
                     <p class="text-neutral-600">Gestion des interventions terrain</p>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <Button variant="outline" size="sm">
-                        <Filter class="h-4 w-4 mr-2" />
-                        Filtres
-                    </Button>
-                    <Button variant="outline" size="sm">
-                        <Download class="h-4 w-4 mr-2" />
+                    <div class="flex items-center space-x-2 bg-accent rounded-md p-2 h-9">
+                        <p class="text-sm text-neutral-600">Afficher KPIs</p>
+                        <Switch />
+                    </div>
+                    <Button variant="outline">
+                        <Download class="h-4 w-4" />
                         Exporter
                     </Button>
-                    <Button size="sm">
-                        <Plus class="h-4 w-4 mr-2" />
+                    <Button>
+                        <Plus class="h-4 w-4" />
                         Nouvelle intervention
                     </Button>
                 </div>
@@ -179,10 +179,15 @@
                     <div class="px-6 py-4 border-b">
                         <div class="flex items-center justify-between">
                             <h3 class="text-lg font-semibold text-neutral-900">Liste des interventions</h3>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-sm text-neutral-600">26 interventions</span>
-                                <Button variant="ghost" size="sm">
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-muted-foreground">26 interventions</span>
+                                <Button variant="outline" size="sm" class="w-8">
                                     <MoreVertical class="h-4 w-4" />
+                                </Button>
+                                <Button variant="outline">
+                                    <Columns class="h-4 w-4" />
+                                    Colonnes
+                                    <ChevronDown class="h-4 w-4" />
                                 </Button>
                             </div>
                         </div>
@@ -619,22 +624,38 @@
                 </div>
             </div>
         </div>
+
+        <!-- Pagination fixe -->
+        <TablePagination :current-page="1" :total-pages="3" :total-items="26" :items-per-page="10"
+            position-classes="bottom-0 left-80 right-0" @page-change="handlePageChange"
+            @items-per-page-change="handleItemsPerPageChange" />
     </div>
 </template>
 
 <script setup>
-import { Button } from '@/common/components/ui/button';
-import { Checkbox } from '@/common/components/ui/checkbox';
+import { Button } from '@/common/components/ui/button'
+import { Checkbox } from '@/common/components/ui/checkbox'
+import Switch from '@/common/components/ui/switch/Switch.vue'
+import TablePagination from '@/main/components/TablePagination.vue'
 import {
     AlertTriangle,
     Calendar,
     CheckCircle,
+    ChevronDown,
     Clock,
+    Columns,
     Download,
-    Filter,
     MapPin,
     MoreVertical,
     Plus,
     RotateCcw
-} from 'lucide-vue-next';
+} from 'lucide-vue-next'
+
+const handlePageChange = (page) => {
+    console.log('Page changed to:', page)
+}
+
+const handleItemsPerPageChange = (itemsPerPage) => {
+    console.log('Items per page changed to:', itemsPerPage)
+}
 </script>
