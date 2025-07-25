@@ -14,3 +14,8 @@
 .g-gantt-bar-label>* {
     font-size: 12px;
 }
+
+.g-gantt-row>.g-gantt-row-bars-container {
+    border-top-color: #e5e7eb !important;
+    border-bottom-color: #e5e7eb !important;
+}

@@ -129,9 +129,10 @@
                         <!-- Gantt timeline -->
                         <div class="flex-1">
                             <g-gantt-chart :chart-start="chartStart" :chart-end="chartEnd" :precision="timeScale"
-                                bar-start="myBeginDate" bar-end="myEndDate" :hide-row-labels="true">
+                                bar-start="myBeginDate" bar-end="myEndDate" :hide-row-labels="true"
+                                @mouseenter-bar="onMouseEnterBar" @mouseleave-bar="onMouseLeaveBar">
                                 <g-gantt-row v-for="operator in ganttOperators" :key="operator.id" :label="''"
-                                    :bars="operator.tasks" />
+                                    :bars="operator.tasks" @drop="onDropTask" />
                             </g-gantt-chart>
                         </div>
                     </div>
@@ -161,46 +162,45 @@ const timeScale = ref('hour')
 
 const unplannedJobs = ref([
     {
-        id: 1,
-        title: 'Panne électrique',
-        description: 'Dépannage urgent système électrique',
-        client: 'SARL Martin',
-        address: '15 rue de la République, Lyon',
+        id: 8,
+        title: 'Réparation urgente',
+        description: 'Intervention immédiate nécessaire',
+        client: 'Clinique du Parc',
+        address: '92 cours Gambetta, Lyon',
         priority: 'Urgente',
-        duration: '2h',
-        coordinates: [45.7640, 4.8357]
-    },
-    {
-        id: 2,
-        title: 'Maintenance climatisation',
-        description: 'Contrôle et nettoyage système clim',
-        client: 'Hotel Plaza',
-        address: '42 av. Champs-Élysées, Lyon',
-        priority: 'Élevée',
         duration: '1h30',
-        coordinates: [45.7589, 4.8414]
+        coordinates: [45.7694, 4.8467]
     },
     {
-        id: 3,
-        title: 'Installation équipement',
-        description: 'Pose nouveau matériel',
-        client: 'Café Central',
-        address: '8 place Bellecour, Lyon',
+        id: 9,
+        title: 'Installation neuve',
+        description: 'Pose équipement complet',
+        client: 'Résidence Lumière',
+        address: '34 rue de la Paix, Lyon',
         priority: 'Normale',
-        duration: '3h',
-        coordinates: [45.7578, 4.8320]
-    },
-    {
-        id: 4,
-        title: 'Contrôle technique',
-        description: 'Vérification annuelle obligatoire',
-        client: 'Garage Moderne',
-        address: '67 boulevard Voltaire, Lyon',
-        priority: 'Normale',
-        duration: '1h',
-        coordinates: [45.7484, 4.8467]
+        duration: '4h',
+        coordinates: [45.7621, 4.8251]
     }
 ])
+
+// Tous les jobs (plannifiés et non plannifiés) pour la carte
+const allJobs = computed(() => [
+    { id: 1, title: 'Dépannage urgent', coordinates: [45.7640, 4.8357], isPlanned: true },
+    { id: 2, title: 'Maintenance clim', coordinates: [45.7589, 4.8414], isPlanned: true },
+    { id: 3, title: 'Installation équipement', coordinates: [45.7578, 4.8320], isPlanned: true },
+    { id: 4, title: 'Contrôle qualité', coordinates: [45.7484, 4.8467], isPlanned: true },
+    { id: 5, title: 'Maintenance préventive', coordinates: [45.7560, 4.8290], isPlanned: true },
+    { id: 6, title: 'Contrôle technique', coordinates: [45.7650, 4.8380], isPlanned: true },
+    { id: 7, title: 'Intervention urgente', coordinates: [45.7720, 4.8420], isPlanned: true },
+    ...unplannedJobs.value.map(job => ({
+        id: job.id,
+        title: job.title,
+        coordinates: job.coordinates,
+        isPlanned: false
+    }))
+])
+
+const hoveredJobId = ref(null)
 
 // Données des opérateurs pour le Gantt selon la documentation
 const ganttOperators = ref([
@@ -215,6 +215,22 @@ const ganttOperators = ref([
                     id: "task-jean-1",
                     hasHandles: true,
                     label: "Dépannage urgent",
+                    jobId: 1,
+                    style: {
+                        background: "#16190c",
+                        color: "white",
+                        borderRadius: "20px",
+                    }
+                }
+            },
+            {
+                myBeginDate: "2025-01-26 13:00",
+                myEndDate: "2025-01-26 15:30",
+                ganttBarConfig: {
+                    id: "task-jean-2",
+                    hasHandles: true,
+                    label: "Maintenance clim",
+                    jobId: 2,
                     style: {
                         background: "#16190c",
                         color: "white",
@@ -229,12 +245,28 @@ const ganttOperators = ref([
         label: 'Sophie Dubois',
         tasks: [
             {
-                myBeginDate: "2025-01-26 14:00",
-                myEndDate: "2025-01-26 15:00",
+                myBeginDate: "2025-01-26 08:00",
+                myEndDate: "2025-01-26 09:00",
                 ganttBarConfig: {
                     id: "task-sophie-1",
                     hasHandles: true,
                     label: "Installation équipement",
+                    jobId: 3,
+                    style: {
+                        background: "#16190c",
+                        borderRadius: "20px",
+                        color: "white"
+                    }
+                }
+            },
+            {
+                myBeginDate: "2025-01-26 14:00",
+                myEndDate: "2025-01-26 15:00",
+                ganttBarConfig: {
+                    id: "task-sophie-2",
+                    hasHandles: true,
+                    label: "Contrôle qualité",
+                    jobId: 4,
                     style: {
                         background: "#16190c",
                         borderRadius: "20px",
@@ -255,6 +287,7 @@ const ganttOperators = ref([
                     id: "task-pierre-1",
                     hasHandles: true,
                     label: "Maintenance préventive",
+                    jobId: 5,
                     style: {
                         background: "#16190c",
                         borderRadius: "20px",
@@ -275,6 +308,22 @@ const ganttOperators = ref([
                     id: "task-marie-1",
                     label: "Contrôle technique",
                     hasHandles: true,
+                    jobId: 6,
+                    style: {
+                        background: "#16190c",
+                        borderRadius: "20px",
+                        color: "white"
+                    }
+                }
+            },
+            {
+                myBeginDate: "2025-01-26 19:00",
+                myEndDate: "2025-01-26 20:30",
+                ganttBarConfig: {
+                    id: "task-marie-2",
+                    label: "Intervention urgente",
+                    hasHandles: true,
+                    jobId: 7,
                     style: {
                         background: "#16190c",
                         borderRadius: "20px",
@@ -351,6 +400,52 @@ const nextPeriod = () => {
 
 
 
+// Gestion du hover sur les barres Gantt
+const onMouseEnterBar = (event) => {
+    const jobId = event.bar?.ganttBarConfig?.jobId
+    if (jobId) {
+        hoveredJobId.value = jobId
+        updateMapMarkers()
+    }
+}
+
+const onMouseLeaveBar = () => {
+    hoveredJobId.value = null
+    updateMapMarkers()
+}
+
+// Gestion du drop entre lignes
+const onDropTask = (event) => {
+    console.log('Drop task event:', event)
+    // Ici on pourrait gérer le déplacement entre opérateurs
+}
+
+let markersMap = new Map()
+
+const updateMapMarkers = () => {
+    if (!map) return
+
+    markersMap.forEach(marker => {
+        const jobId = marker.jobId
+        const isHovered = hoveredJobId.value === jobId
+
+        // Changer la couleur du marqueur selon l'état hover
+        marker.setIcon(L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="
+                background: ${isHovered ? '#ff4444' : '#3b82f6'};
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                border: 2px solid white;
+                box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
+            "></div>`,
+            iconSize: [15, 15],
+            iconAnchor: [7.5, 7.5]
+        }))
+    })
+}
+
 const toggleMap = async () => {
     showMap.value = !showMap.value
 
@@ -388,16 +483,35 @@ const initMap = async () => {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map)
 
-    // Ajouter des marqueurs pour les jobs non planifiés
-    unplannedJobs.value.forEach(job => {
-        const marker = L.default.marker(job.coordinates).addTo(map)
+    // Ajouter des marqueurs pour tous les jobs
+    markersMap.clear()
+    allJobs.value.forEach(job => {
+        const marker = L.default.marker(job.coordinates, {
+            icon: L.default.divIcon({
+                className: 'custom-marker',
+                html: `<div style="
+                    background: ${job.isPlanned ? '#3b82f6' : '#10b981'};
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    border: 2px solid white;
+                    box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
+                "></div>`,
+                iconSize: [15, 15],
+                iconAnchor: [7.5, 7.5]
+            })
+        }).addTo(map)
+
+        marker.jobId = job.id
+        markersMap.set(job.id, marker)
+
         marker.bindPopup(`
-      <div class="p-2">
-        <h4 class="font-semibold">${job.title}</h4>
-        <p class="text-sm text-gray-600">${job.client}</p>
-        <p class="text-xs text-gray-500">${job.address}</p>
-      </div>
-    `)
+            <div class="p-2">
+                <h4 class="font-semibold">${job.title}</h4>
+                <p class="text-sm text-gray-600">${job.isPlanned ? 'Planifié' : 'Non planifié'}</p>
+                <p class="text-xs text-gray-500">ID: ${job.id}</p>
+            </div>
+        `)
     })
 }
 
