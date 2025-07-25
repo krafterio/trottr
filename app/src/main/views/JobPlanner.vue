@@ -82,14 +82,28 @@
                 <div class="flex-1 bg-white p-4 overflow-auto">
                     <div class="mb-4 flex justify-between items-center">
                         <h3 class="font-semibold text-gray-900">Planning des opérateurs</h3>
-                        <div class="flex items-center space-x-2 text-sm text-gray-600">
-                            <span>Aujourd'hui - {{ currentDate }}</span>
-                            <Button variant="outline" size="sm" class="h-8 w-8" @click="previousDay">
-                                <ChevronLeft class="h-3 w-3" />
-                            </Button>
-                            <Button variant="outline" size="sm" class="h-8 w-8" @click="nextDay">
-                                <ChevronRight class="h-3 w-3" />
-                            </Button>
+                        <div class="flex items-center space-x-3">
+                            <!-- Toggle jour/semaine -->
+                            <Select v-model="timeScale">
+                                <SelectTrigger class="w-32">
+                                    <SelectValue placeholder="Échelle" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="hour">Heure</SelectItem>
+                                    <SelectItem value="day">Jour</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <!-- Navigation temporelle -->
+                            <div class="flex items-center space-x-2 text-sm text-gray-600">
+                                <span>{{ currentDateDisplay }}</span>
+                                <Button variant="outline" size="sm" class="h-8 w-8" @click="previousPeriod">
+                                    <ChevronLeft class="h-3 w-3" />
+                                </Button>
+                                <Button variant="outline" size="sm" class="h-8 w-8" @click="nextPeriod">
+                                    <ChevronRight class="h-3 w-3" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
 
@@ -114,7 +128,7 @@
 
                         <!-- Gantt timeline -->
                         <div class="flex-1">
-                            <g-gantt-chart chart-start="2021-07-12 12:00" chart-end="2021-07-14 12:00" precision="hour"
+                            <g-gantt-chart :chart-start="chartStart" :chart-end="chartEnd" :precision="timeScale"
                                 bar-start="myBeginDate" bar-end="myEndDate" :hide-row-labels="true">
                                 <g-gantt-row v-for="operator in ganttOperators" :key="operator.id" :label="''"
                                     :bars="operator.tasks" />
@@ -129,13 +143,21 @@
 
 <script setup>
 import { Button } from '@/common/components/ui/button'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/common/components/ui/select'
 import { GGanttChart, GGanttRow } from '@infectoone/vue-ganttastic'
 import { Calendar, ChevronLeft, ChevronRight, Eye, EyeOff, MapPin, Plus, User } from 'lucide-vue-next'
-import { nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 
-// Données de démo
+// Données de démo et configuration
 const currentDate = new Date().toLocaleDateString('fr-FR')
-const currentDay = ref(new Date())
+const currentDay = ref(new Date(2025, 0, 26))
+const timeScale = ref('hour')
 
 const unplannedJobs = ref([
     {
@@ -187,10 +209,10 @@ const ganttOperators = ref([
         label: 'Jean Martin',
         tasks: [
             {
-                myBeginDate: "2021-07-13 13:00",
-                myEndDate: "2021-07-13 19:00",
+                myBeginDate: "2025-01-26 09:00",
+                myEndDate: "2025-01-26 11:00",
                 ganttBarConfig: {
-                    id: "unique-id-1",
+                    id: "task-jean-1",
                     hasHandles: true,
                     label: "Dépannage urgent",
                     style: {
@@ -207,10 +229,10 @@ const ganttOperators = ref([
         label: 'Sophie Dubois',
         tasks: [
             {
-                myBeginDate: "2021-07-13 00:00",
-                myEndDate: "2021-07-14 02:00",
+                myBeginDate: "2025-01-26 14:00",
+                myEndDate: "2025-01-26 15:00",
                 ganttBarConfig: {
-                    id: "another-unique-id-2",
+                    id: "task-sophie-1",
                     hasHandles: true,
                     label: "Installation équipement",
                     style: {
@@ -225,15 +247,30 @@ const ganttOperators = ref([
     {
         id: 'row3',
         label: 'Pierre Leclerc',
-        tasks: []
+        tasks: [
+            {
+                myBeginDate: "2025-01-26 16:00",
+                myEndDate: "2025-01-26 18:00",
+                ganttBarConfig: {
+                    id: "task-pierre-1",
+                    hasHandles: true,
+                    label: "Maintenance préventive",
+                    style: {
+                        background: "#16190c",
+                        borderRadius: "20px",
+                        color: "white"
+                    }
+                }
+            }
+        ]
     },
     {
         id: 'row4',
         label: 'Marie Rousseau',
         tasks: [
             {
-                myBeginDate: "2021-07-12 16:00",
-                myEndDate: "2021-07-12 18:00",
+                myBeginDate: "2025-01-26 10:30",
+                myEndDate: "2025-01-26 11:30",
                 ganttBarConfig: {
                     id: "task-marie-1",
                     label: "Contrôle technique",
@@ -257,17 +294,62 @@ const selectJob = (job) => {
     console.log('Job sélectionné:', job)
 }
 
-const previousDay = () => {
+// Computed properties pour la gestion des dates
+const currentDateDisplay = computed(() => {
+    if (timeScale.value === 'hour') {
+        return `${currentDay.value.toLocaleDateString('fr-FR')} - Vue heure`
+    } else {
+        return currentDay.value.toLocaleDateString('fr-FR')
+    }
+})
+
+const chartStart = computed(() => {
+    const start = new Date(currentDay.value)
+
+    if (timeScale.value === 'hour') {
+        // Mode heure : début de journée (6h du matin)
+        start.setHours(6, 0, 0, 0)
+        return start.toISOString().slice(0, 10) + ' 06:00'
+    } else {
+        // Mode jour : début de journée
+        start.setHours(0, 0, 0, 0)
+        return start.toISOString().slice(0, 10) + ' 00:00'
+    }
+})
+
+const chartEnd = computed(() => {
+    const end = new Date(currentDay.value)
+
+    if (timeScale.value === 'hour') {
+        // Mode heure : fin de journée (22h le même jour)
+        end.setHours(22, 0, 0, 0)
+        return end.toISOString().slice(0, 10) + ' 22:00'
+    } else {
+        // Mode jour : fin du jour suivant
+        end.setDate(end.getDate() + 1)
+        end.setHours(23, 59, 0, 0)
+        return end.toISOString().slice(0, 10) + ' 23:59'
+    }
+})
+
+// Navigation functions
+const previousPeriod = () => {
     const newDay = new Date(currentDay.value)
+    // Pour heure et jour : navigation par jour
     newDay.setDate(newDay.getDate() - 1)
     currentDay.value = newDay
 }
 
-const nextDay = () => {
+const nextPeriod = () => {
     const newDay = new Date(currentDay.value)
+    // Pour heure et jour : navigation par jour
     newDay.setDate(newDay.getDate() + 1)
     currentDay.value = newDay
 }
+
+
+
+
 
 const toggleMap = async () => {
     showMap.value = !showMap.value
