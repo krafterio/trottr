@@ -8,12 +8,20 @@
                     <p class="text-gray-600">Optimisez l'attribution et la planification des interventions</p>
                 </div>
                 <div class="flex items-center space-x-3">
+                    <Button v-if="showMap" variant="outline" size="sm" @click="toggleMap">
+                        <EyeOff class="h-4 w-4" />
+                        Masquer carte
+                    </Button>
+                    <Button v-else variant="outline" size="sm" @click="toggleMap">
+                        <Eye class="h-4 w-4" />
+                        Afficher la carte
+                    </Button>
                     <Button variant="outline" size="sm">
-                        <Calendar class="h-4 w-4 mr-2" />
+                        <Calendar class="h-4 w-4" />
                         Aujourd'hui
                     </Button>
                     <Button size="sm">
-                        <Plus class="h-4 w-4 mr-2" />
+                        <Plus class="h-4 w-4" />
                         Planifier sélection
                     </Button>
                 </div>
@@ -64,7 +72,7 @@
             <!-- Zone principale (droite) -->
             <div class="flex-1 flex flex-col">
                 <!-- Carte OpenStreetMap -->
-                <div class="h-96 bg-white border-b">
+                <div v-if="showMap" class="h-80 bg-white border-b relative">
                     <div class="h-full" ref="mapContainer">
                         <!-- La carte sera rendue ici -->
                     </div>
@@ -72,64 +80,45 @@
 
                 <!-- Planning Gantt -->
                 <div class="flex-1 bg-white p-4 overflow-auto">
-                    <div class="mb-4">
-                        <h3 class="font-semibold text-gray-900 mb-2">Planning des opérateurs</h3>
-                        <div class="flex items-center space-x-4 text-sm text-gray-600">
+                    <div class="mb-4 flex justify-between items-center">
+                        <h3 class="font-semibold text-gray-900">Planning des opérateurs</h3>
+                        <div class="flex items-center space-x-2 text-sm text-gray-600">
                             <span>Aujourd'hui - {{ currentDate }}</span>
-                            <Button variant="ghost" size="sm" class="h-6 px-2">
+                            <Button variant="outline" size="sm" class="h-8 w-8" @click="previousDay">
                                 <ChevronLeft class="h-3 w-3" />
                             </Button>
-                            <Button variant="ghost" size="sm" class="h-6 px-2">
+                            <Button variant="outline" size="sm" class="h-8 w-8" @click="nextDay">
                                 <ChevronRight class="h-3 w-3" />
                             </Button>
                         </div>
                     </div>
 
-                    <!-- Grille Gantt -->
-                    <div class="border rounded-lg overflow-hidden">
-                        <!-- En-tête des heures -->
-                        <div class="flex bg-gray-50 border-b">
-                            <div class="w-48 p-3 border-r font-medium text-sm text-gray-700">
-                                Opérateur
+                    <!-- Gantt Chart avec Vue-Ganttastic -->
+                    <div class="border rounded-lg overflow-hidden flex" style="height: calc(100% - 50px);">
+                        <!-- Colonne des opérateurs -->
+                        <div class="w-48 bg-gray-50 border-r flex flex-col">
+                            <!-- En-tête -->
+                            <div
+                                class="h-20.5 bg-gray-100 border-b-2 flex items-center px-3 font-medium text-sm text-gray-700">
+                                Opérateurs
                             </div>
-                            <div class="flex-1 grid grid-cols-12 text-xs text-gray-600">
-                                <div v-for="hour in hours" :key="hour" class="p-2 border-r text-center">
-                                    {{ hour }}h
+                            <!-- Liste des opérateurs -->
+                            <div class="flex-1">
+                                <div v-for="operator in ganttOperators" :key="operator.id"
+                                    class="h-10 border-b-2 border-gray-200 flex items-center px-3 text-sm text-gray-900">
+                                    <User class="h-4 w-4 mr-1" />
+                                    {{ operator.label }}
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Lignes des opérateurs -->
-                        <div v-for="operator in operators" :key="operator.id" class="flex border-b hover:bg-gray-50">
-                            <!-- Nom de l'opérateur -->
-                            <div class="w-48 p-3 border-r flex items-center">
-                                <div
-                                    class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-white text-xs font-medium mr-3">
-                                    {{ operator.initials }}
-                                </div>
-                                <div>
-                                    <div class="font-medium text-sm text-gray-900">{{ operator.name }}</div>
-                                    <div class="text-xs text-gray-500">{{ operator.zone }}</div>
-                                </div>
-                            </div>
-
-                            <!-- Timeline des créneaux -->
-                            <div class="flex-1 relative h-16">
-                                <div class="grid grid-cols-12 h-full">
-                                    <div v-for="hour in hours" :key="hour" class="border-r border-gray-100"></div>
-                                </div>
-
-                                <!-- Jobs planifiés -->
-                                <div v-for="task in operator.tasks" :key="task.id" :style="{
-                                    left: `${(task.startHour - 8) * 8.33}%`,
-                                    width: `${task.duration * 8.33}%`
-                                }" :class="[
-                                    'absolute top-2 bottom-2 rounded px-2 text-xs text-white flex items-center justify-center',
-                                    task.status === 'confirmed' ? 'bg-blue-500' : 'bg-green-500'
-                                ]">
-                                    <span class="truncate">{{ task.title }}</span>
-                                </div>
-                            </div>
+                        <!-- Gantt timeline -->
+                        <div class="flex-1">
+                            <g-gantt-chart chart-start="2021-07-12 12:00" chart-end="2021-07-14 12:00" precision="hour"
+                                bar-start="myBeginDate" bar-end="myEndDate" :hide-row-labels="true">
+                                <g-gantt-row v-for="operator in ganttOperators" :key="operator.id" :label="''"
+                                    :bars="operator.tasks" />
+                            </g-gantt-chart>
                         </div>
                     </div>
                 </div>
@@ -140,11 +129,13 @@
 
 <script setup>
 import { Button } from '@/common/components/ui/button'
-import { Calendar, ChevronLeft, ChevronRight, MapPin, Plus } from 'lucide-vue-next'
-import { onMounted, ref } from 'vue'
+import { GGanttChart, GGanttRow } from '@infectoone/vue-ganttastic'
+import { Calendar, ChevronLeft, ChevronRight, Eye, EyeOff, MapPin, Plus, User } from 'lucide-vue-next'
+import { nextTick, onMounted, ref } from 'vue'
 
 // Données de démo
 const currentDate = new Date().toLocaleDateString('fr-FR')
+const currentDay = ref(new Date())
 
 const unplannedJobs = ref([
     {
@@ -189,64 +180,122 @@ const unplannedJobs = ref([
     }
 ])
 
-const operators = ref([
+// Données des opérateurs pour le Gantt selon la documentation
+const ganttOperators = ref([
     {
-        id: 1,
-        name: 'Jean Martin',
-        initials: 'JM',
-        zone: 'Centre-ville',
+        id: 'row1',
+        label: 'Jean Martin',
         tasks: [
-            { id: 1, title: 'Dépannage urgent', startHour: 9, duration: 2, status: 'confirmed' },
-            { id: 2, title: 'Maintenance', startHour: 14, duration: 1.5, status: 'planned' }
+            {
+                myBeginDate: "2021-07-13 13:00",
+                myEndDate: "2021-07-13 19:00",
+                ganttBarConfig: {
+                    id: "unique-id-1",
+                    hasHandles: true,
+                    label: "Dépannage urgent",
+                    style: {
+                        background: "#16190c",
+                        color: "white",
+                        borderRadius: "20px",
+                    }
+                }
+            }
         ]
     },
     {
-        id: 2,
-        name: 'Sophie Dubois',
-        initials: 'SD',
-        zone: 'Part-Dieu',
+        id: 'row2',
+        label: 'Sophie Dubois',
         tasks: [
-            { id: 3, title: 'Installation', startHour: 10, duration: 3, status: 'confirmed' }
+            {
+                myBeginDate: "2021-07-13 00:00",
+                myEndDate: "2021-07-14 02:00",
+                ganttBarConfig: {
+                    id: "another-unique-id-2",
+                    hasHandles: true,
+                    label: "Installation équipement",
+                    style: {
+                        background: "#16190c",
+                        borderRadius: "20px",
+                        color: "white"
+                    }
+                }
+            }
         ]
     },
     {
-        id: 3,
-        name: 'Pierre Leclerc',
-        initials: 'PL',
-        zone: 'Vieux Lyon',
+        id: 'row3',
+        label: 'Pierre Leclerc',
         tasks: []
     },
     {
-        id: 4,
-        name: 'Marie Rousseau',
-        initials: 'MR',
-        zone: 'Presqu\'île',
+        id: 'row4',
+        label: 'Marie Rousseau',
         tasks: [
-            { id: 4, title: 'Contrôle', startHour: 8, duration: 1, status: 'confirmed' },
-            { id: 5, title: 'Réparation', startHour: 16, duration: 2, status: 'planned' }
+            {
+                myBeginDate: "2021-07-12 16:00",
+                myEndDate: "2021-07-12 18:00",
+                ganttBarConfig: {
+                    id: "task-marie-1",
+                    label: "Contrôle technique",
+                    hasHandles: true,
+                    style: {
+                        background: "#16190c",
+                        borderRadius: "20px",
+                        color: "white"
+                    }
+                }
+            }
         ]
     }
 ])
 
-const hours = ref([8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19])
-
 const mapContainer = ref(null)
 let map = null
+const showMap = ref(true)
 
 const selectJob = (job) => {
     console.log('Job sélectionné:', job)
-    // Ici on pourrait centrer la carte sur le job ou l'highlight
 }
 
-onMounted(async () => {
+const previousDay = () => {
+    const newDay = new Date(currentDay.value)
+    newDay.setDate(newDay.getDate() - 1)
+    currentDay.value = newDay
+}
+
+const nextDay = () => {
+    const newDay = new Date(currentDay.value)
+    newDay.setDate(newDay.getDate() + 1)
+    currentDay.value = newDay
+}
+
+const toggleMap = async () => {
+    showMap.value = !showMap.value
+
+    if (showMap.value) {
+        await nextTick()
+        initMap()
+    }
+}
+
+const initMap = async () => {
+    if (!mapContainer.value) return
+
     // Initialisation de la carte Leaflet
     const L = await import('leaflet')
 
     // Import du CSS de Leaflet
-    const link = document.createElement('link')
-    link.rel = 'stylesheet'
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-    document.head.appendChild(link)
+    if (!document.querySelector('link[href*="leaflet.css"]')) {
+        const leafletLink = document.createElement('link')
+        leafletLink.rel = 'stylesheet'
+        leafletLink.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+        document.head.appendChild(leafletLink)
+    }
+
+    // Nettoyer la carte existante si elle existe
+    if (map) {
+        map.remove()
+    }
 
     // Initialiser la carte centrée sur Lyon
     map = L.default.map(mapContainer.value).setView([45.7640, 4.8357], 12)
@@ -268,5 +317,9 @@ onMounted(async () => {
       </div>
     `)
     })
+}
+
+onMounted(() => {
+    initMap()
 })
 </script>

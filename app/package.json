@@ -15,6 +15,7 @@
     "@atlaskit/pragmatic-drag-and-drop": "^1.7.4",
     "@atlaskit/pragmatic-drag-and-drop-hitbox": "^1.1.0",
     "@iconify/vue": "^5.0.0",
+    "@infectoone/vue-ganttastic": "^2.3.2",
     "@internationalized/date": "^3.8.2",
     "@tailwindcss/vite": "^4.1.11",
     "@tanstack/vue-table": "^8.21.3",
