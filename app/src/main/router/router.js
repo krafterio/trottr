@@ -65,8 +65,16 @@ const router = createRouter({
       component: () => import('@/main/views/HomeView.vue'),
       meta: {
         requiresAuth: true,
-        metaTitle: 'Bienvenue sur Trottr',
-        title: 'Accueil'
+        metaTitle: 'Accueil'
+      }
+    },
+    {
+      path: '/job-planner',
+      name: 'job-planner',
+      component: () => import('@/main/views/JobPlanner.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Planificateur d\'interventions'
       }
     },
     {
