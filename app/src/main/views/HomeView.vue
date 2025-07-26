@@ -232,8 +232,8 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-neutral-200">
-                                <tr class="hover:bg-neutral-50">
-                                    <td class="px-3 py-4 whitespace-nowrap">
+                                <tr class="hover:bg-neutral-50 cursor-pointer" @click="$router.push('/job/TR42K8')">
+                                    <td class="px-3 py-4 whitespace-nowrap" @click.stop>
                                         <Checkbox />
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -331,8 +331,8 @@
                                     </td>
                                 </tr>
 
-                                <tr class="hover:bg-neutral-50">
-                                    <td class="px-3 py-4 whitespace-nowrap">
+                                <tr class="hover:bg-neutral-50 cursor-pointer" @click="$router.push('/job/IN9R4V')">
+                                    <td class="px-3 py-4 whitespace-nowrap" @click.stop>
                                         <Checkbox />
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -381,8 +381,8 @@
                                     </td>
                                 </tr>
 
-                                <tr class="hover:bg-neutral-50">
-                                    <td class="px-3 py-4 whitespace-nowrap">
+                                <tr class="hover:bg-neutral-50 cursor-pointer" @click="$router.push('/job/RP8M2N')">
+                                    <td class="px-3 py-4 whitespace-nowrap" @click.stop>
                                         <Checkbox />
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -430,8 +430,8 @@
                                     </td>
                                 </tr>
 
-                                <tr class="hover:bg-neutral-50">
-                                    <td class="px-3 py-4 whitespace-nowrap">
+                                <tr class="hover:bg-neutral-50 cursor-pointer" @click="$router.push('/job/CT5B7Q')">
+                                    <td class="px-3 py-4 whitespace-nowrap" @click.stop>
                                         <Checkbox />
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -476,8 +476,8 @@
                                     </td>
                                 </tr>
 
-                                <tr class="hover:bg-neutral-50">
-                                    <td class="px-3 py-4 whitespace-nowrap">
+                                <tr class="hover:bg-neutral-50 cursor-pointer" @click="$router.push('/job/DP3X9K')">
+                                    <td class="px-3 py-4 whitespace-nowrap" @click.stop>
                                         <Checkbox />
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">

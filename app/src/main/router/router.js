@@ -78,6 +78,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/job/:id',
+      name: 'job',
+      component: () => import('@/main/views/JobView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Détails de l\'intervention'
+      }
+    },
+    {
       path: '/workspace',
       name: 'workspace-home',
       redirect: '/home',

@@ -356,11 +356,9 @@ const chartStart = computed(() => {
     const start = new Date(currentDay.value)
 
     if (timeScale.value === 'hour') {
-        // Mode heure : début de journée (6h du matin)
         start.setHours(6, 0, 0, 0)
         return start.toISOString().slice(0, 10) + ' 06:00'
     } else {
-        // Mode jour : début de journée
         start.setHours(0, 0, 0, 0)
         return start.toISOString().slice(0, 10) + ' 00:00'
     }
@@ -370,11 +368,9 @@ const chartEnd = computed(() => {
     const end = new Date(currentDay.value)
 
     if (timeScale.value === 'hour') {
-        // Mode heure : fin de journée (22h le même jour)
         end.setHours(22, 0, 0, 0)
         return end.toISOString().slice(0, 10) + ' 22:00'
     } else {
-        // Mode jour : fin du jour suivant
         end.setDate(end.getDate() + 1)
         end.setHours(23, 59, 0, 0)
         return end.toISOString().slice(0, 10) + ' 23:59'
