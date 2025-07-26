@@ -73,11 +73,11 @@
 </template>
 
 <script setup>
-import SettingsBilling from '@/main/components/settings/SettingsBilling.vue'
-import SettingsDisplay from '@/main/components/settings/SettingsDisplay.vue'
-import SettingsGeneral from '@/main/components/settings/SettingsGeneral.vue'
-import SettingsJob from '@/main/components/settings/SettingsJob.vue'
-import SettingsUsers from '@/main/components/settings/SettingsUsers.vue'
+import SettingsBilling from '@/main/views/settings/pages/SettingsBilling.vue'
+import SettingsDisplay from '@/main/views/settings/pages/SettingsDisplay.vue'
+import SettingsGeneral from '@/main/views/settings/pages/SettingsGeneral.vue'
+import SettingsJob from '@/main/views/settings/pages/SettingsJob.vue'
+import SettingsUsers from '@/main/views/settings/pages/SettingsUsers.vue'
 import { CreditCard, Map, Monitor, Settings2, Users } from 'lucide-vue-next'
 import { ref } from 'vue'
 
