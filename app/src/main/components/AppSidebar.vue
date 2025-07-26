@@ -83,7 +83,7 @@ const modules = [
     },
     {
         title: 'Tableau de bord',
-        url: '/reports',
+        url: '/dashboard',
         icon: BarChart3,
     },
     {

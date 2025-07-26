@@ -97,10 +97,18 @@
                                         <span class="text-sm">Priorité élevée</span>
                                     </Badge>
                                 </div>
-                                <Button size="sm">
-                                    <Play class="h-4 w-4 mr-1" />
-                                    Démarrer
-                                </Button>
+                                <div class="flex gap-2">
+                                    <Button variant="outline" size="sm">
+                                        <AlertTriangle class="h-4 w-4 text-orange-500" />
+                                        Signaler intervention
+                                        <ChevronDown class="h-4 w-4" />
+                                    </Button>
+
+                                    <Button size="sm">
+                                        <Play class="h-3 w-3 fill-current" />
+                                        Démarrer
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </CardContent>
@@ -140,8 +148,8 @@
 
                                         <div class="flex items-start space-x-4">
                                             <div
-                                                class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                                                <StickyNote class="h-4 w-4 text-white" />
+                                                class="w-8 h-8 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center flex-shrink-0">
+                                                <StickyNote class="h-4 w-4" />
                                             </div>
                                             <div class="flex-1 min-w-0">
                                                 <div class="rounded-lg p-4 border">
@@ -234,16 +242,16 @@
                                                         <div class="flex items-center space-x-2">
                                                             <FileText class="h-4 w-4 text-neutral-500" />
                                                             <span class="text-sm text-neutral-700">{{ attachmentName
-                                                            }}</span>
+                                                                }}</span>
                                                             <span class="text-xs text-neutral-500">{{ attachmentSize
-                                                            }}</span>
+                                                                }}</span>
                                                         </div>
                                                         <div class="flex items-center space-x-2">
                                                             <Image class="h-4 w-4 text-neutral-500" />
                                                             <span class="text-sm text-neutral-700">{{ imageName
-                                                            }}</span>
+                                                                }}</span>
                                                             <span class="text-xs text-neutral-500">{{ imageSize
-                                                            }}</span>
+                                                                }}</span>
                                                         </div>
                                                         <div class="flex items-center space-x-2">
                                                             <span

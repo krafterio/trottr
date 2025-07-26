@@ -105,6 +105,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: () => import('@/main/views/DashboardView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Tableau de bord'
+      }
+    },
+    {
       path: '/workspace',
       name: 'workspace-home',
       redirect: '/home',
