@@ -76,10 +76,11 @@
                                     <div v-for="job in getJobsForTechnicianAndDay(technician.id, day.id)" :key="job.id"
                                         @click="openJobDialog(job)"
                                         class="px-2 py-1 rounded text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity"
-                                        :class="getJobStatusClass(job.status)">
-                                        <div class="font-medium">{{ job.time }}</div>
+                                        :class="getJobCategoryClass(job.category)">
+                                        <div class="font-medium">{{ getJobTimeRange(job) }}</div>
                                         <div class="truncate">{{ job.title }}</div>
-                                        <div class="text-xs opacity-75">{{ job.client }}</div>
+                                        <div class="text-xs opacity-75">{{ job.client }} - {{ getJobCity(job.address) }}
+                                        </div>
                                     </div>
                                 </VueDraggable>
                             </template>
@@ -356,7 +357,7 @@ const jobs = ref([
         id: 11,
         ref: 'GZ4R8T',
         title: 'Contrôle gaz',
-        category: 'Audit Gaz',
+        category: 'Diagnostic Gaz',
         client: 'Restaurant Le Petit Zinc',
         address: '32 rue Saint-Antoine',
         time: '08:30',
@@ -418,7 +419,7 @@ const jobs = ref([
         id: 15,
         ref: 'AB1C2D',
         title: 'Contrôle annuel',
-        category: 'Contrôle réglementaire',
+        category: 'État des lieux',
         client: 'Immeuble Résidentiel',
         address: '125 avenue des Champs',
         time: '08:00',
@@ -507,7 +508,15 @@ const jobs = ref([
 ])
 
 const getJobsForTechnicianAndDay = (technicianId, dayId) => {
-    return jobs.value.filter(job => job.technicianId === technicianId && job.dayId === dayId)
+    return jobs.value
+        .filter(job => job.technicianId === technicianId && job.dayId === dayId)
+        .sort((a, b) => {
+            const timeA = a.time.split(':').map(Number)
+            const timeB = b.time.split(':').map(Number)
+            const minutesA = timeA[0] * 60 + timeA[1]
+            const minutesB = timeB[0] * 60 + timeB[1]
+            return minutesA - minutesB
+        })
 }
 
 const parseDuration = (duration) => {
@@ -553,8 +562,17 @@ const updateJobsForCell = (technicianId, dayId, newJobs) => {
         }
     }
 
+    // Trier les nouveaux jobs par heure de début
+    const sortedJobs = newJobs.sort((a, b) => {
+        const timeA = a.time.split(':').map(Number)
+        const timeB = b.time.split(':').map(Number)
+        const minutesA = timeA[0] * 60 + timeA[1]
+        const minutesB = timeB[0] * 60 + timeB[1]
+        return minutesA - minutesB
+    })
+
     // Ajouter les nouveaux jobs avec les bonnes assignations
-    newJobs.forEach(job => {
+    sortedJobs.forEach(job => {
         const updatedJob = {
             ...job,
             technicianId,
@@ -574,6 +592,58 @@ const getJobStatusClass = (status) => {
         'À assigner': 'bg-yellow-100 text-yellow-800'
     }
     return statusClasses[status] || 'bg-neutral-100 text-neutral-800'
+}
+
+const getJobCategoryClass = (category) => {
+    const categoryClasses = {
+        'Dépannage simple': 'bg-blue-100 text-blue-800',
+        'Dépannage urgent': 'bg-red-100 text-red-800',
+        'Dépannage': 'bg-red-100 text-red-800',
+        'État des lieux': 'bg-orange-100 text-orange-800',
+        'Diagnostic Gaz': 'bg-green-100 text-green-800',
+        'Audit Gaz': 'bg-violet-100 text-violet-800',
+        'Contrôle technique': 'bg-blue-100 text-blue-800',
+        'Maintenance': 'bg-green-100 text-green-800',
+        'Vérification annuelle': 'bg-blue-100 text-blue-800',
+        'Contrôle mensuel': 'bg-green-100 text-green-800',
+        'Entretien saisonnier': 'bg-green-100 text-green-800',
+        'Nouvel équipement': 'bg-violet-100 text-violet-800',
+        'Installation': 'bg-violet-100 text-violet-800',
+        'Audit sécurité': 'bg-orange-100 text-orange-800',
+        'Analyse système': 'bg-violet-100 text-violet-800',
+        'Travaux réglementaires': 'bg-orange-100 text-orange-800',
+        'Diagnostic': 'bg-green-100 text-green-800',
+        'Diagnostic spécialisé': 'bg-green-100 text-green-800',
+        'Audit final': 'bg-orange-100 text-orange-800'
+    }
+    return categoryClasses[category] || 'bg-neutral-100 text-neutral-800'
+}
+
+const calculateEndTime = (startTime, duration) => {
+    const [hours, minutes] = startTime.split(':').map(Number)
+    const durationHours = parseDuration(duration)
+
+    const totalMinutes = hours * 60 + minutes + (durationHours * 60)
+    const endHours = Math.floor(totalMinutes / 60)
+    const endMins = Math.round(totalMinutes % 60)
+
+    return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`
+}
+
+const getJobTimeRange = (job) => {
+    const endTime = calculateEndTime(job.time, job.duration)
+    return `${job.time} → ${endTime} (${job.duration})`
+}
+
+const getJobCity = (address) => {
+    // Extrait la ville de l'adresse (dernier élément après la virgule, ou mot après les chiffres)
+    if (address.includes(',')) {
+        const parts = address.split(',')
+        return parts[parts.length - 1].trim()
+    }
+    // Si pas de virgule, essaie d'extraire après les chiffres et rue
+    const match = address.match(/\d+\s+.*?\s+(.+)/)
+    return match ? match[1] : address
 }
 
 const openJobDialog = (job) => {
