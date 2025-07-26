@@ -1,16 +1,16 @@
 <template>
-    <div class="max-w-2xl">
+    <div class="max-w-5xl">
         <div class="mb-6">
             <h2 class="text-lg font-semibold text-neutral-900">Paramètres des interventions</h2>
             <p class="text-neutral-600">Configurez les préférences par défaut pour vos interventions.</p>
         </div>
 
         <div class="space-y-6">
-            <div class="space-y-4">
-                <div class="space-y-2">
+            <div class="space-y-6">
+                <div class="space-y-3">
                     <Label for="default-duration">Durée par défaut d'une intervention</Label>
                     <Select>
-                        <SelectTrigger class="max-w-sm">
+                        <SelectTrigger class="w-full">
                             <SelectValue placeholder="Sélectionner une durée" />
                         </SelectTrigger>
                         <SelectContent>
@@ -27,10 +27,10 @@
                     </p>
                 </div>
 
-                <div class="space-y-2">
+                <div class="space-y-3">
                     <Label for="default-status">Statut par défaut</Label>
                     <Select>
-                        <SelectTrigger class="max-w-sm">
+                        <SelectTrigger class="w-full">
                             <SelectValue placeholder="Sélectionner un statut" />
                         </SelectTrigger>
                         <SelectContent>
@@ -41,10 +41,10 @@
                     </Select>
                 </div>
 
-                <div class="space-y-2">
+                <div class="space-y-3">
                     <Label for="default-priority">Priorité par défaut</Label>
                     <Select>
-                        <SelectTrigger class="max-w-sm">
+                        <SelectTrigger class="w-full">
                             <SelectValue placeholder="Sélectionner une priorité" />
                         </SelectTrigger>
                         <SelectContent>

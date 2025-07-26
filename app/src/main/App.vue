@@ -1,10 +1,10 @@
 <template>
 	<div id="app" class="h-screen flex flex-col">
 		<template v-if="authStore.isAuthenticated">
-			<AppNavbar />
-			<div class="flex flex-1">
-				<AppSidebar />
-				<main class="flex-1 overflow-hidden">
+			<AppNavbar class="fixed top-0 left-0 right-0 z-50" />
+			<div class="flex flex-1 pt-15">
+				<AppSidebar class="fixed left-0 top-15 bottom-0 z-40" />
+				<main class="flex-1 overflow-hidden ml-16">
 					<router-view />
 				</main>
 			</div>

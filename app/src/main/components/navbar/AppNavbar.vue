@@ -1,6 +1,6 @@
 <template>
     <nav class="w-full bg-primary text-white px-6 py-3">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between h-full">
             <div class="flex items-center space-x-3">
                 <img src="/trottr-favicon-white.svg" alt="Trottr" class="h-6" />
 
