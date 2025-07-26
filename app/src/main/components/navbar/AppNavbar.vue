@@ -17,13 +17,7 @@
                         <NavigationMenuItem>
                             <NavigationMenuLink href="/job-planner"
                                 class="text-neutral-400 hover:text-white hover:bg-neutral-800 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:bg-neutral-800 focus:text-white">
-                                Interventions à planifier
-                            </NavigationMenuLink>
-                        </NavigationMenuItem>
-                        <NavigationMenuItem>
-                            <NavigationMenuLink href="#"
-                                class="text-neutral-400 hover:text-white hover:bg-neutral-800 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:bg-neutral-800 focus:text-white">
-                                Interventions en retard
+                                Planificateur d'interventions
                             </NavigationMenuLink>
                         </NavigationMenuItem>
                     </NavigationMenuList>

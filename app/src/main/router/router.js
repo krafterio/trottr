@@ -87,6 +87,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/settings',
+      name: 'settings',
+      component: () => import('@/main/views/SettingsView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Paramètres'
+      }
+    },
+    {
       path: '/workspace',
       name: 'workspace-home',
       redirect: '/home',
