@@ -56,8 +56,9 @@
                             <div class="flex items-start space-x-2">
                                 <ScanSearch class="h-8 w-8 text-neutral-400 mt-2 me-3" :stroke-width="1.2" />
                                 <div class="flex flex-col">
-                                    <h3 class="text-lg font-semibold">{{ jobDescription }}</h3>
-                                    <p class="text-neutral-600">{{ clientName }} • {{ clientAddress.split(',')[0] }}</p>
+                                    <h1 class="text-2xl font-semibold">{{ jobDescription }}</h1>
+                                    <p class="text-neutral-600">{{ clientName }} • {{ clientAddress.split(',')[0] }}
+                                    </p>
                                 </div>
                             </div>
                             <Badge class="bg-green-100 text-green-800">
@@ -256,16 +257,16 @@
                                                         <div class="flex items-center space-x-2">
                                                             <FileText class="h-4 w-4 text-neutral-500" />
                                                             <span class="text-sm text-neutral-700">{{ attachmentName
-                                                            }}</span>
+                                                                }}</span>
                                                             <span class="text-xs text-neutral-500">{{ attachmentSize
-                                                            }}</span>
+                                                                }}</span>
                                                         </div>
                                                         <div class="flex items-center space-x-2">
                                                             <Image class="h-4 w-4 text-neutral-500" />
                                                             <span class="text-sm text-neutral-700">{{ imageName
-                                                            }}</span>
+                                                                }}</span>
                                                             <span class="text-xs text-neutral-500">{{ imageSize
-                                                            }}</span>
+                                                                }}</span>
                                                         </div>
                                                         <div class="flex items-center space-x-2">
                                                             <span

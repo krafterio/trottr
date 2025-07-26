@@ -6,19 +6,21 @@
 
                 <div class="w-px ms-2 h-6 bg-neutral-700"></div>
 
-                <NavigationMenu>
+                <NavigationMenu v-if="currentModuleLinks.length > 0">
                     <NavigationMenuList class="space-x-1">
-                        <NavigationMenuItem>
-                            <NavigationMenuLink href="/home"
-                                class="text-neutral-200 hover:text-white hover:bg-neutral-800 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:bg-neutral-800 focus:text-white">
-                                Toutes les interventions
+                        <NavigationMenuItem v-for="link in currentModuleLinks" :key="link.href">
+                            <NavigationMenuLink :href="link.href" v-if="!link.disabled" :class="[
+                                'px-3 py-2 rounded-md text-sm font-medium transition-colors focus:bg-neutral-800 focus:text-white',
+                                isActiveLink(link.href)
+                                    ? 'text-white bg-neutral-800'
+                                    : 'text-neutral-200 hover:text-white hover:bg-neutral-800'
+                            ]">
+                                {{ link.label }}
                             </NavigationMenuLink>
-                        </NavigationMenuItem>
-                        <NavigationMenuItem>
-                            <NavigationMenuLink href="/job-planner"
-                                class="text-neutral-400 hover:text-white hover:bg-neutral-800 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:bg-neutral-800 focus:text-white">
-                                Planificateur d'interventions
-                            </NavigationMenuLink>
+                            <span v-else
+                                class="text-neutral-500 px-3 py-2 rounded-md text-sm font-medium cursor-not-allowed">
+                                {{ link.label }}
+                            </span>
                         </NavigationMenuItem>
                     </NavigationMenuList>
                 </NavigationMenu>
@@ -67,5 +69,74 @@ import {
     NavigationMenuList,
 } from '@/common/components/ui/navigation-menu'
 import { Bell, HelpCircle, Plus, Search } from 'lucide-vue-next'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import NavbarUser from './NavbarUser.vue'
+
+const route = useRoute()
+
+const moduleLinks = {
+    interventions: [
+        { href: '/home', label: 'Toutes les interventions' },
+        { href: '/job-planner', label: 'Planificateur d\'interventions' }
+    ],
+    crm: [
+        { href: '/companies', label: 'Sociétés' },
+        { href: '/contacts', label: 'Contacts' }
+    ],
+    vente: [
+        { href: '/devis', label: 'Devis' },
+        { href: '/contrats', label: 'Contrats' }
+    ],
+    planning: [],
+    dashboard: [],
+    documents: [
+        { href: '#', label: 'Bientôt disponible', disabled: true }
+    ],
+    gestion: [
+        { href: '/stock', label: 'Stock pièces détachées' },
+        { href: '/operations', label: 'Opérations' },
+        { href: '/produits', label: 'Fiches produit' },
+        { href: '/flotte', label: 'Flotte' }
+    ],
+    rh: [
+        { href: '/techniciens', label: 'Techniciens' },
+        { href: '/absences', label: 'Absences / congés' }
+    ]
+}
+
+const currentModule = computed(() => {
+    const path = route.path
+
+    if (path.startsWith('/home') || path.startsWith('/job')) {
+        return 'interventions'
+    } else if (path.startsWith('/companies') || path.startsWith('/contacts')) {
+        return 'crm'
+    } else if (path.startsWith('/devis') || path.startsWith('/contrats')) {
+        return 'vente'
+    } else if (path.startsWith('/planning')) {
+        return 'planning'
+    } else if (path.startsWith('/dashboard')) {
+        return 'dashboard'
+    } else if (path.startsWith('/documents')) {
+        return 'documents'
+    } else if (path.startsWith('/stock') || path.startsWith('/operations') || path.startsWith('/produits') || path.startsWith('/flotte') || path.startsWith('/gestion')) {
+        return 'gestion'
+    } else if (path.startsWith('/techniciens') || path.startsWith('/absences') || path.startsWith('/rh')) {
+        return 'rh'
+    }
+
+    return null
+})
+
+const currentModuleLinks = computed(() => {
+    return currentModule.value ? moduleLinks[currentModule.value] || [] : []
+})
+
+const isActiveLink = (href) => {
+    if (href === '/home') {
+        return route.path === '/home' || route.path === '/'
+    }
+    return route.path.startsWith(href)
+}
 </script>

@@ -2,7 +2,7 @@
     <div class="h-full flex flex-col">
         <!-- Bandeau supérieur avec actions et KPIs -->
         <div class="bg-white border-b px-6 py-4">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between" :class="showKpis ? 'mb-4' : 'mb-0'">
                 <div>
                     <h1 class="text-2xl font-bold text-neutral-900">Interventions</h1>
                     <p class="text-neutral-600">Gestion des interventions terrain</p>
@@ -10,7 +10,7 @@
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center space-x-2 bg-accent rounded-md p-2 h-9">
                         <p class="text-sm text-neutral-600">Afficher KPIs</p>
-                        <Switch />
+                        <Switch v-model="showKpis" />
                     </div>
                     <Button variant="outline">
                         <Download class="h-4 w-4" />
@@ -24,7 +24,7 @@
             </div>
 
             <!-- KPIs compacts -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div v-show="showKpis" class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center">
                         <Calendar class="h-4 w-4 text-neutral-600" />
@@ -240,7 +240,7 @@
                                     </td>
                                     <td class="px-6 py-2 whitespace-nowrap space-y-1">
                                         <div class="text-sm font-mono font-medium text-neutral-900">{{ intervention.ref
-                                            }}</div>
+                                        }}</div>
                                         <div class="text-xs text-neutral-500">{{ intervention.date }}</div>
                                     </td>
                                     <td class="px-6 py-2 whitespace-nowrap space-y-1">
@@ -310,7 +310,7 @@
 <script setup>
 import { Button } from '@/common/components/ui/button'
 import { Checkbox } from '@/common/components/ui/checkbox'
-import Switch from '@/common/components/ui/switch/Switch.vue'
+import { Switch } from '@/common/components/ui/switch'
 import TablePagination from '@/main/components/TablePagination.vue'
 import {
     AlertTriangle,
@@ -325,6 +325,9 @@ import {
     Plus,
     RotateCcw
 } from 'lucide-vue-next'
+import { ref } from 'vue'
+
+const showKpis = ref(false)
 
 const interventions = [
     {
