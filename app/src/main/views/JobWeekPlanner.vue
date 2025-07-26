@@ -49,12 +49,15 @@
                                 <div class="flex-1">
                                     <div class="font-medium text-neutral-900">{{ technician.name }}</div>
                                     <div class="text-sm text-neutral-500">{{ technician.role }}</div>
-                                    <div class=" px-4 py-3 bg-neutral-100 absolute bottom-4 left-4 right-4 rounded-md">
-                                        <div class="flex items-center justify-between text-xs text-neutral-500 mb-1">
-                                            <span>{{ getTechnicianWorkHours(technician.id) }}h / 35h</span>
-                                            <span>{{ Math.round(getTechnicianWorkload(technician.id)) }}%</span>
-                                        </div>
-                                        <Progress :model-value="getTechnicianWorkload(technician.id)" class="h-1.5" />
+                                    <div
+                                        class=" px-4 py-3 bg-neutral-100 absolute bottom-4 left-4 right-4 rounded-md flex items-center gap-2">
+                                        <span class="text-xs text-neutral-500">{{
+                                            Math.round(getTechnicianWorkload(technician.id)) }}%</span>
+                                        <ProgressRoot :model-value="getTechnicianWorkload(technician.id)"
+                                            class="h-1.5 bg-white rounded-full flex-1">
+                                            <ProgressIndicator class="bg-primary h-full rounded-full transition-all"
+                                                :style="`width: ${getTechnicianWorkload(technician.id)}%`" />
+                                        </ProgressRoot>
                                     </div>
                                 </div>
                             </div>
@@ -91,62 +94,21 @@
         </div>
 
         <Dialog :open="showJobDialog" @update:open="showJobDialog = $event">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Détails de l'intervention</DialogTitle>
-                </DialogHeader>
-                <div v-if="selectedJob" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <Label class="text-sm font-medium text-neutral-700">Référence</Label>
-                            <p class="text-sm font-mono">{{ selectedJob.ref }}</p>
-                        </div>
-                        <div>
-                            <Label class="text-sm font-medium text-neutral-700">Statut</Label>
-                            <Badge :class="getJobStatusClass(selectedJob.status)">
-                                {{ selectedJob.status }}
-                            </Badge>
-                        </div>
-                    </div>
-                    <div>
-                        <Label class="text-sm font-medium text-neutral-700">Intervention</Label>
-                        <p class="text-sm">{{ selectedJob.title }}</p>
-                        <p class="text-xs text-neutral-500">{{ selectedJob.category }}</p>
-                    </div>
-                    <div>
-                        <Label class="text-sm font-medium text-neutral-700">Client</Label>
-                        <p class="text-sm">{{ selectedJob.client }}</p>
-                        <p class="text-xs text-neutral-500">{{ selectedJob.address }}</p>
-                    </div>
-                    <div>
-                        <Label class="text-sm font-medium text-neutral-700">Horaire</Label>
-                        <p class="text-sm">{{ selectedJob.time }} - {{ selectedJob.duration }}</p>
-                    </div>
-                    <div>
-                        <Label class="text-sm font-medium text-neutral-700">Technicien</Label>
-                        <p class="text-sm">{{ selectedJob.technician }}</p>
-                    </div>
-                </div>
-                <div class="flex justify-end space-x-2 mt-6">
-                    <Button variant="outline" @click="showJobDialog = false">Fermer</Button>
-                    <Button @click="editJob">Modifier</Button>
-                </div>
+            <DialogContent class="!w-6xl !h-[90vh] !max-w-none p-0 overflow-auto bg-accent">
+                <JobView :inDialog="true" />
             </DialogContent>
         </Dialog>
     </div>
 </template>
 
 <script setup>
-import Badge from '@/common/components/ui/badge/Badge.vue'
 import { Button } from '@/common/components/ui/button'
 import Dialog from '@/common/components/ui/dialog/Dialog.vue'
 import DialogContent from '@/common/components/ui/dialog/DialogContent.vue'
-import DialogHeader from '@/common/components/ui/dialog/DialogHeader.vue'
-import DialogTitle from '@/common/components/ui/dialog/DialogTitle.vue'
-import { Label } from '@/common/components/ui/label'
-import { Progress } from '@/common/components/ui/progress'
 import Switch from '@/common/components/ui/switch/Switch.vue'
+import JobView from '@/main/views/JobView.vue'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-vue-next'
+import { ProgressIndicator, ProgressRoot } from 'reka-ui'
 import { computed, ref } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 

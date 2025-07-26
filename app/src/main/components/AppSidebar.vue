@@ -67,8 +67,8 @@ const modules = [
         icon: Map,
     },
     {
-        title: 'CRM',
-        url: '/clients',
+        title: 'Entreprises',
+        url: '/companies',
         icon: UsersIcon,
     },
     {

@@ -114,6 +114,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/companies',
+      name: 'companies',
+      component: () => import('@/main/views/CompaniesView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Entreprises'
+      }
+    },
+    {
       path: '/workspace',
       name: 'workspace-home',
       redirect: '/home',

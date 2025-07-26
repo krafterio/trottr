@@ -3,7 +3,7 @@
         <div class="bg-white border-b">
             <div class="px-6 py-4 flex items-center justify-between">
                 <div class="flex items-center space-x-4">
-                    <Button variant="outline" @click="$router.go(-1)" class="h-9 w-9">
+                    <Button v-if="!inDialog" variant="outline" @click="$router.go(-1)" class="h-9 w-9">
                         <ArrowLeft :size="20" />
                     </Button>
                     <div class="flex flex-col gap-1">
@@ -49,7 +49,7 @@
         </div>
 
         <div class="flex-1 flex overflow-hidden">
-            <div class="flex-1 p-6 overflow-y-auto">
+            <div :class="inDialog ? 'flex-1 overflow-y-auto p-6 bg-accent' : 'flex-1 p-6 overflow-y-auto'">
                 <Card class="mb-6 py-0">
                     <CardContent class="px-5 py-4">
                         <div class="flex items-start justify-between mb-4">
@@ -98,11 +98,25 @@
                                     </Badge>
                                 </div>
                                 <div class="flex gap-2">
-                                    <Button variant="outline" size="sm">
-                                        <AlertTriangle class="h-4 w-4 text-orange-500" />
-                                        Signaler intervention
-                                        <ChevronDown class="h-4 w-4" />
-                                    </Button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="outline" size="sm">
+                                                <AlertTriangle class="h-4 w-4 text-orange-500" />
+                                                Signaler intervention
+                                                <ChevronDown class="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem>
+                                                <UserRoundX class="h-4 w-4 text-orange-500" />
+                                                Absence contact
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                <ShieldAlert class="h-4 w-4 text-orange-500" />
+                                                Intervention impossible
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
 
                                     <Button size="sm">
                                         <Play class="h-3 w-3 fill-current" />
@@ -242,16 +256,16 @@
                                                         <div class="flex items-center space-x-2">
                                                             <FileText class="h-4 w-4 text-neutral-500" />
                                                             <span class="text-sm text-neutral-700">{{ attachmentName
-                                                                }}</span>
+                                                            }}</span>
                                                             <span class="text-xs text-neutral-500">{{ attachmentSize
-                                                                }}</span>
+                                                            }}</span>
                                                         </div>
                                                         <div class="flex items-center space-x-2">
                                                             <Image class="h-4 w-4 text-neutral-500" />
                                                             <span class="text-sm text-neutral-700">{{ imageName
-                                                                }}</span>
+                                                            }}</span>
                                                             <span class="text-xs text-neutral-500">{{ imageSize
-                                                                }}</span>
+                                                            }}</span>
                                                         </div>
                                                         <div class="flex items-center space-x-2">
                                                             <span
@@ -532,7 +546,7 @@
                 </div>
             </div>
 
-            <div class="w-140 bg-white border-l p-6 overflow-y-auto">
+            <div v-if="!inDialog" class="w-140 bg-white border-l p-6 overflow-y-auto">
                 <div>
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-semibold text-neutral-900">Détails de l'intervention</h3>
@@ -623,6 +637,20 @@
                         </div>
 
                         <div class="grid grid-cols-3 gap-4 items-center">
+                            <Label class="text-sm font-medium text-neutral-700 !mb-0">Priorité</Label>
+                            <Select>
+                                <SelectTrigger class="w-full col-span-2">
+                                    <SelectValue placeholder="Sélectionner une priorité" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="team1">Faible</SelectItem>
+                                    <SelectItem value="team2">Moyenne</SelectItem>
+                                    <SelectItem value="team3">Élevée</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-4 items-center">
                             <Label class="text-sm font-medium text-neutral-700 !mb-0">Type d'intervention</Label>
                             <Select>
                                 <SelectTrigger class="w-full col-span-2">
@@ -649,9 +677,17 @@
 </template>
 
 <script setup>
+const props = defineProps({
+    inDialog: {
+        type: Boolean,
+        default: false
+    }
+})
+
 import Badge from '@/common/components/ui/badge/Badge.vue'
 import { Button } from '@/common/components/ui/button'
 import Card from '@/common/components/ui/card/Card.vue'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu'
 import Input from '@/common/components/ui/input/Input.vue'
 import Label from '@/common/components/ui/label/Label.vue'
 import Select from '@/common/components/ui/select/Select.vue'
@@ -688,9 +724,11 @@ import {
     Plus,
     ScanSearch,
     ScrollText,
+    ShieldAlert,
     StickyNote,
     User,
-    UserPlus
+    UserPlus,
+    UserRoundX
 } from 'lucide-vue-next'
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
