@@ -149,9 +149,15 @@
                 <div class="">
                     <div class="px-6 py-4 border-b">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-semibold text-neutral-900">Liste des entreprises</h3>
+                            <div class="relative">
+                                <Search
+                                    class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                                <Input type="text" placeholder="Recherche rapide..." class="h-9 pl-10 pr-4 py-2 w-64" />
+                            </div>
+
                             <div class="flex items-center space-x-3">
                                 <span class="text-sm text-muted-foreground">147 entreprises</span>
+
                                 <Button variant="outline" size="sm" class="w-8">
                                     <MoreVertical class="h-4 w-4" />
                                 </Button>
@@ -259,6 +265,7 @@
 <script setup>
 import { Button } from '@/common/components/ui/button'
 import { Checkbox } from '@/common/components/ui/checkbox'
+import Input from '@/common/components/ui/input/Input.vue'
 import { Switch } from '@/common/components/ui/switch'
 import TablePagination from '@/main/components/TablePagination.vue'
 import {
@@ -271,7 +278,8 @@ import {
     Download,
     MoreVertical,
     Plus,
-    RotateCcw
+    RotateCcw,
+    Search
 } from 'lucide-vue-next'
 import { ref } from 'vue'
 
