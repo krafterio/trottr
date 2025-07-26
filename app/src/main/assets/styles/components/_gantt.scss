@@ -6,6 +6,19 @@
     background-color: rgb(243 244 246) !important;
 }
 
+.g-gantt-bar {
+    background-color: #fff !important;
+    color: #1f2937 !important;
+    border-radius: 0.5rem !important;
+    cursor: pointer !important;
+    border-left: 4px solid #e5e7eb !important;
+    box-shadow: 2px 2px 6px 0 rgba(0, 0, 0, 0.2) !important;
+
+    &:hover {
+        background-color: #e5e7eb !important;
+    }
+}
+
 .g-gantt-bar-handle-left,
 .g-gantt-bar-handle-right {
     opacity: 0 !important;

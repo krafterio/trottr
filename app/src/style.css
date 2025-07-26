@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "./main/assets/styles/components/_gantt.scss";
+@import "./main/assets/styles/components/_planner.scss";
 
 @custom-variant dark (&:is(.dark *));
 

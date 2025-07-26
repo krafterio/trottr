@@ -49,6 +49,7 @@
     "vue": "^3.4.15",
     "vue-audio-visual": "^3.0.11",
     "vue-chartjs": "^5.3.2",
+    "vue-draggable-plus": "^0.6.0",
     "vue-leaflet": "^0.1.0",
     "vue-router": "^4.2.5",
     "vue-sonner": "^2.0.2",

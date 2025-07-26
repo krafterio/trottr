@@ -3,7 +3,7 @@
         <div class="bg-white border-b">
             <div class="px-6 py-4 flex items-center justify-between">
                 <div class="flex items-center space-x-4">
-                    <Button variant="outline" @click="$router.go(-1)" class="h-13 w-13">
+                    <Button variant="outline" @click="$router.go(-1)" class="h-9 w-9">
                         <ArrowLeft :size="20" />
                     </Button>
                     <div class="flex flex-col gap-1">

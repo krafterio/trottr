@@ -216,11 +216,6 @@ const ganttOperators = ref([
                     hasHandles: true,
                     label: "Dépannage urgent",
                     jobId: 1,
-                    style: {
-                        background: "#16190c",
-                        color: "white",
-                        borderRadius: "20px",
-                    }
                 }
             },
             {
@@ -231,11 +226,6 @@ const ganttOperators = ref([
                     hasHandles: true,
                     label: "Maintenance clim",
                     jobId: 2,
-                    style: {
-                        background: "#16190c",
-                        color: "white",
-                        borderRadius: "20px",
-                    }
                 }
             }
         ]
@@ -252,11 +242,6 @@ const ganttOperators = ref([
                     hasHandles: true,
                     label: "Installation équipement",
                     jobId: 3,
-                    style: {
-                        background: "#16190c",
-                        borderRadius: "20px",
-                        color: "white"
-                    }
                 }
             },
             {
@@ -267,11 +252,6 @@ const ganttOperators = ref([
                     hasHandles: true,
                     label: "Contrôle qualité",
                     jobId: 4,
-                    style: {
-                        background: "#16190c",
-                        borderRadius: "20px",
-                        color: "white"
-                    }
                 }
             }
         ]

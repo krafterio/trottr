@@ -96,6 +96,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/planning',
+      name: 'planning',
+      component: () => import('@/main/views/JobWeekPlanner.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Planning'
+      }
+    },
+    {
       path: '/workspace',
       name: 'workspace-home',
       redirect: '/home',
