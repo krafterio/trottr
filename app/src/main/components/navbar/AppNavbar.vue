@@ -77,7 +77,7 @@ const route = useRoute()
 
 const moduleLinks = {
     interventions: [
-        { href: '/home', label: 'Toutes les interventions' },
+        { href: '/', label: 'Toutes les interventions' },
         { href: '/job-planner', label: 'Planificateur d\'interventions' }
     ],
     crm: [
@@ -108,7 +108,7 @@ const moduleLinks = {
 const currentModule = computed(() => {
     const path = route.path
 
-    if (path.startsWith('/home') || path.startsWith('/job')) {
+    if (path === '/' || path.startsWith('/job')) {
         return 'interventions'
     } else if (path.startsWith('/companies') || path.startsWith('/contacts')) {
         return 'crm'
@@ -134,8 +134,8 @@ const currentModuleLinks = computed(() => {
 })
 
 const isActiveLink = (href) => {
-    if (href === '/home') {
-        return route.path === '/home' || route.path === '/'
+    if (href === '/') {
+        return route.path === '/'
     }
     return route.path.startsWith(href)
 }

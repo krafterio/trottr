@@ -60,18 +60,18 @@ const router = createRouter({
       }
     },
     {
-      path: '/home',
-      name: 'home',
-      component: () => import('@/main/views/HomeView.vue'),
+      path: '/',
+      name: 'jobs',
+      component: () => import('@/main/views/jobs/JobsView.vue'),
       meta: {
         requiresAuth: true,
-        metaTitle: 'Accueil'
+        metaTitle: 'Interventions'
       }
     },
     {
       path: '/job-planner',
       name: 'job-planner',
-      component: () => import('@/main/views/JobPlanner.vue'),
+      component: () => import('@/main/views/jobs/JobPlanner.vue'),
       meta: {
         requiresAuth: true,
         metaTitle: 'Planificateur d\'interventions'
@@ -80,7 +80,7 @@ const router = createRouter({
     {
       path: '/job/:id',
       name: 'job',
-      component: () => import('@/main/views/JobView.vue'),
+      component: () => import('@/main/views/jobs/JobView.vue'),
       meta: {
         requiresAuth: true,
         metaTitle: 'Détails de l\'intervention'
@@ -89,7 +89,7 @@ const router = createRouter({
     {
       path: '/settings',
       name: 'settings',
-      component: () => import('@/main/views/SettingsView.vue'),
+      component: () => import('@/main/views/settings/SettingsView.vue'),
       meta: {
         requiresAuth: true,
         metaTitle: 'Paramètres'
@@ -98,7 +98,7 @@ const router = createRouter({
     {
       path: '/planning',
       name: 'planning',
-      component: () => import('@/main/views/JobWeekPlanner.vue'),
+      component: () => import('@/main/views/planner/JobWeekPlanner.vue'),
       meta: {
         requiresAuth: true,
         metaTitle: 'Planning'
@@ -107,7 +107,7 @@ const router = createRouter({
     {
       path: '/dashboard',
       name: 'dashboard',
-      component: () => import('@/main/views/DashboardView.vue'),
+      component: () => import('@/main/views/dashboard/DashboardView.vue'),
       meta: {
         requiresAuth: true,
         metaTitle: 'Tableau de bord'
@@ -116,7 +116,7 @@ const router = createRouter({
     {
       path: '/companies',
       name: 'companies',
-      component: () => import('@/main/views/CompaniesView.vue'),
+      component: () => import('@/main/views/crm/CompaniesView.vue'),
       meta: {
         requiresAuth: true,
         metaTitle: 'Entreprises'
@@ -125,20 +125,16 @@ const router = createRouter({
     {
       path: '/workspace',
       name: 'workspace-home',
-      redirect: '/home',
+      redirect: '/',
       meta: {
         requiresAuth: true
       }
     },
     {
-      path: '/',
-      name: 'root',
-      redirect: (to) => {
-        const authStore = useAuthStore()
-        return authStore.isAuthenticated ? { name: 'home' } : { name: 'login' }
-      },
+      path: '/home',
+      redirect: '/',
       meta: {
-        metaTitle: 'Smashr'
+        requiresAuth: true
       }
     },
     {
@@ -176,7 +172,7 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  if (to.name === 'home' && isAuthenticated) {
+  if (to.name === 'jobs' && isAuthenticated) {
     // redirect to module
   }
 
@@ -207,10 +203,10 @@ router.beforeEach(async (to, from, next) => {
     const isAuthRoute = to.meta.requiresGuest || !to.meta.requiresAuth
 
     if (!workspaceStore.isValid && !isAuthRoute) {
-      // Rediriger vers home et ouvrir la modal des licences
-      if (to.name !== 'home') {
+      // Rediriger vers jobs et ouvrir la modal des licences
+      if (to.name !== 'jobs') {
         bus.trigger('open-workspace-manager-modal', { tab: 'licenses' })
-        next({ name: 'home' })
+        next({ name: 'jobs' })
         return
       }
     }

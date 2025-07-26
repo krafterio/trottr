@@ -1,5 +1,5 @@
 <template>
-    <div class="h-full flex flex-col bg-neutral-50">
+    <div class="h-full flex flex-col bg-neutral-100">
         <div class="bg-white border-b">
             <div class="px-6 py-4 flex items-center justify-between">
                 <div class="flex items-center space-x-4">
@@ -563,9 +563,10 @@
                         <div>
                             <h4 class="text-sm font-medium text-neutral-700">Référence intervention</h4>
                             <p class="text-xl font-mono text-neutral-900">{{ jobNumber }}</p>
+                            <p class="text-xs text-neutral-400">Créé le 26/07/2025 à 10:00</p>
                         </div>
 
-                        <div class="bg-accent rounded-lg p-3">
+                        <div class="bg-neutral-100 border rounded-lg p-3">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-sm font-medium text-neutral-700">Démarrage prévu</span>
                                 <span class="text-sm text-neutral-900">{{ startDate }}</span>

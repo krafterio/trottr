@@ -61,7 +61,7 @@ const route = useRoute()
 const modules = [
     {
         title: 'Interventions',
-        url: '/home',
+        url: '/',
         icon: Map,
     },
     {
@@ -103,8 +103,8 @@ const modules = [
 ]
 
 const isActiveRoute = (url) => {
-    if (url === '/home') {
-        return route.path === '/home' || route.path === '/' || route.path.startsWith('/job')
+    if (url === '/') {
+        return route.path === '/' || route.path.startsWith('/job')
     }
     if (url === '/companies') {
         return route.path.startsWith('/companies') || route.path.startsWith('/contacts')
