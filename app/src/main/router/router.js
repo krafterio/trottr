@@ -123,6 +123,24 @@ const router = createRouter({
       }
     },
     {
+      path: '/company/:id',
+      name: 'company',
+      component: () => import('@/main/views/crm/CompanyView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Fiche entreprise'
+      }
+    },
+    {
+      path: '/contacts',
+      name: 'contacts',
+      component: () => import('@/main/views/crm/ContactsView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Contacts'
+      }
+    },
+    {
       path: '/workspace',
       name: 'workspace-home',
       redirect: '/',

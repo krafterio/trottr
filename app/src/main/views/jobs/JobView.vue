@@ -257,16 +257,16 @@
                                                         <div class="flex items-center space-x-2">
                                                             <FileText class="h-4 w-4 text-neutral-500" />
                                                             <span class="text-sm text-neutral-700">{{ attachmentName
-                                                                }}</span>
+                                                            }}</span>
                                                             <span class="text-xs text-neutral-500">{{ attachmentSize
-                                                                }}</span>
+                                                            }}</span>
                                                         </div>
                                                         <div class="flex items-center space-x-2">
                                                             <Image class="h-4 w-4 text-neutral-500" />
                                                             <span class="text-sm text-neutral-700">{{ imageName
-                                                                }}</span>
+                                                            }}</span>
                                                             <span class="text-xs text-neutral-500">{{ imageSize
-                                                                }}</span>
+                                                            }}</span>
                                                         </div>
                                                         <div class="flex items-center space-x-2">
                                                             <span
@@ -608,7 +608,7 @@
                             </div>
                             <div class="flex items-center gap-1 mb-2">
                                 <MapPinned class="h-4 w-4" />
-                                <h4 class="text-sm font-medium">Adresse d'intervention</h4>
+                                <h4 class="text-sm font-medium">Site d'intervention</h4>
                             </div>
                             <div class="text-sm text-neutral-600">
                                 <p>123 Rue de la Paix</p>

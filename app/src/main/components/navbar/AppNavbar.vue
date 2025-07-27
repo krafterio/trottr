@@ -82,7 +82,9 @@ const moduleLinks = {
     ],
     crm: [
         { href: '/companies', label: 'Sociétés' },
-        { href: '/contacts', label: 'Contacts' }
+        { href: '/contacts', label: 'Contacts' },
+        { href: '/sites', label: 'Sites d\'intervention' },
+        { href: '/lots', label: 'Lots' }
     ],
     vente: [
         { href: '/devis', label: 'Devis' },
@@ -106,23 +108,23 @@ const moduleLinks = {
 }
 
 const currentModule = computed(() => {
-    const path = route.path
+    const name = route.name
 
-    if (path === '/' || path.startsWith('/job')) {
+    if (name === 'jobs' || name === 'job' || name === 'job-planner') {
         return 'interventions'
-    } else if (path.startsWith('/companies') || path.startsWith('/contacts')) {
+    } else if (name === 'companies' || name === 'company' || name === 'contacts' || name === 'sites' || name === 'lots') {
         return 'crm'
-    } else if (path.startsWith('/devis') || path.startsWith('/contrats')) {
+    } else if (name === 'devis' || name === 'contrats') {
         return 'vente'
-    } else if (path.startsWith('/planning')) {
+    } else if (name === 'planning') {
         return 'planning'
-    } else if (path.startsWith('/dashboard')) {
+    } else if (name === 'dashboard') {
         return 'dashboard'
-    } else if (path.startsWith('/documents')) {
+    } else if (name === 'documents') {
         return 'documents'
-    } else if (path.startsWith('/stock') || path.startsWith('/operations') || path.startsWith('/produits') || path.startsWith('/flotte') || path.startsWith('/gestion')) {
+    } else if (name === 'stock' || name === 'operations' || name === 'produits' || name === 'flotte' || name === 'gestion') {
         return 'gestion'
-    } else if (path.startsWith('/techniciens') || path.startsWith('/absences') || path.startsWith('/rh')) {
+    } else if (name === 'techniciens' || name === 'absences' || name === 'rh') {
         return 'rh'
     }
 
