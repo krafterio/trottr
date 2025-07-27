@@ -186,6 +186,24 @@ const router = createRouter({
       }
     },
     {
+      path: '/techniciens',
+      name: 'techniciens',
+      component: () => import('@/main/views/rh/OperatorsView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Techniciens'
+      }
+    },
+    {
+      path: '/absences',
+      name: 'absences',
+      component: () => import('@/main/views/rh/OperatorsAbsencesView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Absences / Congés'
+      }
+    },
+    {
       path: '/workspace',
       name: 'workspace-home',
       redirect: '/',

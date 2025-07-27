@@ -86,7 +86,7 @@ const modules = [
     },
     {
         title: 'RH',
-        url: '/rh',
+        url: '/techniciens',
         icon: Users,
     },
     {
@@ -127,7 +127,7 @@ const isActiveRoute = (url) => {
     if (url === '/gestion') {
         return name === 'stock' || name === 'operations' || name === 'produits' || name === 'flotte' || name === 'gestion'
     }
-    if (url === '/rh') {
+    if (url === '/techniciens') {
         return name === 'techniciens' || name === 'absences' || name === 'rh'
     }
     return false
