@@ -103,21 +103,32 @@ const modules = [
 ]
 
 const isActiveRoute = (url) => {
+    const name = route.name
+
     if (url === '/') {
-        return route.path === '/' || route.path.startsWith('/job')
+        return name === 'jobs' || name === 'job' || name === 'job-planner'
     }
     if (url === '/companies') {
-        return route.path.startsWith('/companies') || route.path.startsWith('/contacts')
+        return name === 'companies' || name === 'company' || name === 'contacts' || name === 'sites'
     }
     if (url === '/devis') {
-        return route.path.startsWith('/devis') || route.path.startsWith('/contrats')
+        return name === 'devis' || name === 'contrats'
+    }
+    if (url === '/planning') {
+        return name === 'planning'
+    }
+    if (url === '/dashboard') {
+        return name === 'dashboard'
+    }
+    if (url === '/documents') {
+        return name === 'documents'
     }
     if (url === '/gestion') {
-        return route.path.startsWith('/stock') || route.path.startsWith('/operations') || route.path.startsWith('/produits') || route.path.startsWith('/flotte') || route.path.startsWith('/gestion')
+        return name === 'stock' || name === 'operations' || name === 'produits' || name === 'flotte' || name === 'gestion'
     }
     if (url === '/rh') {
-        return route.path.startsWith('/techniciens') || route.path.startsWith('/absences') || route.path.startsWith('/rh')
+        return name === 'techniciens' || name === 'absences' || name === 'rh'
     }
-    return route.path.startsWith(url)
+    return false
 }
 </script>

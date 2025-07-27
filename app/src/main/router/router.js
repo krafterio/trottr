@@ -141,6 +141,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/sites',
+      name: 'sites',
+      component: () => import('@/main/views/crm/SitesView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Sites d\'intervention'
+      }
+    },
+    {
       path: '/workspace',
       name: 'workspace-home',
       redirect: '/',

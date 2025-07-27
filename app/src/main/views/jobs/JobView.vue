@@ -32,16 +32,12 @@
                 </div>
                 <div class="flex items-center space-x-3">
                     <Button variant="outline">
-                        <MessageSquare class="h-4 w-4" />
-                        Communiquer
-                    </Button>
-                    <Button variant="outline">
-                        <FileText class="h-4 w-4" />
-                        Associer devis
+                        <UserPlus class="h-4 w-4" />
+                        Assigner technicien
                     </Button>
                     <Button>
                         <Plus class="h-4 w-4" />
-                        Ajouter une action
+                        Action
                         <ChevronDown class="h-4 w-4" />
                     </Button>
                 </div>
@@ -721,7 +717,6 @@ import {
     Map,
     MapPin,
     MapPinned,
-    MessageSquare,
     Play,
     Plus,
     ScanSearch,

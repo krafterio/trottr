@@ -63,86 +63,107 @@
         </div>
 
         <div class="flex-1 flex overflow-hidden">
-            <div class="w-64 bg-neutral-50 border-r p-4 overflow-y-auto">
-                <h3 class="font-semibold text-neutral-900 mb-4">Filtres</h3>
-
-                <div class="mb-6">
-                    <h4 class="text-sm font-medium text-neutral-700 mb-2">Statut</h4>
-                    <div class="space-y-2">
-                        <label class="flex items-center">
-                            <Checkbox checked />
-                            <span class="ml-2 text-sm text-neutral-600">Active</span>
-                            <span class="ml-auto text-xs text-neutral-400">132</span>
-                        </label>
-                        <label class="flex items-center">
-                            <Checkbox checked />
-                            <span class="ml-2 text-sm text-neutral-600">En attente</span>
-                            <span class="ml-auto text-xs text-neutral-400">12</span>
-                        </label>
-                        <label class="flex items-center">
-                            <Checkbox />
-                            <span class="ml-2 text-sm text-neutral-600">Suspendue</span>
-                            <span class="ml-auto text-xs text-neutral-400">3</span>
-                        </label>
-                    </div>
+            <div :class="[
+                'bg-neutral-50 border-r overflow-y-auto',
+                showFilters ? 'w-64 p-4' : 'w-16 p-2 pt-4 cursor-pointer hover:bg-neutral-100'
+            ]" @click="!showFilters && toggleFilters()">
+                <div v-if="showFilters" class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold text-neutral-900">Filtres</h3>
+                    <Button variant="ghost" size="sm" class="h-6 w-6 p-0 cursor-pointer" @click.stop="toggleFilters">
+                        <PanelLeftClose class="h-4 w-4" />
+                    </Button>
                 </div>
 
-                <div class="mb-6">
-                    <h4 class="text-sm font-medium text-neutral-700 mb-2">Type</h4>
-                    <div class="space-y-2">
-                        <label class="flex items-center">
-                            <Checkbox checked />
-                            <span class="ml-2 text-sm text-neutral-600">Client final</span>
-                            <span class="ml-auto text-xs text-neutral-400">89</span>
-                        </label>
-                        <label class="flex items-center">
-                            <Checkbox checked />
-                            <span class="ml-2 text-sm text-neutral-600">Régie / gestionnaire</span>
-                            <span class="ml-auto text-xs text-neutral-400">23</span>
-                        </label>
-                        <label class="flex items-center">
-                            <Checkbox checked />
-                            <span class="ml-2 text-sm text-neutral-600">Donneur d'ordre</span>
-                            <span class="ml-auto text-xs text-neutral-400">18</span>
-                        </label>
-                        <label class="flex items-center">
-                            <Checkbox checked />
-                            <span class="ml-2 text-sm text-neutral-600">Sous-traitant</span>
-                            <span class="ml-auto text-xs text-neutral-400">12</span>
-                        </label>
-                        <label class="flex items-center">
-                            <Checkbox checked />
-                            <span class="ml-2 text-sm text-neutral-600">Fournisseur</span>
-                            <span class="ml-auto text-xs text-neutral-400">5</span>
-                        </label>
-                    </div>
+                <div v-else class="flex flex-col items-center mb-4">
+                    <Button variant="ghost" size="sm" class="h-6 w-6 p-0 mb-2 cursor-pointer"
+                        @click.stop="toggleFilters">
+                        <PanelLeftOpen class="h-4 w-4" />
+                    </Button>
+                    <h3 class="font-semibold text-neutral-900 transform -rotate-90 origin-center mt-4">
+                        Filtres
+                    </h3>
                 </div>
 
-                <div class="mb-6">
-                    <h4 class="text-sm font-medium text-neutral-700 mb-2">Contrat</h4>
-                    <div class="space-y-2">
-                        <label class="flex items-center">
-                            <Checkbox checked />
-                            <span class="ml-2 text-sm text-neutral-600">Actif</span>
-                            <span class="ml-auto text-xs text-neutral-400">98</span>
-                        </label>
-                        <label class="flex items-center">
-                            <Checkbox checked />
-                            <span class="ml-2 text-sm text-neutral-600">Expiré</span>
-                            <span class="ml-auto text-xs text-neutral-400">31</span>
-                        </label>
-                        <label class="flex items-center">
-                            <Checkbox checked />
-                            <span class="ml-2 text-sm text-neutral-600">Sans contrat</span>
-                            <span class="ml-auto text-xs text-neutral-400">18</span>
-                        </label>
-                    </div>
-                </div>
+                <div v-show="showFilters" class="space-y-6">
 
-                <Button variant="outline" size="sm" class="w-full">
-                    <RotateCcw class="h-4 w-4 mr-2" />
-                    Réinitialiser
-                </Button>
+                    <div class="mb-6">
+                        <h4 class="text-sm font-medium text-neutral-700 mb-2">Statut</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <Checkbox checked />
+                                <span class="ml-2 text-sm text-neutral-600">Active</span>
+                                <span class="ml-auto text-xs text-neutral-400">132</span>
+                            </label>
+                            <label class="flex items-center">
+                                <Checkbox checked />
+                                <span class="ml-2 text-sm text-neutral-600">En attente</span>
+                                <span class="ml-auto text-xs text-neutral-400">12</span>
+                            </label>
+                            <label class="flex items-center">
+                                <Checkbox />
+                                <span class="ml-2 text-sm text-neutral-600">Suspendue</span>
+                                <span class="ml-auto text-xs text-neutral-400">3</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <h4 class="text-sm font-medium text-neutral-700 mb-2">Type</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <Checkbox checked />
+                                <span class="ml-2 text-sm text-neutral-600">Client final</span>
+                                <span class="ml-auto text-xs text-neutral-400">89</span>
+                            </label>
+                            <label class="flex items-center">
+                                <Checkbox checked />
+                                <span class="ml-2 text-sm text-neutral-600">Régie / gestionnaire</span>
+                                <span class="ml-auto text-xs text-neutral-400">23</span>
+                            </label>
+                            <label class="flex items-center">
+                                <Checkbox checked />
+                                <span class="ml-2 text-sm text-neutral-600">Donneur d'ordre</span>
+                                <span class="ml-auto text-xs text-neutral-400">18</span>
+                            </label>
+                            <label class="flex items-center">
+                                <Checkbox checked />
+                                <span class="ml-2 text-sm text-neutral-600">Sous-traitant</span>
+                                <span class="ml-auto text-xs text-neutral-400">12</span>
+                            </label>
+                            <label class="flex items-center">
+                                <Checkbox checked />
+                                <span class="ml-2 text-sm text-neutral-600">Fournisseur</span>
+                                <span class="ml-auto text-xs text-neutral-400">5</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <h4 class="text-sm font-medium text-neutral-700 mb-2">Contrat</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <Checkbox checked />
+                                <span class="ml-2 text-sm text-neutral-600">Actif</span>
+                                <span class="ml-auto text-xs text-neutral-400">98</span>
+                            </label>
+                            <label class="flex items-center">
+                                <Checkbox checked />
+                                <span class="ml-2 text-sm text-neutral-600">Expiré</span>
+                                <span class="ml-auto text-xs text-neutral-400">31</span>
+                            </label>
+                            <label class="flex items-center">
+                                <Checkbox checked />
+                                <span class="ml-2 text-sm text-neutral-600">Sans contrat</span>
+                                <span class="ml-auto text-xs text-neutral-400">18</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <Button variant="outline" size="sm" class="w-full">
+                        <RotateCcw class="h-4 w-4 mr-2" />
+                        Réinitialiser
+                    </Button>
+                </div>
             </div>
 
             <div class="flex-1 overflow-y-auto">
@@ -257,8 +278,8 @@
         </div>
 
         <TablePagination :current-page="1" :total-pages="8" :total-items="147" :items-per-page="20"
-            position-classes="bottom-0 left-80 right-0" @page-change="handlePageChange"
-            @items-per-page-change="handleItemsPerPageChange" />
+            :position-classes="`bottom-0 ${showFilters ? 'left-80' : 'left-32'} right-0`"
+            @page-change="handlePageChange" @items-per-page-change="handleItemsPerPageChange" />
     </div>
 </template>
 
@@ -277,6 +298,8 @@ import {
     Columns,
     Download,
     MoreVertical,
+    PanelLeftClose,
+    PanelLeftOpen,
     Plus,
     RotateCcw,
     Search
@@ -284,6 +307,11 @@ import {
 import { ref } from 'vue'
 
 const showKpis = ref(false)
+const showFilters = ref(true)
+
+const toggleFilters = () => {
+    showFilters.value = !showFilters.value
+}
 
 const companies = [
     {
