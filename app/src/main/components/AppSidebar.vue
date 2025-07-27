@@ -4,7 +4,7 @@
             <div v-for="module in modules" :key="module.title" class="relative group">
                 <a :href="module.url" :class="[
                     'w-10 h-10 flex items-center justify-center rounded-lg transition-colors',
-                    isActiveRoute(module.url)
+                    isActiveRoute(module)
                         ? 'bg-primary text-white hover:bg-primary/90'
                         : module.disabled
                             ? 'text-gray-300 cursor-not-allowed'
@@ -26,7 +26,7 @@
         <div class="relative group">
             <a href="/settings" :class="[
                 'w-10 h-10 flex items-center justify-center rounded-lg transition-colors',
-                isActiveRoute('/settings')
+                route.name === 'settings'
                     ? 'bg-primary text-white hover:bg-primary/90'
                     : 'text-gray-600 hover:bg-gray-100'
             ]">
@@ -63,73 +63,86 @@ const modules = [
         title: 'Interventions',
         url: '/',
         icon: Map,
+        module: 'interventions'
     },
     {
         title: 'CRM',
         url: '/companies',
         icon: UsersIcon,
+        module: 'crm'
     },
     {
         title: 'Planning',
         url: '/planning',
         icon: CalendarDays,
+        module: 'planning'
     },
     {
         title: 'Tableau de bord',
         url: '/dashboard',
         icon: BarChart3,
+        module: 'dashboard'
     },
     {
         title: 'Gestion',
-        url: '/operations',
+        url: '/stock',
         icon: Blocks,
+        module: 'gestion'
     },
     {
         title: 'Employés',
         url: '/techniciens',
         icon: Users,
+        module: 'employes'
     },
     {
         title: 'Vente (bientôt disponible)',
         url: '/devis',
         icon: FileText,
         disabled: true,
+        module: 'vente'
     },
     {
         title: 'Documents (bientôt disponible)',
         url: '/documents',
         icon: FileText,
         disabled: true,
+        module: 'documents'
     },
 ]
 
-const isActiveRoute = (url) => {
+const getCurrentModule = () => {
     const name = route.name
 
-    if (url === '/') {
-        return name === 'jobs' || name === 'job' || name === 'job-planner'
+    if (['jobs', 'job', 'job-planner'].includes(name)) {
+        return 'interventions'
     }
-    if (url === '/companies') {
-        return name === 'companies' || name === 'company' || name === 'contacts' || name === 'contact' || name === 'sites' || name === 'site' || name === 'subsites' || name === 'subsite'
+    if (['companies', 'company', 'contacts', 'contact', 'sites', 'site', 'subsites', 'subsite'].includes(name)) {
+        return 'crm'
     }
-    if (url === '/devis') {
-        return name === 'devis' || name === 'contrats'
+    if (name === 'planning') {
+        return 'planning'
     }
-    if (url === '/planning') {
-        return name === 'planning'
+    if (name === 'dashboard') {
+        return 'dashboard'
     }
-    if (url === '/dashboard') {
-        return name === 'dashboard'
+    if (['stock', 'operations', 'produits', 'gestion'].includes(name)) {
+        return 'gestion'
     }
-    if (url === '/documents') {
-        return name === 'documents'
+    if (['techniciens', 'absences', 'rh'].includes(name)) {
+        return 'employes'
     }
-    if (url === '/operations') {
-        return name === 'stock' || name === 'operations' || name === 'produits' || name === 'gestion'
+    if (['devis', 'contrats'].includes(name)) {
+        return 'vente'
     }
-    if (url === '/techniciens') {
-        return name === 'techniciens' || name === 'absences' || name === 'rh'
+    if (name === 'documents') {
+        return 'documents'
     }
-    return false
+
+    return null
+}
+
+const isActiveRoute = (module) => {
+    return getCurrentModule() === module.module
 }
 </script>
