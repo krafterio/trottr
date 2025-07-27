@@ -141,12 +141,30 @@ const router = createRouter({
       }
     },
     {
+      path: '/contact/:id',
+      name: 'contact',
+      component: () => import('@/main/views/crm/ContactView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Fiche contact'
+      }
+    },
+    {
       path: '/sites',
       name: 'sites',
       component: () => import('@/main/views/crm/SitesView.vue'),
       meta: {
         requiresAuth: true,
         metaTitle: 'Sites d\'intervention'
+      }
+    },
+    {
+      path: '/site/:id',
+      name: 'site',
+      component: () => import('@/main/views/crm/SiteView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Fiche site'
       }
     },
     {

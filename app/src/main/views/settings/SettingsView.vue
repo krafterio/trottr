@@ -27,6 +27,15 @@
                             <Map class="h-4 w-4" />
                             Interventions
                         </button>
+                        <button @click="currentTab = 'crm'" :class="[
+                            'w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2',
+                            currentTab === 'crm'
+                                ? 'bg-primary text-neutral-100'
+                                : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                        ]">
+                            <Building class="h-4 w-4" />
+                            CRM
+                        </button>
                         <button @click="currentTab = 'users'" :class="[
                             'w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2',
                             currentTab === 'users'
@@ -63,6 +72,7 @@
                 <div class="p-6">
                     <SettingsGeneral v-if="currentTab === 'general'" />
                     <SettingsJob v-if="currentTab === 'jobs'" />
+                    <SettingsCrm v-if="currentTab === 'crm'" />
                     <SettingsUsers v-if="currentTab === 'users'" />
                     <SettingsBilling v-if="currentTab === 'billing'" />
                     <SettingsDisplay v-if="currentTab === 'display'" />
@@ -74,11 +84,12 @@
 
 <script setup>
 import SettingsBilling from '@/main/views/settings/pages/SettingsBilling.vue'
+import SettingsCrm from '@/main/views/settings/pages/SettingsCrm.vue'
 import SettingsDisplay from '@/main/views/settings/pages/SettingsDisplay.vue'
 import SettingsGeneral from '@/main/views/settings/pages/SettingsGeneral.vue'
 import SettingsJob from '@/main/views/settings/pages/SettingsJob.vue'
 import SettingsUsers from '@/main/views/settings/pages/SettingsUsers.vue'
-import { CreditCard, Map, Monitor, Settings2, Users } from 'lucide-vue-next'
+import { Building, CreditCard, Map, Monitor, Settings2, Users } from 'lucide-vue-next'
 import { ref } from 'vue'
 
 const currentTab = ref('general')

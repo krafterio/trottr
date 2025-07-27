@@ -109,7 +109,7 @@ const isActiveRoute = (url) => {
         return name === 'jobs' || name === 'job' || name === 'job-planner'
     }
     if (url === '/companies') {
-        return name === 'companies' || name === 'company' || name === 'contacts' || name === 'sites'
+        return name === 'companies' || name === 'company' || name === 'contacts' || name === 'contact' || name === 'sites' || name === 'site'
     }
     if (url === '/devis') {
         return name === 'devis' || name === 'contrats'

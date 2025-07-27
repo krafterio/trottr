@@ -97,7 +97,7 @@
                                 <div class="flex gap-2">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button variant="outline" size="sm">
+                                            <Button variant="outline">
                                                 <AlertTriangle class="h-4 w-4 text-orange-500" />
                                                 Signaler intervention
                                                 <ChevronDown class="h-4 w-4" />
@@ -115,7 +115,7 @@
                                         </DropdownMenuContent>
                                     </DropdownMenu>
 
-                                    <Button size="sm">
+                                    <Button>
                                         <Play class="h-3 w-3 fill-current" />
                                         Démarrer
                                     </Button>

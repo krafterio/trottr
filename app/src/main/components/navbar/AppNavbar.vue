@@ -112,7 +112,7 @@ const currentModule = computed(() => {
 
     if (name === 'jobs' || name === 'job' || name === 'job-planner') {
         return 'interventions'
-    } else if (name === 'companies' || name === 'company' || name === 'contacts' || name === 'sites' || name === 'lots') {
+    } else if (name === 'companies' || name === 'company' || name === 'contacts' || name === 'contact' || name === 'sites' || name === 'site' || name === 'lots') {
         return 'crm'
     } else if (name === 'devis' || name === 'contrats') {
         return 'vente'

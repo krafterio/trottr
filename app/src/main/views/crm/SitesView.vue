@@ -206,7 +206,7 @@
                                     </th>
                                     <th
                                         class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                        Nb lots
+                                        Lots
                                     </th>
                                     <th
                                         class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
@@ -222,8 +222,9 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-neutral-200">
-                                <tr v-for="site in sites" :key="site.id" class="hover:bg-neutral-50">
-                                    <td class="px-3 py-2 whitespace-nowrap">
+                                <tr v-for="site in sites" :key="site.id" class="hover:bg-neutral-50 cursor-pointer"
+                                    @click="$router.push(`/site/${site.id}`)">
+                                    <td class="px-3 py-2 whitespace-nowrap" @click.stop>
                                         <Checkbox />
                                     </td>
                                     <td class="px-6 py-2 whitespace-nowrap">
@@ -251,7 +252,8 @@
                                         <div class="text-sm text-neutral-900">{{ site.lastIntervention || '-' }}</div>
                                     </td>
                                     <td class="px-6 py-2 whitespace-nowrap">
-                                        <div class="text-sm text-neutral-900">{{ site.contract || '-' }}</div>
+                                        <Badge v-if="site.contract" variant="outline">{{ site.contract }}</Badge>
+                                        <span v-else class="text-sm text-neutral-300">-</span>
                                     </td>
                                     <td class="px-6 py-2 whitespace-nowrap">
                                         <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
@@ -294,6 +296,7 @@ import {
     Search
 } from 'lucide-vue-next'
 import { ref } from 'vue'
+import Badge from '../../../common/components/ui/badge/Badge.vue'
 
 const showKpis = ref(false)
 const showFilters = ref(true)

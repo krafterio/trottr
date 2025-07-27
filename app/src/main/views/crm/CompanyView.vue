@@ -37,7 +37,7 @@
         </div>
 
         <div class="flex-1 flex overflow-hidden">
-            <div class="w-80 bg-white border-r overflow-y-auto">
+            <div class="w-100 bg-white border-r overflow-y-auto">
                 <div class="p-6">
                     <h2 class="text-lg font-semibold text-neutral-900 mb-4">Informations générales</h2>
 
@@ -158,13 +158,13 @@
                                     </Badge>
                                 </div>
                                 <div class="flex gap-2">
-                                    <Button size="sm" variant="outline">
+                                    <Button variant="outline">
                                         <FileText class="h-3 w-3" />
                                         Générer rapport de situation
                                     </Button>
-                                    <Button size="sm">
+                                    <Button>
                                         <Plus class="h-3 w-3" />
-                                        Nouveau contrat
+                                        Nouvelle intervention
                                     </Button>
                                 </div>
                             </div>
@@ -173,17 +173,18 @@
                 </div>
 
                 <div class="bg-white m-6 mt-0 rounded-lg border">
-                    <Tabs default-value="sites" class="border-b p-4 py-3">
+                    <Tabs default-value="sites" class="border-b p-2 py-3">
                         <TabsList>
                             <TabsTrigger value="sites">Sites</TabsTrigger>
                             <TabsTrigger value="contacts">Contacts</TabsTrigger>
+                            <TabsTrigger value="equipements">Équipements</TabsTrigger>
                             <TabsTrigger value="contrats">Contrats</TabsTrigger>
                             <TabsTrigger value="interventions">Interventions</TabsTrigger>
                             <TabsTrigger value="documents">Documents</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="sites">
-                            <div class="p-4">
+                            <div class="p-2">
                                 <div class="flex items-center justify-between mb-4">
                                     <h2 class="text-lg font-semibold text-neutral-900">Sites d'intervention</h2>
                                     <Button>
@@ -246,7 +247,7 @@
                         </TabsContent>
 
                         <TabsContent value="contacts">
-                            <div class="p-4">
+                            <div class="p-2">
                                 <div class="flex items-center justify-between mb-4">
                                     <h2 class="text-lg font-semibold text-neutral-900">Contacts rattachés</h2>
                                     <Button>
@@ -317,8 +318,92 @@
                             </div>
                         </TabsContent>
 
+                        <TabsContent value="equipements">
+                            <div class="p-2">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h2 class="text-lg font-semibold text-neutral-900">Équipements</h2>
+                                    <Button>
+                                        <Plus class="h-4 w-4" />
+                                        Ajouter un équipement
+                                    </Button>
+                                </div>
+
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-neutral-50 border-b">
+                                            <tr>
+                                                <th
+                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                                                    Équipement
+                                                </th>
+                                                <th
+                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                                                    Type
+                                                </th>
+                                                <th
+                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                                                    Site
+                                                </th>
+                                                <th
+                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                                                    Lot
+                                                </th>
+                                                <th
+                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                                                    Marque / Modèle
+                                                </th>
+                                                <th
+                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                                                    État
+                                                </th>
+                                                <th
+                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                                                    Actions
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-neutral-200">
+                                            <tr v-for="equipment in companyEquipments" :key="equipment.id"
+                                                class="hover:bg-neutral-50">
+                                                <td class="px-4 py-4 whitespace-nowrap">
+                                                    <div class="text-sm font-medium text-neutral-900">{{ equipment.name
+                                                        }}</div>
+                                                </td>
+                                                <td class="px-4 py-4 whitespace-nowrap">
+                                                    <Badge variant="outline">{{ equipment.type }}</Badge>
+                                                </td>
+                                                <td class="px-4 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-neutral-900">{{ equipment.site }}</div>
+                                                </td>
+                                                <td class="px-4 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-neutral-900">{{ equipment.lot || '-' }}
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-neutral-900">{{ equipment.brand }}</div>
+                                                    <div class="text-sm text-neutral-500">{{ equipment.model }}</div>
+                                                </td>
+                                                <td class="px-4 py-4 whitespace-nowrap">
+                                                    <Badge :class="equipment.status === 'Fonctionnel' ? 'bg-green-100 text-green-800' :
+                                                        equipment.status === 'En panne' ? 'bg-red-100 text-red-800' :
+                                                            'bg-yellow-100 text-yellow-800'">
+                                                        {{ equipment.status }}
+                                                    </Badge>
+                                                </td>
+                                                <td class="px-4 py-4 whitespace-nowrap">
+                                                    <Button variant="ghost" size="sm">
+                                                        <MoreVertical class="h-4 w-4" />
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </TabsContent>
+
                         <TabsContent value="contrats">
-                            <div class="p-4">
+                            <div class="p-2">
                                 <div class="flex items-center justify-between mb-4">
                                     <h2 class="text-lg font-semibold text-neutral-900">Contrats</h2>
                                     <Button>
@@ -395,7 +480,7 @@
                         </TabsContent>
 
                         <TabsContent value="interventions">
-                            <div class="p-4">
+                            <div class="p-2">
                                 <div class="flex items-center justify-between mb-4">
                                     <h2 class="text-lg font-semibold text-neutral-900">Historique des interventions</h2>
                                     <Button>
@@ -474,7 +559,7 @@
                         </TabsContent>
 
                         <TabsContent value="documents">
-                            <div class="p-4">
+                            <div class="p-2">
                                 <div class="flex items-center justify-between mb-4">
                                     <h2 class="text-lg font-semibold text-neutral-900">Documents</h2>
                                     <Button>
@@ -693,6 +778,49 @@ const documents = [
         name: 'Cahier des charges.pdf',
         type: 'PDF',
         uploadDate: '10/12/2023'
+    }
+]
+
+const companyEquipments = [
+    {
+        id: 1,
+        name: 'Ascenseur principal',
+        type: 'Ascenseur',
+        site: 'Résidence Les Jardins',
+        lot: 'Communs',
+        brand: 'OTIS',
+        model: 'Gen2 Comfort',
+        status: 'Fonctionnel'
+    },
+    {
+        id: 2,
+        name: 'Chaudière collective',
+        type: 'Chauffage',
+        site: 'Résidence Les Jardins',
+        lot: 'Sous-sol technique',
+        brand: 'Viessmann',
+        model: 'Vitocrossal 300',
+        status: 'Maintenance requise'
+    },
+    {
+        id: 3,
+        name: 'Portail automatique',
+        type: 'Sécurité',
+        site: 'Villa Dupont',
+        lot: null,
+        brand: 'CAME',
+        model: 'BX78',
+        status: 'En panne'
+    },
+    {
+        id: 4,
+        name: 'VMC collective',
+        type: 'Ventilation',
+        site: 'Résidence Les Jardins',
+        lot: 'A201',
+        brand: 'Atlantic',
+        model: 'Duolix Max',
+        status: 'Fonctionnel'
     }
 ]
 </script>
