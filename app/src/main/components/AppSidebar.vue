@@ -81,11 +81,11 @@ const modules = [
     },
     {
         title: 'Gestion',
-        url: '/gestion',
+        url: '/operations',
         icon: Blocks,
     },
     {
-        title: 'RH',
+        title: 'Employés',
         url: '/techniciens',
         icon: Users,
     },
@@ -124,8 +124,8 @@ const isActiveRoute = (url) => {
     if (url === '/documents') {
         return name === 'documents'
     }
-    if (url === '/gestion') {
-        return name === 'stock' || name === 'operations' || name === 'produits' || name === 'flotte' || name === 'gestion'
+    if (url === '/operations') {
+        return name === 'stock' || name === 'operations' || name === 'produits' || name === 'gestion'
     }
     if (url === '/techniciens') {
         return name === 'techniciens' || name === 'absences' || name === 'rh'

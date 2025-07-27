@@ -1,16 +1,12 @@
 <template>
     <div class="h-full flex flex-col">
         <div class="bg-white border-b px-6 py-4">
-            <div class="flex items-center justify-between" :class="showKpis ? 'mb-4' : 'mb-0'">
+            <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-2xl font-bold text-neutral-900">Absences / Congés</h1>
                     <p class="text-neutral-600">Gestion des absences des techniciens</p>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <div class="flex items-center space-x-2 bg-accent rounded-md p-2 h-9">
-                        <p class="text-sm text-neutral-600">Afficher KPIs</p>
-                        <Switch v-model="showKpis" />
-                    </div>
                     <Button variant="outline">
                         <Download class="h-4 w-4" />
                         Exporter
@@ -22,44 +18,7 @@
                 </div>
             </div>
 
-            <div v-show="showKpis" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center">
-                        <CalendarIcon class="h-4 w-4 text-neutral-600" />
-                    </div>
-                    <div>
-                        <p class="text-sm text-neutral-600">Total</p>
-                        <p class="text-lg font-semibold text-neutral-900">42</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center">
-                        <Heart class="h-4 w-4 text-neutral-600" />
-                    </div>
-                    <div>
-                        <p class="text-sm text-neutral-600">Vacances</p>
-                        <p class="text-lg font-semibold text-neutral-900">18</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center">
-                        <Stethoscope class="h-4 w-4 text-neutral-600" />
-                    </div>
-                    <div>
-                        <p class="text-sm text-neutral-600">Maladie</p>
-                        <p class="text-lg font-semibold text-neutral-900">12</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center">
-                        <GraduationCap class="h-4 w-4 text-neutral-600" />
-                    </div>
-                    <div>
-                        <p class="text-sm text-neutral-600">Formation</p>
-                        <p class="text-lg font-semibold text-neutral-900">8</p>
-                    </div>
-                </div>
-            </div>
+
         </div>
 
         <div class="flex-1 flex overflow-hidden">
@@ -341,7 +300,6 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import Input from '@/common/components/ui/input/Input.vue'
 import { Popover, PopoverContent, PopoverTrigger } from '@/common/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select'
-import { Switch } from '@/common/components/ui/switch'
 import { Textarea } from '@/common/components/ui/textarea'
 import { cn } from '@/common/lib/utils'
 import TablePagination from '@/main/components/TablePagination.vue'
@@ -356,19 +314,15 @@ import {
     Columns,
     Download,
     Edit,
-    GraduationCap,
-    Heart,
     MoreVertical,
     PanelLeftClose,
     PanelLeftOpen,
     Plus,
     RotateCcw,
-    Search,
-    Stethoscope
+    Search
 } from 'lucide-vue-next'
 import { ref } from 'vue'
 
-const showKpis = ref(false)
 const showFilters = ref(true)
 const isEditModalOpen = ref(false)
 

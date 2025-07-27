@@ -90,19 +90,23 @@ const moduleLinks = {
         { href: '/devis', label: 'Devis' },
         { href: '/contrats', label: 'Contrats' }
     ],
-    planning: [],
-    dashboard: [],
+    planning: [
+        { href: '/planning', label: 'Planning' },
+    ],
+    dashboard: [
+        { href: '/dashboard', label: 'Tableau de bord' },
+    ],
     documents: [
         { href: '#', label: 'Bientôt disponible', disabled: true }
     ],
     gestion: [
-        { href: '/stock', label: 'Stock pièces détachées' },
+        { href: '/stock', label: 'Stock' },
         { href: '/operations', label: 'Opérations' },
         { href: '/produits', label: 'Fiches produit' },
-        { href: '/flotte', label: 'Flotte' }
     ],
     rh: [
         { href: '/techniciens', label: 'Techniciens' },
+        { href: '/flotte', label: 'Flotte' },
         { href: '/absences', label: 'Absences / congés' }
     ]
 }

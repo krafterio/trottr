@@ -204,6 +204,33 @@ const router = createRouter({
       }
     },
     {
+      path: '/operations',
+      name: 'operations',
+      component: () => import('@/main/views/gestion/OperationsView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Opérations'
+      }
+    },
+    {
+      path: '/produits',
+      name: 'produits',
+      component: () => import('@/main/views/gestion/ProductsView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Fiches produits'
+      }
+    },
+    {
+      path: '/stock',
+      name: 'stock',
+      component: () => import('@/main/views/gestion/StocksView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Stock pièces détachées'
+      }
+    },
+    {
       path: '/workspace',
       name: 'workspace-home',
       redirect: '/',
