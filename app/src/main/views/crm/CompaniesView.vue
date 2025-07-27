@@ -240,7 +240,8 @@
                                         <div class="text-sm font-medium text-neutral-900">{{ company.name }}</div>
                                     </td>
                                     <td class="px-6 py-2 whitespace-nowrap">
-                                        <div class="text-sm text-neutral-900">{{ company.type }}</div>
+                                        <Badge variant="outline">{{ company.type }}
+                                        </Badge>
                                     </td>
                                     <td class="px-6 py-2 whitespace-nowrap">
                                         <div class="text-sm text-neutral-900">{{ company.addressCount }}</div>
@@ -284,6 +285,7 @@
 </template>
 
 <script setup>
+import { Badge } from '@/common/components/ui/badge'
 import { Button } from '@/common/components/ui/button'
 import { Checkbox } from '@/common/components/ui/checkbox'
 import Input from '@/common/components/ui/input/Input.vue'

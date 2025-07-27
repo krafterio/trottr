@@ -168,6 +168,24 @@ const router = createRouter({
       }
     },
     {
+      path: '/subsites',
+      name: 'subsites',
+      component: () => import('@/main/views/crm/SubsitesView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Lots'
+      }
+    },
+    {
+      path: '/subsite/:id',
+      name: 'subsite',
+      component: () => import('@/main/views/crm/SubsiteView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Fiche lot'
+      }
+    },
+    {
       path: '/workspace',
       name: 'workspace-home',
       redirect: '/',

@@ -32,6 +32,10 @@
                 </div>
                 <div class="flex items-center space-x-3">
                     <Button variant="outline">
+                        <CalendarArrowUp class="h-4 w-4" />
+                        Replanifier
+                    </Button>
+                    <Button variant="outline">
                         <UserPlus class="h-4 w-4" />
                         Assigner technicien
                     </Button>
@@ -702,6 +706,7 @@ import {
     AlertTriangle,
     ArrowLeft,
     Calendar,
+    CalendarArrowUp,
     CalendarCheck,
     Check,
     ChevronDown,

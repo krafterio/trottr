@@ -83,8 +83,8 @@ const moduleLinks = {
     crm: [
         { href: '/companies', label: 'Sociétés' },
         { href: '/contacts', label: 'Contacts' },
-        { href: '/sites', label: 'Sites d\'intervention' },
-        { href: '/lots', label: 'Lots' }
+        { href: '/sites', label: 'Sites' },
+        { href: '/subsites', label: 'Lots' }
     ],
     vente: [
         { href: '/devis', label: 'Devis' },
@@ -112,7 +112,7 @@ const currentModule = computed(() => {
 
     if (name === 'jobs' || name === 'job' || name === 'job-planner') {
         return 'interventions'
-    } else if (name === 'companies' || name === 'company' || name === 'contacts' || name === 'contact' || name === 'sites' || name === 'site' || name === 'lots') {
+    } else if (name === 'companies' || name === 'company' || name === 'contacts' || name === 'contact' || name === 'sites' || name === 'site' || name === 'subsites' || name === 'subsite') {
         return 'crm'
     } else if (name === 'devis' || name === 'contrats') {
         return 'vente'

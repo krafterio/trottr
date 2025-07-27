@@ -70,11 +70,6 @@ const modules = [
         icon: UsersIcon,
     },
     {
-        title: 'Vente',
-        url: '/devis',
-        icon: FileText,
-    },
-    {
         title: 'Planning',
         url: '/planning',
         icon: CalendarDays,
@@ -83,12 +78,6 @@ const modules = [
         title: 'Tableau de bord',
         url: '/dashboard',
         icon: BarChart3,
-    },
-    {
-        title: 'Documents',
-        url: '/documents',
-        icon: FileText,
-        disabled: true,
     },
     {
         title: 'Gestion',
@@ -100,6 +89,18 @@ const modules = [
         url: '/rh',
         icon: Users,
     },
+    {
+        title: 'Vente (bientôt disponible)',
+        url: '/devis',
+        icon: FileText,
+        disabled: true,
+    },
+    {
+        title: 'Documents (bientôt disponible)',
+        url: '/documents',
+        icon: FileText,
+        disabled: true,
+    },
 ]
 
 const isActiveRoute = (url) => {
@@ -109,7 +110,7 @@ const isActiveRoute = (url) => {
         return name === 'jobs' || name === 'job' || name === 'job-planner'
     }
     if (url === '/companies') {
-        return name === 'companies' || name === 'company' || name === 'contacts' || name === 'contact' || name === 'sites' || name === 'site'
+        return name === 'companies' || name === 'company' || name === 'contacts' || name === 'contact' || name === 'sites' || name === 'site' || name === 'subsites' || name === 'subsite'
     }
     if (url === '/devis') {
         return name === 'devis' || name === 'contrats'
