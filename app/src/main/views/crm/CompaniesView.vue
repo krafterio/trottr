@@ -7,6 +7,7 @@
 </template>
 
 <script setup>
+import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useCompany } from '@/common/composables/useCompany'
 import ListView from '@/main/components/ListView.vue'
@@ -32,7 +33,7 @@ const companies = ref([])
 const currentPage = ref(1)
 const totalPages = ref(1)
 const totalItems = ref(0)
-const itemsPerPage = ref(20)
+const itemsPerPage = ref(50)
 const loading = ref(false)
 const error = ref(null)
 const searchQuery = ref('')
@@ -51,13 +52,14 @@ const fetchCompanies = async () => {
     try {
         const response = await fetcher.get('/companies/', {
             params: {
-                skip: (currentPage.value - 1) * itemsPerPage.value,
-                limit: itemsPerPage.value
+                page: currentPage.value,
+                per_page: itemsPerPage.value
             }
         })
-        companies.value = response.data || []
-        totalItems.value = response.data.length
-        totalPages.value = Math.ceil(totalItems.value / itemsPerPage.value)
+        companies.value = response.data.items || []
+        totalItems.value = response.data.total || 0
+        totalPages.value = response.data.total_pages || 1
+        currentPage.value = response.data.page || 1
     } catch (err) {
         console.error('Erreur lors du chargement des entreprises:', err)
         error.value = err
@@ -68,6 +70,7 @@ const fetchCompanies = async () => {
 
 const searchCompanies = async (query) => {
     if (!query || query.trim().length < 2) {
+        currentPage.value = 1
         fetchCompanies()
         return
     }
@@ -79,13 +82,14 @@ const searchCompanies = async (query) => {
         const response = await fetcher.get('/companies/quick_search', {
             params: {
                 q: query.trim(),
-                limit: 50
+                page: currentPage.value,
+                per_page: itemsPerPage.value
             }
         })
-        companies.value = response.data || []
-        totalItems.value = response.data.length
-        totalPages.value = 1
-        currentPage.value = 1
+        companies.value = response.data.items || []
+        totalItems.value = response.data.total || 0
+        totalPages.value = response.data.total_pages || 1
+        currentPage.value = response.data.page || 1
     } catch (err) {
         console.error('Erreur lors de la recherche:', err)
         error.value = err
@@ -96,12 +100,8 @@ const searchCompanies = async (query) => {
 
 const debouncedSearchCompanies = debounce(searchCompanies, 300)
 
-onMounted(() => {
-    fetchCompanies()
-})
-
 const handleCreate = () => {
-    router.push('/companies/create')
+    bus.trigger('open-company-dialog')
 }
 
 const handleRowClick = (company) => {
@@ -114,20 +114,22 @@ const handleSearch = (query) => {
 }
 
 const handlePageChange = (page) => {
-    if (searchQuery.value) {
-        return
-    }
     currentPage.value = page
-    fetchCompanies()
+    if (searchQuery.value && searchQuery.value.trim().length >= 2) {
+        searchCompanies(searchQuery.value)
+    } else {
+        fetchCompanies()
+    }
 }
 
 const handleItemsPerPageChange = (itemsCount) => {
-    if (searchQuery.value) {
-        return
-    }
     itemsPerPage.value = itemsCount
     currentPage.value = 1
-    fetchCompanies()
+    if (searchQuery.value && searchQuery.value.trim().length >= 2) {
+        searchCompanies(searchQuery.value)
+    } else {
+        fetchCompanies()
+    }
 }
 
 const handleFilterChange = (filters) => {
@@ -137,4 +139,22 @@ const handleFilterChange = (filters) => {
 const handleSelectionChange = (selectedIds) => {
     console.log('Selection changed:', selectedIds)
 }
+
+const refreshList = () => {
+    if (searchQuery.value && searchQuery.value.trim().length >= 2) {
+        searchCompanies(searchQuery.value)
+    } else {
+        fetchCompanies()
+    }
+}
+
+useBus(bus, 'company-saved', () => {
+    refreshList()
+})
+
+onMounted(() => {
+    fetchCompanies()
+})
+
+
 </script>

@@ -45,28 +45,20 @@ const endItem = Math.min(props.currentPage * props.itemsPerPage, props.totalItem
 <template>
     <div :class="['fixed z-50 bg-white border-t border-gray-200 px-6 py-3', positionClasses]">
         <div class="flex items-center justify-between">
-            <!-- Informations sur les éléments -->
-            <div class="flex items-center space-x-6">
-                <div class="text-sm text-gray-700">
-                    Affichage de {{ startItem }} à {{ endItem }} sur {{ totalItems }} résultats
-                </div>
-
-                <!-- Sélecteur d'éléments par page -->
-                <div class="flex items-center space-x-2">
-                    <span class="text-sm text-gray-700">Afficher</span>
-                    <Select :model-value="itemsPerPage.toString()" @update:model-value="changeItemsPerPage">
-                        <SelectTrigger class="w-20 h-8">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="10">10</SelectItem>
-                            <SelectItem value="25">25</SelectItem>
-                            <SelectItem value="50">50</SelectItem>
-                            <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <span class="text-sm text-gray-700">par page</span>
-                </div>
+            <!-- Sélecteur d'éléments par page -->
+            <div class="flex items-center space-x-2">
+                <span class="text-sm text-gray-700">Afficher</span>
+                <Select :model-value="itemsPerPage.toString()" @update:model-value="changeItemsPerPage">
+                    <SelectTrigger class="w-20 h-8">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="80">80</SelectItem>
+                    </SelectContent>
+                </Select>
+                <span class="text-sm text-gray-700">par page</span>
             </div>
 
             <!-- Contrôles de pagination -->

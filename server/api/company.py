@@ -5,37 +5,91 @@ from models.country import Country
 from schemas.company import CompanyCreate, CompanyUpdate, CompanyRead
 from api.auth import get_current_user
 from models.user import User
+from services.workspace import get_user_workspace
+from pydantic import BaseModel
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[CompanyRead])
+class PaginatedCompanyResponse(BaseModel):
+    items: List[CompanyRead]
+    total: int
+    page: int
+    per_page: int
+    total_pages: int
+
+
+@router.get("/", response_model=PaginatedCompanyResponse)
 async def list_companies(
-    skip: int = 0,
-    limit: int = 100,
+    page: int = 1,
+    per_page: int = 50,
     current_user: User = Depends(get_current_user)
 ):
-    companies = await Company.query.select_related("invoice_country").offset(skip).limit(limit).all()
-    return companies
+    if per_page not in [20, 50, 80]:
+        per_page = 50
+    
+    if page < 1:
+        page = 1
+    
+    skip = (page - 1) * per_page
+    
+    total = await Company.query.count()
+    companies = await Company.query.offset(skip).limit(per_page).all()
+    
+    total_pages = (total + per_page - 1) // per_page
+    
+    return PaginatedCompanyResponse(
+        items=companies,
+        total=total,
+        page=page,
+        per_page=per_page,
+        total_pages=total_pages
+    )
 
 
-@router.get("/quick_search", response_model=List[CompanyRead])
+@router.get("/quick_search", response_model=PaginatedCompanyResponse)
 async def quick_search_companies(
     q: str,
-    limit: int = 10,
+    page: int = 1,
+    per_page: int = 50,
     current_user: User = Depends(get_current_user)
 ):
     if not q or len(q.strip()) < 2:
-        return []
+        return PaginatedCompanyResponse(
+            items=[],
+            total=0,
+            page=1,
+            per_page=per_page,
+            total_pages=0
+        )
     
+    if per_page not in [20, 50, 80]:
+        per_page = 50
+    
+    if page < 1:
+        page = 1
+    
+    skip = (page - 1) * per_page
     search_term = f"%{q.strip()}%"
-    companies = await Company.query.select_related("invoice_country").filter(
-        Company.columns.name.ilike(search_term) | 
-        Company.columns.reference.ilike(search_term) | 
-        Company.columns.invoice_city.ilike(search_term)
-    ).limit(limit).all()
     
-    return companies
+    query = Company.query.filter(
+        Company.columns.name.ilike(search_term) | 
+        Company.columns.invoice_city.ilike(search_term) |
+        Company.columns.reference.ilike(search_term)
+    )
+    
+    total = await query.count()
+    companies = await query.offset(skip).limit(per_page).all()
+    
+    total_pages = (total + per_page - 1) // per_page
+    
+    return PaginatedCompanyResponse(
+        items=companies,
+        total=total,
+        page=page,
+        per_page=per_page,
+        total_pages=total_pages
+    )
 
 
 @router.get("/{company_id}", response_model=CompanyRead)
@@ -43,7 +97,7 @@ async def get_company(
     company_id: int,
     current_user: User = Depends(get_current_user)
 ):
-    company = await Company.query.select_related("invoice_country").get(id=company_id)
+    company = await Company.query.get(id=company_id)
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     return company
@@ -52,15 +106,16 @@ async def get_company(
 @router.post("/", response_model=CompanyRead, status_code=status.HTTP_201_CREATED)
 async def create_company(
     company: CompanyCreate,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    workspace = Depends(get_user_workspace)
 ):
     if company.invoice_country_id:
         country = await Country.query.get(id=company.invoice_country_id)
         if not country:
             raise HTTPException(status_code=400, detail="Country not found")
     
-    new_company = await Company.query.create(**company.model_dump())
-    return await Company.query.select_related("invoice_country").get(id=new_company.id)
+    new_company = await Company.query.create(**company.model_dump(), workspace=workspace)
+    return new_company
 
 
 @router.put("/{company_id}", response_model=CompanyRead)

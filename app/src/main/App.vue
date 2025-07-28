@@ -17,6 +17,7 @@
 		</template>
 
 		<Toaster />
+		<CompanyDialog />
 	</div>
 </template>
 
@@ -25,6 +26,7 @@ import { Toaster } from '@/common/components/ui/sonner'
 import { websocketService } from '@/common/services/websocket'
 import { useAuthStore } from '@/common/stores/auth'
 import AppSidebar from '@/main/components/AppSidebar.vue'
+import CompanyDialog from '@/main/components/companies/CompanyDialog.vue'
 import AppNavbar from '@/main/components/navbar/AppNavbar.vue'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
