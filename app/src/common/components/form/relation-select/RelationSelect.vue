@@ -1,14 +1,8 @@
 <template>
     <Popover v-model:open="open">
         <PopoverTrigger as-child>
-            <Button
-                variant="outline"
-                role="combobox"
-                :aria-expanded="open"
-                class="w-full flex-1 justify-between"
-                :class="triggerClass"
-                :disabled="disabled"
-            >
+            <Button variant="outline" role="combobox" :aria-expanded="open" class="w-full flex-1 justify-between"
+                :class="triggerClass" :disabled="disabled">
                 <div v-if="selectedItem" class="flex items-center gap-2 truncate">
                     <slot name="selected-item" :item="selectedItem">
                         <Avatar v-if="imageField && selectedItem[imageField]" class="h-4 w-4 rounded-md">
@@ -28,32 +22,20 @@
         </PopoverTrigger>
         <PopoverContent class="w-[300px] p-0">
             <Command>
-                <CommandInput 
-                    :placeholder="searchPlaceholder" 
-                    v-model="searchQuery"
-                    @update:model-value="onSearchChange"
-                />
+                <CommandInput :placeholder="searchPlaceholder" v-model="searchQuery"
+                    @update:model-value="onSearchChange" />
                 <CommandEmpty>{{ emptyMessage }}</CommandEmpty>
                 <CommandList>
                     <CommandGroup>
-                        <CommandItem
-                            v-if="clearable && selectedItem"
-                            :value="'clear'"
-                            @click="clearSelection"
-                            class="h-auto cursor-pointer py-2 text-muted-foreground"
-                        >
+                        <CommandItem v-if="clearable && selectedItem" :value="'clear'" @click="clearSelection"
+                            class="h-auto cursor-pointer py-2 text-muted-foreground">
                             <div class="flex items-center gap-2 w-full">
                                 <X class="h-4 w-4" />
                                 <span class="text-sm">Effacer la sélection</span>
                             </div>
                         </CommandItem>
-                        <CommandItem
-                            v-for="item in items"
-                            :key="item.id"
-                            :value="item.id"
-                            @click="() => selectItem(item)"
-                            class="h-auto cursor-pointer py-2"
-                        >
+                        <CommandItem v-for="item in items" :key="item.id" :value="item.id"
+                            @click="() => selectItem(item)" class="h-auto cursor-pointer py-2">
                             <slot name="list-item" :item="item">
                                 <div class="flex items-center gap-2 w-full">
                                     <Avatar v-if="imageField && item[imageField]" class="h-6 w-6 rounded-md">
@@ -63,8 +45,10 @@
                                         </AvatarFallback>
                                     </Avatar>
                                     <div class="flex flex-col items-start min-w-0 flex-1">
-                                        <span class="font-medium text-sm truncate">{{ item[displayField] || 'Sans nom' }}</span>
-                                        <span v-if="subtitleField && item[subtitleField]" class="text-xs text-muted-foreground truncate">
+                                        <span class="font-medium text-sm truncate">{{ item[displayField] || 'Sans nom'
+                                            }}</span>
+                                        <span v-if="subtitleField && item[subtitleField]"
+                                            class="text-xs text-muted-foreground truncate">
                                             {{ item[subtitleField] }}
                                         </span>
                                     </div>
@@ -79,11 +63,12 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
-import { debounce } from 'lodash'
 import { useFetcher } from '@/common/composables/fetcher'
+import { debounce } from 'lodash'
 import { ChevronsUpDown, X } from 'lucide-vue-next'
+import { computed, onMounted, ref, watch } from 'vue'
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/common/components/ui/avatar'
 import { Button } from '@/common/components/ui/button'
 import {
     Command,
@@ -98,7 +83,6 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/common/components/ui/popover'
-import { Avatar, AvatarImage, AvatarFallback } from '@/common/components/ui/avatar'
 
 defineOptions({
     name: 'RelationSelect'
@@ -216,7 +200,7 @@ const getImageUrl = (imagePath) => {
 
 const fetchSelectedItem = async (itemId) => {
     if (!itemId || typeof itemId !== 'number') return
-    
+
     try {
         const { data } = await fetcher.get(`${props.endpoint}/${itemId}`)
         selectedItemCache.value = data
@@ -251,7 +235,7 @@ const fetchItems = async (search = '') => {
         const headers = {
             'X-Fields': fields.join(','),
         }
-        
+
         if (search) {
             params.limit = props.limit.toString()
 
@@ -263,7 +247,7 @@ const fetchItems = async (search = '') => {
         } else {
             params.limit = props.defaultLimit.toString()
         }
-        
+
         const { data } = await fetcher.get(props.endpoint, {
             headers,
             params,
@@ -313,7 +297,7 @@ watch(() => props.modelValue, (newValue) => {
     if (newValue && typeof newValue === 'number') {
         const foundInList = items.value.find(item => item.id === newValue)
         const foundInCache = selectedItemCache.value && selectedItemCache.value.id === newValue
-        
+
         if (!foundInList && !foundInCache) {
             fetchSelectedItem(newValue)
         }
@@ -332,4 +316,4 @@ watch(open, (newOpen) => {
         fetchItems()
     }
 })
-</script> 
+</script>

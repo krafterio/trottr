@@ -63,7 +63,7 @@
                                     @update:checked="toggleFilter(filter.key, option.value)" />
                                 <span class="ml-2 text-sm text-neutral-600">{{ option.label }}</span>
                                 <span v-if="option.count" class="ml-auto text-xs text-neutral-400">{{ option.count
-                                    }}</span>
+                                }}</span>
                             </label>
                         </div>
                     </div>
@@ -151,7 +151,7 @@
                             </tr>
                             <ContextMenu v-else v-for="item in items" :key="item.id">
                                 <ContextMenuTrigger as-child>
-                                    <tr class="hover:bg-neutral-50 cursor-pointer" @click="$emit('row-click', item)">
+                                    <tr class="hover:bg-neutral-50">
 
                                         <td v-if="config.enableSelection" class="px-3 py-2 whitespace-nowrap max-w-5"
                                             @click.stop>

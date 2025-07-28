@@ -83,9 +83,9 @@
 </template>
 
 <script setup>
+import { CompanySelect } from '@/common/components/form/company-select'
+import { CountrySelect } from '@/common/components/form/country-select'
 import { Button } from '@/common/components/ui/button'
-import { CompanySelect } from '@/common/components/ui/company-select'
-import { CountrySelect } from '@/common/components/ui/country-select'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog'
 import { Input } from '@/common/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select'

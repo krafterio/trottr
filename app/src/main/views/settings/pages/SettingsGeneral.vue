@@ -78,8 +78,8 @@
 </template>
 
 <script setup>
+import CountrySelect from '@/common/components/form/country-select/CountrySelect.vue'
 import { Button } from '@/common/components/ui/button'
-import CountrySelect from '@/common/components/ui/country-select/CountrySelect.vue'
 import { Input } from '@/common/components/ui/input'
 import { Label } from '@/common/components/ui/label'
 import { Separator } from '@/common/components/ui/separator'

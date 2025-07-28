@@ -107,6 +107,36 @@ async def update_site(
     await site.update(**update_data)
     return await Site.query.select_related("country", "company").get(id=site_id)
 
+@router.patch("/{site_id}", response_model=SiteRead)
+async def patch_site(
+    site_id: int,
+    site_update: SiteUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    site = await Site.query.get(id=site_id)
+    if not site:
+        raise HTTPException(status_code=404, detail="Site not found")
+    
+    update_data = site_update.model_dump(exclude_unset=True)
+    
+    if "country" in update_data and update_data["country"]:
+        country = await Country.query.get(id=update_data["country"])
+        if not country:
+            raise HTTPException(status_code=400, detail="Country not found")
+        update_data["country"] = country
+    
+    if "company" in update_data:
+        if update_data["company"]:
+            company = await Company.query.get(id=update_data["company"])
+            if not company:
+                raise HTTPException(status_code=400, detail="Company not found")
+            update_data["company"] = company
+        else:
+            update_data["company"] = None
+    
+    await site.update(**update_data)
+    return await Site.query.select_related("country", "company").get(id=site_id)
+
 @router.delete("/{site_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_site(
     site_id: int,

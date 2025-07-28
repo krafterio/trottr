@@ -1,22 +1,14 @@
 <template>
-    <RelationSelect 
-        v-model="selectedCountry"
-        endpoint="/countries"
-        display-field="name"
-        search-param="search"
-        :placeholder="placeholder"
-        :search-placeholder="searchPlaceholder"
-        :trigger-class="triggerClass"
-        :clearable="clearable"
-        :disabled="disabled"
-    >
+    <RelationSelect v-model="selectedCountry" endpoint="/countries" display-field="name" search-param="search"
+        :placeholder="placeholder" :search-placeholder="searchPlaceholder" :trigger-class="triggerClass"
+        :clearable="clearable" :disabled="disabled">
         <!-- Slot pour customiser l'affichage du pays sélectionné -->
         <template #selected-item="{ item }">
             <slot name="selected-item" :item="item">
                 <span class="truncate">{{ item.name }}</span>
             </slot>
         </template>
-        
+
         <!-- Slot pour customiser l'affichage dans la liste -->
         <template #list-item="{ item }">
             <slot name="list-item" :item="item">
@@ -29,8 +21,8 @@
 </template>
 
 <script setup>
+import { RelationSelect } from '@/common/components/form/relation-select'
 import { computed } from 'vue'
-import { RelationSelect } from '@/common/components/ui/relation-select'
 
 defineOptions({
     name: 'CountrySelect'
@@ -72,4 +64,4 @@ const selectedCountry = computed({
         emit('select', value)
     }
 })
-</script> 
+</script>

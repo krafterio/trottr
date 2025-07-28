@@ -22,6 +22,7 @@ class Site(BaseModel, WorkspaceableMixin):
     country = edgy.ForeignKey(Country, on_delete="CASCADE")
     building_type: str = fields.ChoiceField(BuildingType, default=BuildingType.AUTRE, label="Type de bâtiment") # type: ignore
     company = edgy.ForeignKey(Company, on_delete="CASCADE", null=True, blank=True)
+    access_info: str = edgy.TextField(null=True, blank=True)
     
     class Meta:
         tablename = "site" 

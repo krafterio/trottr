@@ -1,9 +1,17 @@
+import { useSite } from '@/common/composables/useSite'
+import CellLink from '../CellLink.vue'
+
 export const sitesColumns = [
     {
         key: 'name',
         label: 'Nom du site',
-        classes: 'font-medium text-neutral-900',
-        hideable: false
+        hideable: false,
+        component: CellLink,
+        componentProps: (item) => ({
+            href: `/site/${item.id}`,
+            text: item.name,
+            linkClass: 'font-medium text-sm text-neutral-900 hover:text-neutral-700 underline'
+        })
     },
     {
         key: 'building_type',
@@ -39,8 +47,19 @@ export const sitesColumns = [
     {
         key: 'company',
         label: 'Entreprise',
+        component: CellLink,
+        componentProps: (item) => {
+            if (item.company) {
+                return {
+                    to: `/companies/${item.company.id}`,
+                    text: item.company.name,
+                    linkClass: 'text-sm text-neutral-900 hover:text-neutral-700 underline'
+                }
+            }
+            return null
+        },
         accessor: (site) => site.company?.name || '-',
-        classes: 'text-neutral-900'
+        classes: 'text-neutral-500'
     }
 ]
 
@@ -54,8 +73,6 @@ export const sitesConfig = {
     searchPlaceholder: 'Rechercher un site...',
     itemsLabel: 'sites'
 }
-
-import { useSite } from '@/common/composables/useSite'
 
 const { getSiteBuildingTypeOptions } = useSite()
 

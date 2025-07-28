@@ -2,23 +2,10 @@
     <div class="h-full flex flex-col bg-neutral-100">
         <div class="bg-white border-b">
             <div class="px-6 py-4 flex items-center justify-between">
-                <div class="flex items-center space-x-2">
+                <div class="flex items-start space-x-2">
                     <Button variant="outline" @click="$router.go(-1)" class="h-9 w-9">
                         <ArrowLeft :size="20" />
                     </Button>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button variant="outline" class="h-9 w-9">
-                                <MoreHorizontal :size="20" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
-                            <DropdownMenuItem @click="handleDelete">
-                                <Trash class="h-4 w-4 text-destructive" />
-                                Supprimer
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
                     <template v-if="isDirty"">
                         <Button @click="saveCompany" variant="outline" :disabled="loading" class="w-9">
                         <Save class="h-4 w-4" />
@@ -29,10 +16,19 @@
                     </template>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <Button variant="outline" v-if="company.email" @click="contactCompany">
-                        <MessageSquare class="h-4 w-4" />
-                        Contacter
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                            <Button variant="outline" class="h-9 w-9">
+                                <MoreHorizontal :size="20" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem @click="handleDelete">
+                                <Trash class="h-4 w-4 text-destructive" />
+                                Supprimer
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button>
                         <Plus class="h-4 w-4" />
                         Ajouter
@@ -126,10 +122,10 @@
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto">
-                <div class="bg-white m-6 mb-4 rounded-lg border">
+            <div class="flex-1 overflow-y-auto p-6">
+                <div class="bg-white mb-4 rounded-lg border">
                     <div class="p-6">
-                        <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-start justify-between">
                             <div class="flex items-start space-x-2">
                                 <Building class="h-8 w-8 text-neutral-400 mt-2 me-3" :stroke-width="1.2" />
                                 <div class="flex flex-col">
@@ -140,146 +136,104 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 ps-11">
-                            <div class="flex items-start space-x-3">
-                                <MapPin class="h-7 w-7 text-neutral-400" :stroke-width="1.1" />
-                                <div>
-                                    <p class="text-sm font-medium text-neutral-900">-</p>
-                                    <p class="text-xs text-neutral-500">Interventions totales</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start space-x-3">
-                                <FileText class="h-7 w-7 text-neutral-400" :stroke-width="1.1" />
-                                <div>
-                                    <p class="text-sm font-medium text-neutral-900">-</p>
-                                    <p class="text-xs text-neutral-500">Contrats actifs</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start space-x-3">
-                                <MapPinIcon class="h-7 w-7 text-neutral-400" :stroke-width="1.1" />
-                                <div>
-                                    <p class="text-sm font-medium text-neutral-900">-</p>
-                                    <p class="text-xs text-neutral-500">Sites rattachés</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start space-x-3">
-                                <FolderOpen class="h-7 w-7 text-neutral-400" :stroke-width="1.1" />
-                                <div>
-                                    <p class="text-sm font-medium text-neutral-900">-</p>
-                                    <p class="text-xs text-neutral-500">Documents</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 pt-4 border-t border-dashed ps-11">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-4">
-                                    <div class="flex items-center space-x-2" v-if="company.phone">
-                                        <Phone class="h-4 w-4 text-neutral-500" />
-                                        <span class="text-sm text-neutral-600">{{ company.phone }}</span>
-                                    </div>
-                                    <div class="flex items-center space-x-2" v-if="company.email">
-                                        <Mail class="h-4 w-4 text-neutral-500" />
-                                        <span class="text-sm text-neutral-600">{{ company.email }}</span>
-                                    </div>
-                                    <div class="flex items-center space-x-2" v-if="company.invoice_city">
-                                        <MapPin class="h-4 w-4 text-neutral-500" />
-                                        <span class="text-sm text-neutral-600">{{ company.invoice_city }}</span>
-                                    </div>
-                                </div>
-                                <div class="flex gap-2">
-                                    <Button variant="outline">
-                                        <FileText class="h-3 w-3" />
-                                        Générer rapport de situation
-                                    </Button>
-                                    <Button>
-                                        <Plus class="h-3 w-3" />
-                                        Nouvelle intervention
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
-                <div class="bg-white m-6 mt-0 rounded-lg border">
-                    <Tabs default-value="sites" class="border-b p-2 py-3">
-                        <TabsList>
-                            <TabsTrigger value="sites">Sites</TabsTrigger>
-                            <TabsTrigger value="contacts">Contacts</TabsTrigger>
-                            <TabsTrigger value="equipements">Équipements</TabsTrigger>
-                            <TabsTrigger value="contrats">Contrats</TabsTrigger>
-                            <TabsTrigger value="interventions">Interventions</TabsTrigger>
-                            <TabsTrigger value="documents">Documents</TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="sites">
-                            <CompanySites :company-id="company.id" />
-                        </TabsContent>
-
-                        <TabsContent value="contacts">
-                            <div class="p-6">
-                                <div class="text-center py-8">
-                                    <Users class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                                    <h3 class="text-lg font-medium text-neutral-900 mb-2">Contacts</h3>
-                                    <p class="text-neutral-600 mb-4">Cette section permettra de gérer les contacts de
-                                        l'entreprise.</p>
-                                    <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des contacts</p>
-                                </div>
-                            </div>
-                        </TabsContent>
-
-                        <TabsContent value="equipements">
-                            <div class="p-6">
-                                <div class="text-center py-8">
-                                    <Settings class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                                    <h3 class="text-lg font-medium text-neutral-900 mb-2">Équipements</h3>
-                                    <p class="text-neutral-600 mb-4">Cette section permettra de gérer les équipements de
-                                        l'entreprise.</p>
-                                    <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des équipements</p>
-                                </div>
-                            </div>
-                        </TabsContent>
-
-                        <TabsContent value="contrats">
-                            <div class="p-6">
-                                <div class="text-center py-8">
-                                    <FileText class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                                    <h3 class="text-lg font-medium text-neutral-900 mb-2">Contrats</h3>
-                                    <p class="text-neutral-600 mb-4">Cette section permettra de gérer les contrats de
-                                        l'entreprise.</p>
-                                    <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des contrats</p>
-                                </div>
-                            </div>
-                        </TabsContent>
-
-                        <TabsContent value="interventions">
-                            <div class="p-6">
-                                <div class="text-center py-8">
-                                    <Wrench class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                                    <h3 class="text-lg font-medium text-neutral-900 mb-2">Interventions</h3>
-                                    <p class="text-neutral-600 mb-4">Cette section permettra de consulter les
-                                        interventions liées à cette entreprise.</p>
-                                    <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des interventions
-                                    </p>
-                                </div>
-                            </div>
-                        </TabsContent>
-
-                        <TabsContent value="documents">
-                            <div class="p-6">
-                                <div class="text-center py-8">
-                                    <FolderOpen class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                                    <h3 class="text-lg font-medium text-neutral-900 mb-2">Documents</h3>
-                                    <p class="text-neutral-600 mb-4">Cette section permettra de gérer les documents de
-                                        l'entreprise.</p>
-                                    <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des documents</p>
-                                </div>
-                            </div>
-                        </TabsContent>
-                    </Tabs>
+                <div class="grid grid-cols-4 gap-4 mb-4">
+                    <div class="bg-white p-4 rounded-lg border">
+                        <div class="text-2xl font-semibold text-neutral-900">-</div>
+                        <div class="text-sm text-neutral-600">Sites</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border">
+                        <div class="text-2xl font-semibold text-neutral-900">-</div>
+                        <div class="text-sm text-neutral-600">Contacts</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border">
+                        <div class="text-2xl font-semibold text-neutral-900">-</div>
+                        <div class="text-sm text-neutral-600">Interventions</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border">
+                        <div class="text-2xl font-semibold text-neutral-900">-</div>
+                        <div class="text-sm text-neutral-600">Lots</div>
+                    </div>
                 </div>
+
+
+                <Tabs default-value="sites" class="mt-3">
+                    <TabsList class="w-full mb-3 bg-neutral-200">
+                        <TabsTrigger value="sites">Sites</TabsTrigger>
+                        <TabsTrigger value="contacts">Contacts</TabsTrigger>
+                        <TabsTrigger value="equipements">Équipements</TabsTrigger>
+                        <TabsTrigger value="contrats">Contrats</TabsTrigger>
+                        <TabsTrigger value="interventions">Interventions</TabsTrigger>
+                        <TabsTrigger value="documents">Documents</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="sites" class="bg-white rounded-lg border">
+                        <CompanySites :company-id="company.id" />
+                    </TabsContent>
+
+                    <TabsContent value="contacts" class="bg-white rounded-lg border">
+                        <div class="p-6">
+                            <div class="text-center py-8">
+                                <Users class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+                                <h3 class="text-lg font-medium text-neutral-900 mb-2">Contacts</h3>
+                                <p class="text-neutral-600 mb-4">Cette section permettra de gérer les contacts de
+                                    l'entreprise.</p>
+                                <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des contacts</p>
+                            </div>
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="equipements" class="bg-white rounded-lg border">
+                        <div class="p-6">
+                            <div class="text-center py-8">
+                                <Settings class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+                                <h3 class="text-lg font-medium text-neutral-900 mb-2">Équipements</h3>
+                                <p class="text-neutral-600 mb-4">Cette section permettra de gérer les équipements de
+                                    l'entreprise.</p>
+                                <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des équipements</p>
+                            </div>
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="contrats" class="bg-white rounded-lg border">
+                        <div class="p-6">
+                            <div class="text-center py-8">
+                                <FileText class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+                                <h3 class="text-lg font-medium text-neutral-900 mb-2">Contrats</h3>
+                                <p class="text-neutral-600 mb-4">Cette section permettra de gérer les contrats de
+                                    l'entreprise.</p>
+                                <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des contrats</p>
+                            </div>
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="interventions" class="bg-white rounded-lg border">
+                        <div class="p-6">
+                            <div class="text-center py-8">
+                                <Wrench class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+                                <h3 class="text-lg font-medium text-neutral-900 mb-2">Interventions</h3>
+                                <p class="text-neutral-600 mb-4">Cette section permettra de consulter les
+                                    interventions liées à cette entreprise.</p>
+                                <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des interventions
+                                </p>
+                            </div>
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="documents" class="bg-white rounded-lg border">
+                        <div class="p-6">
+                            <div class="text-center py-8">
+                                <FolderOpen class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+                                <h3 class="text-lg font-medium text-neutral-900 mb-2">Documents</h3>
+                                <p class="text-neutral-600 mb-4">Cette section permettra de gérer les documents de
+                                    l'entreprise.</p>
+                                <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des documents</p>
+                            </div>
+                        </div>
+                    </TabsContent>
+                </Tabs>
             </div>
         </div>
     </div>
@@ -302,12 +256,7 @@ import {
     ChevronDown,
     FileText,
     FolderOpen,
-    Mail,
-    MapPin,
-    MapPinIcon,
-    MessageSquare,
     MoreHorizontal,
-    Phone,
     Plus,
     RotateCcw,
     Save,

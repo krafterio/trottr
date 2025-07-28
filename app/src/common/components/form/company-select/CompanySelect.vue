@@ -1,27 +1,20 @@
 <template>
-    <RelationSelect 
-        v-model="selectedCountry"
-        endpoint="/countries"
-        display-field="name"
-        search-param="search"
-        :placeholder="placeholder"
-        :search-placeholder="searchPlaceholder"
-        :trigger-class="triggerClass"
-        :clearable="clearable"
-        :disabled="disabled"
-    >
-        <!-- Slot pour customiser l'affichage du pays sélectionné -->
+    <RelationSelect v-model="selectedCompany" endpoint="/companies" display-field="name" :placeholder="placeholder"
+        :search-placeholder="searchPlaceholder" :trigger-class="triggerClass" :clearable="clearable"
+        :disabled="disabled">
+        <!-- Slot pour customiser l'affichage de l'item sélectionné -->
         <template #selected-item="{ item }">
             <slot name="selected-item" :item="item">
-                <span class="truncate">{{ item.name }}</span>
+                <span class="truncate font-medium">{{ item.name }}</span>
             </slot>
         </template>
-        
-        <!-- Slot pour customiser l'affichage dans la liste -->
+
         <template #list-item="{ item }">
             <slot name="list-item" :item="item">
                 <div class="flex items-center gap-2 w-full">
-                    <span class="font-medium text-sm truncate">{{ item.name }}</span>
+                    <div class="flex flex-col items-start min-w-0 flex-1">
+                        <span class="font-medium text-sm truncate">{{ item.name }}</span>
+                    </div>
                 </div>
             </slot>
         </template>
@@ -29,11 +22,11 @@
 </template>
 
 <script setup>
+import { RelationSelect } from '@/common/components/form/relation-select'
 import { computed } from 'vue'
-import { RelationSelect } from '@/common/components/ui/relation-select'
 
 defineOptions({
-    name: 'CountrySelect'
+    name: 'CompanySelect'
 })
 
 const props = defineProps({
@@ -43,11 +36,11 @@ const props = defineProps({
     },
     placeholder: {
         type: String,
-        default: 'Sélectionner un pays...'
+        default: 'Sélectionner une société...'
     },
     searchPlaceholder: {
         type: String,
-        default: 'Rechercher un pays...'
+        default: 'Rechercher une société...'
     },
     triggerClass: {
         type: String,
@@ -65,11 +58,11 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'select'])
 
-const selectedCountry = computed({
+const selectedCompany = computed({
     get: () => props.modelValue,
     set: (value) => {
         emit('update:modelValue', value)
         emit('select', value)
     }
 })
-</script> 
+</script>

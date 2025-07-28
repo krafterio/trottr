@@ -11,6 +11,7 @@ class SiteBase(BaseModel):
     zip: str
     city: str
     building_type: str
+    access_info: Optional[str] = None
 
 class SiteCreate(SiteBase):
     country: int
@@ -25,6 +26,7 @@ class SiteUpdate(BaseModel):
     country: Optional[int] = None
     building_type: Optional[str] = None
     company: Optional[int] = None
+    access_info: Optional[str] = None
 
 class SiteRead(SiteBase):
     id: int
