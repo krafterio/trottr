@@ -9,7 +9,11 @@ export const companiesColumns = [
         key: 'company_type',
         label: 'Type',
         type: 'badge',
-        variant: 'outline'
+        variant: 'outline',
+        accessor: (company) => {
+            const { getCompanyTypeLabel } = useCompany()
+            return getCompanyTypeLabel(company.company_type)
+        }
     },
     {
         key: 'reference',

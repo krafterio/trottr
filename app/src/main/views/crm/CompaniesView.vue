@@ -1,28 +1,49 @@
 <template>
-    <ListView :config="config" :columns="columns" :items="formattedCompanies" :filter-fields="filterFields"
+    <ListView :config="config" :columns="columns" :items="companies" :filter-fields="filterFields"
         :search-fields="searchFields" :current-page="currentPage" :total-pages="totalPages" :total-items="totalItems"
-        :items-per-page="itemsPerPage" :loading="loading" @create="handleCreate" @row-click="handleRowClick"
-        @search="handleSearch" @page-change="handlePageChange" @items-per-page-change="handleItemsPerPageChange"
-        @filter-change="handleFilterChange" @selection-change="handleSelectionChange" />
+        :items-per-page="itemsPerPage" :loading="loading" :context-menu-actions="contextMenuActions"
+        @create="handleCreate" @row-click="handleRowClick" @search="handleSearch" @page-change="handlePageChange"
+        @items-per-page-change="handleItemsPerPageChange" @filter-change="handleFilterChange"
+        @selection-change="handleSelectionChange" @context-menu-action="handleContextMenuAction">
+
+        <template #empty-state>
+            <div class="text-center py-8">
+                <div class="w-16 h-16 mx-auto mb-4 bg-neutral-100 rounded-full flex items-center justify-center">
+                    <Building2 class="w-8 h-8 text-neutral-400" :stroke-width="1.2" />
+                </div>
+                <h3 class="text-lg font-semibold text-neutral-900 mb-2">Créez votre première entreprise cliente</h3>
+                <p class="text-neutral-600 mb-6 max-w-md mx-auto">
+                    Les entreprises sont le cœur de votre activité. Commencez par ajouter vos clients pour organiser vos
+                    interventions,
+                    suivre vos contacts et gérer vos projets efficacement.
+                </p>
+                <Button @click="handleCreate" class="inline-flex items-center">
+                    <Plus class="w-4 h-4 mr-2" />
+                    Ajouter une entreprise
+                </Button>
+            </div>
+        </template>
+    </ListView>
 </template>
 
 <script setup>
+import { Button } from '@/common/components/ui/button'
 import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
-import { useCompany } from '@/common/composables/useCompany'
-import ListView from '@/main/components/ListView.vue'
 import {
     companiesColumns,
     companiesConfig,
     companiesFilters
 } from '@/main/components/companies/columns.js'
+import ListView from '@/main/components/ListView.vue'
 import { debounce } from 'lodash'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { Building2, Eye, Plus, Trash } from 'lucide-vue-next'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { toast } from 'vue-sonner'
 
 const router = useRouter()
 const fetcher = useFetcher()
-const { getCompanyTypeLabel } = useCompany()
 
 const config = reactive(companiesConfig)
 const columns = companiesColumns
@@ -38,12 +59,18 @@ const loading = ref(false)
 const error = ref(null)
 const searchQuery = ref('')
 
-const formattedCompanies = computed(() => {
-    return companies.value.map(company => ({
-        ...company,
-        company_type: getCompanyTypeLabel(company.company_type)
-    }))
-})
+const contextMenuActions = [
+    {
+        key: 'view',
+        label: 'Voir',
+        icon: Eye
+    },
+    {
+        key: 'delete',
+        label: 'Supprimer',
+        icon: Trash,
+    }
+]
 
 const fetchCompanies = async () => {
     loading.value = true
@@ -140,6 +167,45 @@ const handleSelectionChange = (selectedIds) => {
     console.log('Selection changed:', selectedIds)
 }
 
+const handleContextMenuAction = (action, company) => {
+    switch (action) {
+        case 'view':
+            router.push(`/company/${company.id}`)
+            break
+        case 'delete':
+            handleDelete(company)
+            break
+    }
+}
+
+const handleDelete = (company) => {
+    bus.trigger('confirm-delete', {
+        title: 'Supprimer l\'entreprise',
+        message: 'Êtes-vous sûr de vouloir supprimer cette entreprise ?',
+        itemName: company.name
+    })
+
+    selectedCompanyForDelete.value = company
+}
+
+const selectedCompanyForDelete = ref(null)
+
+const deleteCompany = async () => {
+    if (!selectedCompanyForDelete.value) return
+
+    try {
+        await fetcher.delete(`/companies/${selectedCompanyForDelete.value.id}`)
+        toast.success('Entreprise supprimée avec succès')
+        bus.trigger('confirm-delete-dialog:close')
+        refreshList()
+        selectedCompanyForDelete.value = null
+    } catch (err) {
+        console.error('Erreur lors de la suppression:', err)
+        toast.error('Erreur lors de la suppression')
+        bus.trigger('confirm-delete-dialog:close')
+    }
+}
+
 const refreshList = () => {
     if (searchQuery.value && searchQuery.value.trim().length >= 2) {
         searchCompanies(searchQuery.value)
@@ -154,6 +220,10 @@ useBus(bus, 'company-saved', () => {
 
 useBus(bus, 'company-created-stay', () => {
     refreshList()
+})
+
+useBus(bus, 'confirm-delete-dialog:confirmed', () => {
+    deleteCompany()
 })
 
 onMounted(() => {

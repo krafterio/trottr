@@ -13,8 +13,8 @@
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start">
-                            <DropdownMenuItem @click="handleDelete" class="text-red-600 focus:text-red-600">
-                                <Trash class="h-4 w-4 mr-2" />
+                            <DropdownMenuItem @click="handleDelete">
+                                <Trash class="h-4 w-4 text-destructive" />
                                 Supprimer
                             </DropdownMenuItem>
                         </DropdownMenuContent>

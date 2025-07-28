@@ -128,37 +128,68 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-neutral-200">
-                            <tr v-for="item in items" :key="item.id" class="hover:bg-neutral-50 cursor-pointer"
-                                @click="$emit('row-click', item)">
-
-                                <td v-if="config.enableSelection" class="px-3 py-2 whitespace-nowrap max-w-5"
-                                    @click.stop>
-                                    <Checkbox :checked="selectedItems.includes(item.id)"
-                                        @update:checked="toggleSelectItem(item.id)" />
+                            <tr v-if="!loading && items.length === 0">
+                                <td :colspan="visibleColumnsArray.length + (config.enableSelection ? 1 : 0)"
+                                    class="px-6 py-12 text-center">
+                                    <slot name="empty-state">
+                                        <div class="text-neutral-500">
+                                            <p class="text-lg font-medium">Aucun élément trouvé</p>
+                                            <p class="text-sm">Il n'y a aucun élément à afficher pour le moment.</p>
+                                        </div>
+                                    </slot>
                                 </td>
-
-                                <td v-for="column in visibleColumnsArray" :key="column.key"
-                                    class="px-6 py-2 whitespace-nowrap">
-
-                                    <component v-if="column.component" :is="column.component"
-                                        v-bind="column.componentProps" :item="item"
-                                        :value="getColumnValue(item, column)" />
-
-                                    <Badge v-else-if="column.type === 'badge'"
-                                        :variant="getColumnVariant(item, column)">
-                                        {{ getColumnValue(item, column) }}
-                                    </Badge>
-
-                                    <span v-else-if="column.type === 'status'"
-                                        :class="getColumnStatusClasses(item, column)">
-                                        {{ getColumnValue(item, column) }}
-                                    </span>
-
-                                    <div v-else class="text-sm" :class="column.classes">
-                                        {{ getColumnValue(item, column) }}
+                            </tr>
+                            <tr v-else-if="loading" class="hover:bg-neutral-50">
+                                <td :colspan="visibleColumnsArray.length + (config.enableSelection ? 1 : 0)"
+                                    class="px-6 py-12 text-center">
+                                    <div class="flex items-center justify-center">
+                                        <div
+                                            class="w-7 h-7 border-[3px] border-neutral-200 border-t-neutral-900 rounded-full animate-spin">
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
+                            <ContextMenu v-else v-for="item in items" :key="item.id">
+                                <ContextMenuTrigger as-child>
+                                    <tr class="hover:bg-neutral-50 cursor-pointer" @click="$emit('row-click', item)">
+
+                                        <td v-if="config.enableSelection" class="px-3 py-2 whitespace-nowrap max-w-5"
+                                            @click.stop>
+                                            <Checkbox :checked="selectedItems.includes(item.id)"
+                                                @update:checked="toggleSelectItem(item.id)" />
+                                        </td>
+
+                                        <td v-for="column in visibleColumnsArray" :key="column.key"
+                                            class="px-6 py-2 whitespace-nowrap">
+
+                                            <component v-if="column.component" :is="column.component"
+                                                v-bind="column.componentProps" :item="item"
+                                                :value="getColumnValue(item, column)" />
+
+                                            <Badge v-else-if="column.type === 'badge'"
+                                                :variant="getColumnVariant(item, column)">
+                                                {{ getColumnValue(item, column) }}
+                                            </Badge>
+
+                                            <span v-else-if="column.type === 'status'"
+                                                :class="getColumnStatusClasses(item, column)">
+                                                {{ getColumnValue(item, column) }}
+                                            </span>
+
+                                            <div v-else class="text-sm" :class="column.classes">
+                                                {{ getColumnValue(item, column) }}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </ContextMenuTrigger>
+                                <ContextMenuContent v-if="contextMenuActions && contextMenuActions.length > 0">
+                                    <ContextMenuItem v-for="action in contextMenuActions" :key="action.key"
+                                        @click="$emit('context-menu-action', action.key, item)" :class="action.class">
+                                        <component v-if="action.icon" :is="action.icon" class="w-4 h-4 mr-2" />
+                                        {{ action.label }}
+                                    </ContextMenuItem>
+                                </ContextMenuContent>
+                            </ContextMenu>
                         </tbody>
                     </table>
                 </div>
@@ -176,6 +207,12 @@
 import { Badge } from '@/common/components/ui/badge'
 import { Button } from '@/common/components/ui/button'
 import { Checkbox } from '@/common/components/ui/checkbox'
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuTrigger
+} from '@/common/components/ui/context-menu'
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -243,6 +280,10 @@ const props = defineProps({
     loading: {
         type: Boolean,
         default: false
+    },
+    contextMenuActions: {
+        type: Array,
+        default: () => []
     }
 })
 
@@ -253,7 +294,8 @@ const emit = defineEmits([
     'page-change',
     'items-per-page-change',
     'filter-change',
-    'selection-change'
+    'selection-change',
+    'context-menu-action'
 ])
 
 const showFilters = ref(true)

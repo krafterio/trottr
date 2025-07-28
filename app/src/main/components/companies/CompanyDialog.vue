@@ -5,73 +5,90 @@
                 <DialogTitle>{{ isEdit ? 'Modifier l\'entreprise' : 'Nouvelle entreprise' }}</DialogTitle>
             </DialogHeader>
 
-            <form @submit.prevent="handleSubmit" class="space-y-4">
-                <div>
-                    <label class="text-sm font-medium text-neutral-700">Raison sociale *</label>
-                    <Input v-model="form.name" class="mt-1" placeholder="Ex: SARL Martin" required />
-                </div>
-
-                <div>
-                    <label class="text-sm font-medium text-neutral-700">Type de société</label>
-                    <Select v-model="form.company_type">
-                        <SelectTrigger class="mt-1 w-full">
-                            <SelectValue placeholder="Sélectionner un type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem v-for="option in companyTypeOptions" :key="option.value" :value="option.value">
-                                {{ option.label }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div>
-                    <label class="text-sm font-medium text-neutral-700">Référence interne</label>
-                    <Input v-model="form.reference" class="mt-1" placeholder="Ex: CLI-001" />
-                </div>
-
-                <div>
-                    <label class="text-sm font-medium text-neutral-700">Téléphone</label>
-                    <Input v-model="form.phone" class="mt-1" placeholder="01 42 33 44 55" />
-                </div>
-
-                <div>
-                    <label class="text-sm font-medium text-neutral-700">Email</label>
-                    <Input v-model="form.email" type="email" class="mt-1" placeholder="contact@entreprise.fr" />
-                </div>
-
-                <Separator />
-
-                <h3 class="text-sm font-medium text-neutral-700">Adresse de facturation</h3>
-
-                <div>
-                    <label class="text-sm font-medium text-neutral-700">Rue</label>
-                    <Input v-model="form.invoice_street" class="mt-1" placeholder="123 Rue de la Paix" />
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-sm font-medium text-neutral-700">Code postal</label>
-                        <Input v-model="form.invoice_zip" class="mt-1" placeholder="75001" />
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-neutral-700">Ville</label>
-                        <Input v-model="form.invoice_city" class="mt-1" placeholder="Paris" />
+            <div class="grid grid-cols-5 gap-4 py-3">
+                <div class="w-30">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-neutral-100 rounded-full flex items-center justify-center">
+                        <Building2 class="w-8 h-8 text-neutral-400" :stroke-width="1.2" />
                     </div>
                 </div>
+                <div class="flex-1 col-span-4">
+                    <form @submit.prevent="handleSubmit" class="space-y-4">
+                        <div>
+                            <label class="text-sm font-medium text-neutral-700">Raison sociale *</label>
+                            <Input v-model="form.name" class="mt-1" placeholder="Ex: SARL Martin" required />
+                        </div>
 
-                <Separator />
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-sm font-medium text-neutral-700">Type de société</label>
+                                <Select v-model="form.company_type">
+                                    <SelectTrigger class="mt-1 w-full">
+                                        <SelectValue placeholder="Sélectionner un type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="option in companyTypeOptions" :key="option.value"
+                                            :value="option.value">
+                                            {{ option.label }}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-                <div>
-                    <label class="text-sm font-medium text-neutral-700">SIRET</label>
-                    <Input v-model="form.siret" class="mt-1" placeholder="12345678901234" />
+                            <div>
+                                <label class="text-sm font-medium text-neutral-700">Référence interne</label>
+                                <Input v-model="form.reference" class="mt-1" placeholder="Ex: CLI-001" />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-sm font-medium text-neutral-700">Téléphone</label>
+                                <Input v-model="form.phone" class="mt-1" placeholder="01 42 33 44 55" />
+                            </div>
+
+                            <div>
+                                <label class="text-sm font-medium text-neutral-700">Email</label>
+                                <Input v-model="form.email" type="email" class="mt-1"
+                                    placeholder="contact@entreprise.fr" />
+                            </div>
+                        </div>
+
+                        <Separator />
+
+                        <h3 class="font-medium text-neutral-700 mb-2">Adresse de facturation</h3>
+
+                        <div>
+                            <label class="text-sm font-medium text-neutral-700">Rue</label>
+                            <Input v-model="form.invoice_street" class="mt-1" placeholder="123 Rue de la Paix" />
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-sm font-medium text-neutral-700">Code postal</label>
+                                <Input v-model="form.invoice_zip" class="mt-1" placeholder="75001" />
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-neutral-700">Ville</label>
+                                <Input v-model="form.invoice_city" class="mt-1" placeholder="Paris" />
+                            </div>
+                        </div>
+
+                        <Separator />
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-sm font-medium text-neutral-700">SIRET</label>
+                                <Input v-model="form.siret" class="mt-1" placeholder="12345678901234" />
+                            </div>
+
+                            <div>
+                                <label class="text-sm font-medium text-neutral-700">TVA</label>
+                                <Input v-model="form.vat" class="mt-1" placeholder="FR12345678901" />
+                            </div>
+                        </div>
+                    </form>
                 </div>
-
-                <div>
-                    <label class="text-sm font-medium text-neutral-700">TVA</label>
-                    <Input v-model="form.vat" class="mt-1" placeholder="FR12345678901" />
-                </div>
-            </form>
+            </div>
 
             <DialogFooter class="mt-6">
                 <Button variant="outline" @click="handleClose" :disabled="loading">
@@ -103,6 +120,7 @@ import { Separator } from '@/common/components/ui/separator'
 import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useCompany } from '@/common/composables/useCompany'
+import { Building2 } from 'lucide-vue-next'
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
