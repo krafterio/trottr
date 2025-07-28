@@ -4,6 +4,15 @@ from models.workspace_user import WorkspaceUserRole
 from models.workspace import Currency
 
 
+class CountryRead(BaseModel):
+    id: int
+    name: str
+    iso_code: str
+
+    class Config:
+        from_attributes = True
+
+
 class UserRead(BaseModel):
     id: int
     email: str
@@ -24,6 +33,13 @@ class WorkspaceCreate(BaseModel):
 class WorkspaceUpdate(BaseModel):
     name: str | None = None
     currency: Currency | None = None
+    street: str | None = None
+    street2: str | None = None
+    zip: str | None = None
+    city: str | None = None
+    country_id: int | None = None
+    siren: str | None = None
+    vat: str | None = None
     comply_with_local_privacy_laws: bool | None = None
 
 
@@ -45,6 +61,13 @@ class WorkspaceRead(BaseModel):
     unique_id: str
     image_url: str | None
     currency: str
+    street: str | None = None
+    street2: str | None = None
+    zip: str | None = None
+    city: str | None = None
+    country: CountryRead | None = None
+    siren: str | None = None
+    vat: str | None = None
     owner: UserRead | None = None
     member_count: int = Field(default=0, description="Nombre de membres dans le workspace")
     comply_with_local_privacy_laws: bool

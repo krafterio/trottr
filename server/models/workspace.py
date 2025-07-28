@@ -5,6 +5,7 @@ from edgy import fields
 from edgy.core.signals import pre_save
 
 from models.base import BaseModel
+from models.country import Country
 import string
 import random
 from enum import Enum
@@ -30,39 +31,25 @@ class Workspace(BaseModel):
         label = "Espace de travail"
         label_plural = "Espaces de travail"
 
-    name: str | None = fields.CharField(max_length=255, label="Nom") # type: ignore
-    unique_id: str | None = fields.CharField(max_length=8, unique=True, label="ID unique") # type: ignore
-    image_url: str | None = fields.CharField(max_length=255, null=True, label="Image") # type: ignore
-    currency: str | None = fields.CharField(max_length=20, default="EUR", label="Devise") # type: ignore
-    available_usage_credits: float = fields.FloatField(default=0.0, label="Credits disponibles")  # type: ignore
-    plan_available_usage_credits: float = fields.FloatField(default=0.0, label="Crédits disponibles du plan")  # type: ignore
-    pack_available_usage_credits: float = fields.FloatField(default=0.0, label="Crédits disponibles des packs")  # type: ignore
-    current_usage_credits: float = fields.FloatField(default=0.0, label="Crédits utilisés")  # type: ignore
-    plan_current_usage_credits: float = fields.FloatField(default=0.0, label="Crédits utilisés du plan")  # type: ignore
-    pack_current_usage_credits: float = fields.FloatField(default=0.0, label="Crédits utilisés des packs")  # type: ignore
-    reset_usage_date: datetime | None = fields.DateTimeField(null=True, label="Date de réinitialisation des crédits")  # type: ignore
-    dashboard_config: dict | None = fields.JSONField(null=True, exclude=True)  # type: ignore
-    stripe_customer_id: str | None = fields.CharField(max_length=255, null=True, unique=True, label="ID Client Stripe")  # type: ignore
-    trial_end: datetime | None = fields.DateTimeField(null=True, label="Fin essai")  # type: ignore
-    comply_with_local_privacy_laws: bool = fields.BooleanField(default=True, label="Je respecte les lois locales sur la confidentialité lors de la gestion des données de mes prospects") # type: ignore
+    name: str | None = fields.CharField(max_length=255, label="Nom")
+    unique_id: str | None = fields.CharField(max_length=8, unique=True, label="ID unique")
+    image_url: str | None = fields.CharField(max_length=255, null=True, label="Image")
+    currency: str | None = fields.CharField(max_length=20, default="EUR", label="Devise")
+    street: str | None = fields.CharField(max_length=255, null=True, label="Adresse")
+    street2: str | None = fields.CharField(max_length=255, null=True, label="Complément d'adresse")
+    zip: str | None = fields.CharField(max_length=20, null=True, label="Code postal")
+    city: str | None = fields.CharField(max_length=255, null=True, label="Ville")
+    country: Country | None = fields.ForeignKey(Country, null=True, on_delete="SET NULL", label="Pays")
+    siren: str | None = fields.CharField(max_length=20, null=True, label="SIREN")
+    vat: str | None = fields.CharField(max_length=30, null=True, label="Numéro TVA")
+    dashboard_config: dict | None = fields.JSONField(null=True, exclude=True)
+    stripe_customer_id: str | None = fields.CharField(max_length=255, null=True, unique=True, label="ID Client Stripe")
+    trial_end: datetime | None = fields.DateTimeField(null=True, label="Fin essai")
+    comply_with_local_privacy_laws: bool = fields.BooleanField(default=True, label="Je respecte les lois locales sur la confidentialité lors de la gestion des données de mes prospects")
 
     @property
     def is_trial(self) -> bool:
         return bool(self.trial_end and self.trial_end > datetime.now(UTC))
-
-    @property
-    def remaining_usage_credits(self) -> float:
-        return self.plan_remaining_usage_credits + self.pack_remaining_usage_credits
-
-    @property
-    def plan_remaining_usage_credits(self) -> float:
-        return self.plan_available_usage_credits - self.plan_current_usage_credits
-
-    @property
-    def pack_remaining_usage_credits(self) -> float:
-        return self.pack_available_usage_credits - self.pack_current_usage_credits
-
-
 
     @classmethod
     async def create_default(cls, owner: "User") -> "Workspace":
@@ -103,28 +90,3 @@ class Workspace(BaseModel):
             })
         return members_with_roles
 
-
-@pre_save.connect_via(Workspace)
-async def update_available_usage_credits(_, instance, values, column_values, **kwargs) -> None:
-    """Update available_usage_credits as the sum of plan and pack credits before saving."""
-    if "plan_available_usage_credits" in values or "pack_available_usage_credits" in values:
-        plan_credits = values.get("plan_available_usage_credits", instance.plan_available_usage_credits)
-        pack_credits = values.get("pack_available_usage_credits", instance.pack_available_usage_credits)
-        total_credits = plan_credits + pack_credits
-
-        values["available_usage_credits"] = total_credits
-        column_values["available_usage_credits"] = total_credits
-        instance.available_usage_credits = total_credits
-
-
-@pre_save.connect_via(Workspace)
-async def update_current_usage_credits(_, instance, values, column_values, **kwargs) -> None:
-    """Update current_usage_credits as the sum of plan and pack credits before saving."""
-    if "plan_current_usage_credits" in values or "pack_current_usage_credits" in values:
-        plan_credits = values.get("plan_current_usage_credits", instance.plan_current_usage_credits)
-        pack_credits = values.get("pack_current_usage_credits", instance.pack_current_usage_credits)
-        total_credits = plan_credits + pack_credits
-
-        values["current_usage_credits"] = total_credits
-        column_values["current_usage_credits"] = total_credits
-        instance.current_usage_credits = total_credits

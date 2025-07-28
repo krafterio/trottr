@@ -33,6 +33,17 @@ async def update_workspace(
 ):
     try:
         data = workspace_data.model_dump(exclude_unset=True)
+        
+        if 'country_id' in data:
+            country_id = data.pop('country_id')
+            if country_id:
+                from models.country import Country
+                country = await Country.query.get(id=country_id)
+                if not country:
+                    raise HTTPException(status_code=404, detail="Pays non trouvé")
+                workspace.country = country
+            else:
+                workspace.country = None
 
         for key, value in data.items():
             setattr(workspace, key, value)
@@ -540,6 +551,7 @@ async def cancel_invitation(
 async def _get_workspace_read(workspace: Workspace) -> WorkspaceRead:
     owner = await workspace.get_owner()
     member_count = await WorkspaceUser.query.filter(workspace=workspace).count()
+    workspace = await Workspace.query.select_related('country').get(id=workspace.id)
 
     return WorkspaceRead(
         id=workspace.id,
@@ -547,6 +559,13 @@ async def _get_workspace_read(workspace: Workspace) -> WorkspaceRead:
         unique_id=workspace.unique_id,
         image_url=workspace.image_url,
         currency=workspace.currency,
+        street=workspace.street,
+        street2=workspace.street2,
+        zip=workspace.zip,
+        city=workspace.city,
+        country=workspace.country,
+        siren=workspace.siren,
+        vat=workspace.vat,
         owner=owner,
         member_count=member_count,
         comply_with_local_privacy_laws=workspace.comply_with_local_privacy_laws,
