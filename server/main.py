@@ -30,6 +30,7 @@ from api.job_speciality import router as job_speciality_router
 from api.contact_relation_type import router as contact_relation_type_router
 from api.operators import router as operators_router
 from api.company import router as company_router
+from api.contact import router as contact_router
 from api.site import router as site_router
 from core.app import App
 from core.config import get_settings
@@ -165,6 +166,7 @@ def app(app_class: type[App] = App) -> App:
     api_router.include_router(job_speciality_router, prefix="/job-speciality", tags=["job-speciality"])
     api_router.include_router(operators_router, prefix="/operators", tags=["operators"])
     api_router.include_router(company_router, prefix="/companies", tags=["company"])
+    api_router.include_router(contact_router, prefix="/contacts", tags=["contact"])
     api_router.include_router(site_router, prefix="/sites", tags=["site"])
     api_router.include_router(presence_router, tags=["presence"])
     api_router.include_router(search_router, prefix="/search", tags=["search"])

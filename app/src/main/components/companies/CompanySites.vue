@@ -86,8 +86,6 @@
             </div>
         </div>
     </div>
-
-    <SiteDialog :is-open="isDialogOpen" :site="selectedSite" @close="handleDialogClose" @saved="handleSiteSaved" />
 </template>
 
 <script setup>
@@ -96,7 +94,6 @@ import { Button } from '@/common/components/ui/button'
 import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useSite } from '@/common/composables/useSite'
-import SiteDialog from '@/main/components/sites/SiteDialog.vue'
 import { Building, Edit, Eye, Plus, Trash } from 'lucide-vue-next'
 import { onMounted, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
@@ -113,8 +110,6 @@ const { getSiteBuildingTypeLabel } = useSite()
 
 const sites = ref([])
 const loading = ref(false)
-const isDialogOpen = ref(false)
-const selectedSite = ref(null)
 
 const fetchSites = async () => {
     if (!props.companyId) return
@@ -132,8 +127,7 @@ const fetchSites = async () => {
 }
 
 const handleCreateSite = () => {
-    selectedSite.value = { company: props.companyId }
-    isDialogOpen.value = true
+    bus.trigger('open-site-dialog', { company: props.companyId })
 }
 
 const viewSite = (site) => {
@@ -141,8 +135,7 @@ const viewSite = (site) => {
 }
 
 const editSite = (site) => {
-    selectedSite.value = site
-    isDialogOpen.value = true
+    bus.trigger('open-site-dialog', site)
 }
 
 const deleteSite = (site) => {
@@ -182,18 +175,18 @@ const performDeleteSite = async () => {
     }
 }
 
-const handleDialogClose = () => {
-    isDialogOpen.value = false
-    selectedSite.value = null
-}
 
-const handleSiteSaved = () => {
-    fetchSites()
-    handleDialogClose()
-}
 
 useBus(bus, 'confirm-delete-site:confirmed', () => {
     performDeleteSite()
+})
+
+useBus(bus, 'site-saved', () => {
+    fetchSites()
+})
+
+useBus(bus, 'site-created-stay', () => {
+    fetchSites()
 })
 
 watch(() => props.companyId, (newId) => {

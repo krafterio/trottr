@@ -89,25 +89,21 @@ import { Button } from '@/common/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog'
 import { Input } from '@/common/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select'
-import { bus } from '@/common/composables/bus'
+import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useSite } from '@/common/composables/useSite'
 import { MapPin } from 'lucide-vue-next'
-import { reactive, ref, watch } from 'vue'
+import { reactive, ref } from 'vue'
 import { toast } from 'vue-sonner'
 
-const props = defineProps({
-    isOpen: Boolean,
-    site: Object
-})
-
-const emit = defineEmits(['close', 'saved'])
+const isOpen = ref(false)
 
 const fetcher = useFetcher()
 const { getSiteBuildingTypeOptions } = useSite()
 
 const loading = ref(false)
 const isEdit = ref(false)
+const siteId = ref(null)
 const buildingTypeOptions = getSiteBuildingTypeOptions()
 
 const defaultForm = {
@@ -123,31 +119,22 @@ const defaultForm = {
 
 const form = reactive({ ...defaultForm })
 
-watch(() => props.site, (newSite) => {
-    if (newSite && newSite.id) {
-        isEdit.value = true
-        Object.assign(form, {
-            name: newSite.name || '',
-            building_type: newSite.building_type || 'autre',
-            street: newSite.street || '',
-            street_2: newSite.street_2 || '',
-            zip: newSite.zip || '',
-            city: newSite.city || '',
-            country: newSite.country || (newSite.country ? newSite.country.id : null),
-            company: newSite.company || (newSite.company ? newSite.company.id : null)
-        })
-    } else {
-        isEdit.value = false
-        Object.assign(form, { ...defaultForm, ...(newSite || {}) })
-    }
-}, { immediate: true })
+const resetForm = () => {
+    Object.assign(form, defaultForm)
+    isEdit.value = false
+    siteId.value = null
+}
 
 const handleClose = () => {
-    emit('close')
+    isOpen.value = false
+    resetForm()
 }
 
 const handleSubmit = async () => {
-    if (loading.value) return
+    if (!form.name.trim()) {
+        toast.error('Le nom du site est obligatoire')
+        return
+    }
 
     loading.value = true
 
@@ -163,15 +150,18 @@ const handleSubmit = async () => {
         }
 
         let response
-        if (isEdit.value) {
-            response = await fetcher.put(`/sites/${props.site.id}`, submitData)
+        if (isEdit.value && siteId.value) {
+            response = await fetcher.put(`/sites/${siteId.value}`, submitData)
+            toast.success('Site modifié avec succès')
         } else {
             response = await fetcher.post('/sites/', submitData)
+            toast.success('Site créé avec succès')
         }
 
-        toast.success(isEdit.value ? 'Site modifié avec succès' : 'Site créé avec succès')
-        bus.trigger('sites:refresh')
-        emit('saved', response.data)
+        const site = response.data
+
+        bus.trigger('site-saved', site)
+        bus.trigger('site-created-stay', site)
         handleClose()
     } catch (error) {
         console.error('Erreur lors de la sauvegarde:', error)
@@ -180,4 +170,28 @@ const handleSubmit = async () => {
         loading.value = false
     }
 }
+
+useBus(bus, 'open-site-dialog', (event) => {
+    const data = event.detail || {}
+    if (data.id) {
+        isEdit.value = true
+        siteId.value = data.id
+        Object.assign(form, {
+            name: data.name || '',
+            building_type: data.building_type || 'autre',
+            street: data.street || '',
+            street_2: data.street_2 || '',
+            zip: data.zip || '',
+            city: data.city || '',
+            country: data.country?.id || data.country || null,
+            company: data.company?.id || data.company || null
+        })
+    } else {
+        resetForm()
+        if (data.company) {
+            form.company = data.company
+        }
+    }
+    isOpen.value = true
+})
 </script>

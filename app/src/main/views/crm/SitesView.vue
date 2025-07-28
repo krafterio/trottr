@@ -188,8 +188,6 @@
             :position-classes="showFilters ? 'bottom-0 left-80 right-0' : 'bottom-0 left-32 right-0'"
             @page-change="handlePageChange" @items-per-page-change="handleItemsPerPageChange" />
     </div>
-
-    <SiteDialog :is-open="isDialogOpen" :site="selectedSite" @close="handleDialogClose" @saved="handleSiteSaved" />
 </template>
 
 <script setup>
@@ -202,7 +200,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useSite } from '@/common/composables/useSite'
-import SiteDialog from '@/main/components/sites/SiteDialog.vue'
 import TablePagination from '@/main/components/TablePagination.vue'
 import { debounce } from 'lodash'
 import { Download, Eye, MapPin, MoreVertical, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Trash } from 'lucide-vue-next'
@@ -228,9 +225,6 @@ const showFilters = ref(true)
 const selectedFilters = reactive({
     building_type: []
 })
-
-const isDialogOpen = ref(false)
-const selectedSite = ref(null)
 
 const buildingTypeOptions = getSiteBuildingTypeOptions()
 
@@ -340,8 +334,7 @@ const searchSites = async (query) => {
 const debouncedSearchSites = debounce(searchSites, 300)
 
 const handleCreate = () => {
-    selectedSite.value = null
-    isDialogOpen.value = true
+    bus.trigger('open-site-dialog', {})
 }
 
 const handleView = (site) => {
@@ -431,6 +424,14 @@ const handleSiteSaved = () => {
 }
 
 useBus(bus, 'sites:refresh', () => {
+    refreshList()
+})
+
+useBus(bus, 'site-saved', () => {
+    refreshList()
+})
+
+useBus(bus, 'site-created-stay', () => {
     refreshList()
 })
 

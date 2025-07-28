@@ -24,6 +24,7 @@ class PaginatedContactResponse(BaseModel):
 async def list_contacts(
     page: int = 1,
     per_page: int = 50,
+    company_id: int = None,
     current_user: User = Depends(get_current_user)
 ):
     if per_page not in [20, 50, 80]:
@@ -34,8 +35,12 @@ async def list_contacts(
     
     skip = (page - 1) * per_page
     
-    total = await Contact.query.count()
-    contacts = await Contact.query.select_related("company").order_by("-created_at").offset(skip).limit(per_page).all()
+    query = Contact.query
+    if company_id:
+        query = query.filter(Contact.columns.company == company_id)
+    
+    total = await query.count()
+    contacts = await query.select_related("company").order_by("-created_at").offset(skip).limit(per_page).all()
     
     total_pages = (total + per_page - 1) // per_page
     
@@ -53,6 +58,7 @@ async def quick_search_contacts(
     q: str,
     page: int = 1,
     per_page: int = 50,
+    company_id: int = None,
     current_user: User = Depends(get_current_user)
 ):
     if not q or len(q.strip()) < 2:
@@ -81,6 +87,9 @@ async def quick_search_contacts(
         Contact.columns.function.ilike(search_term)
     )
     
+    if company_id:
+        query = query.filter(Contact.columns.company == company_id)
+    
     total = await query.count()
     contacts = await query.select_related("company").order_by("-created_at").offset(skip).limit(per_page).all()
     
@@ -108,8 +117,8 @@ async def get_contact(
 
 @router.post("/", response_model=ContactRead, status_code=status.HTTP_201_CREATED, dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
 async def create_contact(contact: ContactCreate):
-    if contact.company_id:
-        company = await Company.query.get(id=contact.company_id)
+    if contact.company:
+        company = await Company.query.get(id=contact.company)
         if not company:
             raise HTTPException(status_code=400, detail="Company not found")
     
@@ -132,8 +141,8 @@ async def update_contact(
     
     update_data = contact_update.model_dump(exclude_unset=True)
     
-    if "company_id" in update_data and update_data["company_id"]:
-        company = await Company.query.get(id=update_data["company_id"])
+    if "company" in update_data and update_data["company"]:
+        company = await Company.query.get(id=update_data["company"])
         if not company:
             raise HTTPException(status_code=400, detail="Company not found")
     

@@ -29,11 +29,25 @@
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button>
-                        <Plus class="h-4 w-4" />
-                        Ajouter
-                        <ChevronDown class="h-4 w-4" />
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                            <Button>
+                                <Plus class="h-4 w-4" />
+                                Ajouter
+                                <ChevronDown class="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem @click="handleAddSite">
+                                <MapPin class="h-4 w-4" />
+                                Site
+                            </DropdownMenuItem>
+                            <DropdownMenuItem @click="handleAddContact">
+                                <User class="h-4 w-4" />
+                                Contact
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
         </div>
@@ -141,19 +155,19 @@
 
                 <div class="grid grid-cols-4 gap-4 mb-4">
                     <div class="bg-white p-4 rounded-lg border">
-                        <div class="text-2xl font-semibold text-neutral-900">-</div>
+                        <div class="text-2xl font-semibold text-neutral-900">{{ kpis.sites_count || '-' }}</div>
                         <div class="text-sm text-neutral-600">Sites</div>
                     </div>
                     <div class="bg-white p-4 rounded-lg border">
-                        <div class="text-2xl font-semibold text-neutral-900">-</div>
+                        <div class="text-2xl font-semibold text-neutral-900">{{ kpis.contacts_count || '-' }}</div>
                         <div class="text-sm text-neutral-600">Contacts</div>
                     </div>
                     <div class="bg-white p-4 rounded-lg border">
-                        <div class="text-2xl font-semibold text-neutral-900">-</div>
+                        <div class="text-2xl font-semibold text-neutral-900">{{ kpis.interventions_count || '-' }}</div>
                         <div class="text-sm text-neutral-600">Interventions</div>
                     </div>
                     <div class="bg-white p-4 rounded-lg border">
-                        <div class="text-2xl font-semibold text-neutral-900">-</div>
+                        <div class="text-2xl font-semibold text-neutral-900">{{ kpis.lots_count || '-' }}</div>
                         <div class="text-sm text-neutral-600">Lots</div>
                     </div>
                 </div>
@@ -174,15 +188,7 @@
                     </TabsContent>
 
                     <TabsContent value="contacts" class="bg-white rounded-lg border">
-                        <div class="p-6">
-                            <div class="text-center py-8">
-                                <Users class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                                <h3 class="text-lg font-medium text-neutral-900 mb-2">Contacts</h3>
-                                <p class="text-neutral-600 mb-4">Cette section permettra de gérer les contacts de
-                                    l'entreprise.</p>
-                                <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des contacts</p>
-                            </div>
-                        </div>
+                        <CompanyContacts :company-id="company.id" />
                     </TabsContent>
 
                     <TabsContent value="equipements" class="bg-white rounded-lg border">
@@ -249,6 +255,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/common/components/ui
 import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useCompany } from '@/common/composables/useCompany'
+import CompanyContacts from '@/main/components/companies/CompanyContacts.vue'
 import CompanySites from '@/main/components/companies/CompanySites.vue'
 import {
     ArrowLeft,
@@ -256,13 +263,14 @@ import {
     ChevronDown,
     FileText,
     FolderOpen,
+    MapPin,
     MoreHorizontal,
     Plus,
     RotateCcw,
     Save,
     Settings,
     Trash,
-    Users,
+    User,
     Wrench
 } from 'lucide-vue-next'
 import { onMounted, reactive, ref } from 'vue'
@@ -276,6 +284,7 @@ const { getCompanyTypeLabel, getCompanyTypeOptions } = useCompany()
 
 const companyId = route.params.id
 const company = ref({})
+const kpis = ref({})
 const loading = ref(false)
 const error = ref(null)
 const isDirty = ref(false)
@@ -284,6 +293,22 @@ const originalForm = ref({})
 // Écoute la confirmation de suppression
 useBus(bus, 'confirm-delete-company:confirmed', () => {
     deleteCompany()
+})
+
+useBus(bus, 'site:deleted', () => {
+    fetchKpis()
+})
+
+useBus(bus, 'contact:deleted', () => {
+    fetchKpis()
+})
+
+useBus(bus, 'contact-saved', () => {
+    fetchKpis()
+})
+
+useBus(bus, 'contact-created-stay', () => {
+    fetchKpis()
 })
 
 const companyTypeOptions = getCompanyTypeOptions()
@@ -358,8 +383,13 @@ const fetchCompany = async () => {
     error.value = null
 
     try {
-        const response = await fetcher.get(`/companies/${companyId}`)
-        company.value = response.data
+        const [companyResponse, kpisResponse] = await Promise.all([
+            fetcher.get(`/companies/${companyId}`),
+            fetcher.get(`/companies/${companyId}/kpis`)
+        ])
+
+        company.value = companyResponse.data
+        kpis.value = kpisResponse.data
         resetForm(company.value)
     } catch (err) {
         console.error('Erreur lors du chargement de l\'entreprise:', err)
@@ -387,6 +417,25 @@ const saveCompany = async () => {
     } finally {
         loading.value = false
     }
+}
+
+const fetchKpis = async () => {
+    if (!companyId) return
+
+    try {
+        const response = await fetcher.get(`/companies/${companyId}/kpis`)
+        kpis.value = response.data
+    } catch (err) {
+        console.error('Erreur lors du chargement des KPIs:', err)
+    }
+}
+
+const handleAddSite = () => {
+    bus.trigger('open-site-dialog', { company: company.value.id })
+}
+
+const handleAddContact = () => {
+    bus.trigger('open-contact-dialog', { company_id: company.value.id })
 }
 
 const contactCompany = () => {

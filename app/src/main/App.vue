@@ -18,6 +18,8 @@
 
 		<Toaster />
 		<CompanyDialog />
+		<ContactDialog />
+		<SiteDialog />
 		<ConfirmDeleteDialog />
 	</div>
 </template>
@@ -28,8 +30,10 @@ import { websocketService } from '@/common/services/websocket'
 import { useAuthStore } from '@/common/stores/auth'
 import AppSidebar from '@/main/components/AppSidebar.vue'
 import CompanyDialog from '@/main/components/companies/CompanyDialog.vue'
+import ContactDialog from '@/main/components/contacts/ContactDialog.vue'
 import ConfirmDeleteDialog from '@/main/components/dialogs/ConfirmDeleteDialog.vue'
 import AppNavbar from '@/main/components/navbar/AppNavbar.vue'
+import SiteDialog from '@/main/components/sites/SiteDialog.vue'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import 'vue-sonner/style.css'

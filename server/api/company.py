@@ -164,4 +164,34 @@ async def get_company_sites(
         raise HTTPException(status_code=404, detail="Company not found")
     
     sites = await Site.query.filter(company=company).select_related("country", "company").all()
-    return sites 
+    return sites
+
+
+class CompanyKPIsResponse(BaseModel):
+    sites_count: int
+    contacts_count: int
+    interventions_count: int
+    lots_count: int
+
+
+@router.get("/{company_id}/kpis", response_model=CompanyKPIsResponse)
+async def get_company_kpis(
+    company_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    from models.site import Site
+    from models.contact import Contact
+    
+    company = await Company.query.get(id=company_id)
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    sites_count = await Site.query.filter(company=company).count()
+    contacts_count = await Contact.query.filter(company=company).count()
+    
+    return CompanyKPIsResponse(
+        sites_count=sites_count,
+        contacts_count=contacts_count,
+        interventions_count=0,
+        lots_count=0
+    ) 
