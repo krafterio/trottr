@@ -25,8 +25,8 @@ class PaginatedSiteResponse(BaseModel):
 async def list_sites(
     page: int = 1,
     per_page: int = 50,
-    company_id: int = None,
-    contact_id: int = None,
+    company: int = None,
+    contact: int = None,
     current_user: User = Depends(get_current_user)
 ):
     if per_page not in [20, 50, 80]:
@@ -38,10 +38,10 @@ async def list_sites(
     skip = (page - 1) * per_page
     
     query = Site.query
-    if company_id:
-        query = query.filter(Site.columns.company == company_id)
-    if contact_id:
-        query = query.filter(Site.columns.contact == contact_id)
+    if company:
+        query = query.filter(Site.columns.company == company)
+    if contact:
+        query = query.filter(Site.columns.contact == contact)
     
     total = await query.count()
     sites = await query.select_related("country", "company", "contact").order_by("-created_at").offset(skip).limit(per_page).all()

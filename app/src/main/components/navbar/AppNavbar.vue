@@ -50,7 +50,7 @@
 
                 <NavbarUser />
 
-                <Button
+                <Button @click="handleCreateJob"
                     class="h-8 w-8 p-0 text-black hover:bg-neutral-800 bg-secondary cursor-pointer hover:bg-secondary/80 rounded-sm">
                     <Plus class="h-4 w-4" />
                 </Button>
@@ -80,7 +80,9 @@ const workspaceStore = useWorkspaceStore()
 const moduleLinks = {
     interventions: [
         { href: '/', label: 'Toutes les interventions' },
-        { href: '/job-planner', label: 'Planificateur d\'interventions' }
+        { href: '/job-planner', label: 'Planificateur d\'interventions' },
+        { href: '/jobs-proto', label: 'Interventions (proto)' },
+        { href: '/job-proto', label: 'Intervention (proto)' }
     ],
     crm: computed(() => {
         const baseLinks = [
@@ -122,7 +124,7 @@ const moduleLinks = {
 const currentModule = computed(() => {
     const name = route.name
 
-    if (name === 'jobs' || name === 'job' || name === 'job-planner') {
+    if (name === 'jobs' || name === 'job' || name === 'job-planner' || name === 'jobs-proto' || name === 'job-proto') {
         return 'interventions'
     } else if (name === 'companies' || name === 'company' || name === 'contacts' || name === 'contact' || name === 'sites' || name === 'site' || name === 'subsites' || name === 'subsite') {
         return 'crm'
@@ -158,4 +160,9 @@ const isActiveLink = (href) => {
     }
     return route.path.startsWith(href)
 }
+
+const handleCreateJob = () => {
+    bus.trigger('open-job-dialog', {})
+}
+
 </script>

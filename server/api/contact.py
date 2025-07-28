@@ -24,7 +24,7 @@ class PaginatedContactResponse(BaseModel):
 async def list_contacts(
     page: int = 1,
     per_page: int = 50,
-    company_id: int = None,
+    company: int = None,
     current_user: User = Depends(get_current_user)
 ):
     if per_page not in [20, 50, 80]:
@@ -36,8 +36,8 @@ async def list_contacts(
     skip = (page - 1) * per_page
     
     query = Contact.query
-    if company_id:
-        query = query.filter(Contact.columns.company == company_id)
+    if company:
+        query = query.filter(Contact.columns.company == company)
     
     total = await query.count()
     contacts = await query.select_related("company").order_by("-created_at").offset(skip).limit(per_page).all()
@@ -58,7 +58,7 @@ async def quick_search_contacts(
     q: str,
     page: int = 1,
     per_page: int = 50,
-    company_id: int = None,
+    company: int = None,
     current_user: User = Depends(get_current_user)
 ):
     if not q or len(q.strip()) < 2:
@@ -87,8 +87,8 @@ async def quick_search_contacts(
         Contact.columns.function.ilike(search_term)
     )
     
-    if company_id:
-        query = query.filter(Contact.columns.company == company_id)
+    if company:
+        query = query.filter(Contact.columns.company == company)
     
     total = await query.count()
     contacts = await query.select_related("company").order_by("-created_at").offset(skip).limit(per_page).all()

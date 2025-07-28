@@ -69,6 +69,24 @@ const router = createRouter({
       }
     },
     {
+      path: '/jobs-proto',
+      name: 'jobs-proto',
+      component: () => import('@/main/views/jobs/proto/JobsView__Proto.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Interventions'
+      }
+    },
+    {
+      path: '/job-proto',
+      name: 'job-proto',
+      component: () => import('@/main/views/jobs/proto/JobView__Proto.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Intervention'
+      }
+    },
+    {
       path: '/job-planner',
       name: 'job-planner',
       component: () => import('@/main/views/jobs/JobPlanner.vue'),

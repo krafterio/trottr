@@ -128,9 +128,9 @@ const fetchSites = async () => {
     try {
         const params = {}
         if (props.attachmentType === 'company') {
-            params.company_id = props.companyId
+            params.company = props.companyId
         } else {
-            params.contact_id = props.contactId
+            params.contact = props.contactId
         }
 
         const response = await fetcher.get('/sites', { params })

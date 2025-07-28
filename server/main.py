@@ -32,6 +32,7 @@ from api.operators import router as operators_router
 from api.company import router as company_router
 from api.contact import router as contact_router
 from api.site import router as site_router
+from api.job import router as job_router
 from core.app import App
 from core.config import get_settings
 from core.database import database, registry
@@ -168,6 +169,7 @@ def app(app_class: type[App] = App) -> App:
     api_router.include_router(company_router, prefix="/companies", tags=["company"])
     api_router.include_router(contact_router, prefix="/contacts", tags=["contact"])
     api_router.include_router(site_router, prefix="/sites", tags=["site"])
+    api_router.include_router(job_router, prefix="/jobs", tags=["job"])
     api_router.include_router(presence_router, tags=["presence"])
     api_router.include_router(search_router, prefix="/search", tags=["search"])
     api_router.include_router(import_router, prefix="/import", tags=["import"])

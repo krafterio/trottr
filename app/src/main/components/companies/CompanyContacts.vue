@@ -118,7 +118,7 @@ const fetchContacts = async () => {
     try {
         const response = await fetcher.get('/contacts', {
             params: {
-                company_id: props.companyId,
+                company: props.companyId,
                 per_page: 100
             }
         })

@@ -160,6 +160,11 @@ const props = defineProps({
     clearable: {
         type: Boolean,
         default: false
+    },
+    // Paramètres additionnels pour l'API
+    params: {
+        type: Object,
+        default: () => ({})
     }
 })
 
@@ -231,7 +236,7 @@ const fetchItems = async (search = '') => {
         }
 
         loading.value = true
-        const params = {}
+        const params = { ...props.params }
         const headers = {
             'X-Fields': fields.join(','),
         }
@@ -316,4 +321,11 @@ watch(open, (newOpen) => {
         fetchItems()
     }
 })
+
+watch(() => props.params, () => {
+    items.value = []
+    if (open.value) {
+        fetchItems()
+    }
+}, { deep: true })
 </script>
