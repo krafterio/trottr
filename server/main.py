@@ -27,6 +27,7 @@ from api.country import router as country_router
 from api.job_status import router as job_status_router
 from api.job_category import router as job_category_router
 from api.contact_relation_type import router as contact_relation_type_router
+from api.company import router as company_router
 from core.app import App
 from core.config import get_settings
 from core.database import database, registry
@@ -158,6 +159,7 @@ def app(app_class: type[App] = App) -> App:
     api_router.include_router(job_status_router, prefix="/job-status", tags=["job-status"])
     api_router.include_router(job_category_router, prefix="/job-category", tags=["job-category"])
     api_router.include_router(contact_relation_type_router, prefix="/contact-relation-type", tags=["contact-relation-type"])
+    api_router.include_router(company_router, prefix="/companies", tags=["company"])
     api_router.include_router(presence_router, tags=["presence"])
     api_router.include_router(search_router, prefix="/search", tags=["search"])
     api_router.include_router(import_router, prefix="/import", tags=["import"])

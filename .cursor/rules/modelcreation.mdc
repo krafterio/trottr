@@ -1,0 +1,272 @@
+---
+description: Pratiques à appliquer en cas de demande de création de modèles backend, ou d'endpoint API
+globs:
+alwaysApply: false
+---
+# Guide de Création de Modèles, Schémas et APIs
+
+## Vue d'ensemble
+Ce document explique la procédure complète pour créer un modèle, son schéma, son endpoint API et sa migration dans le projet Trottr.
+
+## 1. Création du Modèle (Edgy ORM)
+
+### Structure de base
+```python
+import edgy
+from .base import BaseModel
+from .country import Country  # Import des autres modèles si FK
+from enum import Enum
+from edgy import fields
+
+class MonEnum(str, Enum):
+    VALEUR_1 = "valeur_1"
+    VALEUR_2 = "valeur_2"
+
+class MonModel(BaseModel):
+    nom: str = edgy.CharField(max_length=255)
+    description: str = edgy.TextField(null=True, blank=True)
+    
+    class Meta:
+        tablename = "mon_modele"
+```
+
+### Types de champs importants
+
+#### CharField
+```python
+nom = edgy.CharField(max_length=255)
+reference = edgy.CharField(max_length=100, null=True, blank=True)
+```
+
+#### ChoiceField avec Enum (OBLIGATOIRE pour les listes de choix)
+```python
+# TOUJOURS créer un enum d'abord
+class TypeChoix(str, Enum):
+    CHOIX_1 = "choix_1"
+    CHOIX_2 = "choix_2"
+
+# Puis utiliser ChoiceField avec l'enum
+type_field: str | None = fields.ChoiceField(TypeChoix, default=TypeChoix.CHOIX_1, label="Type") # type: ignore
+```
+
+#### ForeignKey (Many-to-One)
+```python
+# TOUJOURS utiliser on_delete="CASCADE" (string, pas edgy.CASCADE)
+pays = edgy.ForeignKey(Country, on_delete="CASCADE", null=True, blank=True)
+```
+
+#### Autres champs courants
+```python
+email = edgy.EmailField(null=True, blank=True)
+phone = edgy.CharField(max_length=20, null=True, blank=True)
+is_active = edgy.BooleanField(default=True)
+metadata = edgy.JSONField(null=True)
+created_at = edgy.DateTimeField(auto_now_add=True)
+```
+
+### Règles importantes
+- TOUJOURS hériter de `BaseModel`
+- TOUJOURS définir `tablename` dans Meta
+- TOUJOURS utiliser des enums pour les ChoiceField
+- TOUJOURS utiliser `on_delete="CASCADE"` (string) pour les ForeignKey
+- Utiliser `null=True, blank=True` pour les champs optionnels
+
+## 2. Création du Schéma Pydantic
+
+### Structure complète
+```python
+from pydantic import BaseModel, EmailStr
+from typing import Optional
+
+class CountryRead(BaseModel):
+    id: int
+    name: str
+    iso_code: str
+    
+    class Config:
+        from_attributes = True
+
+class MonModelBase(BaseModel):
+    nom: str
+    description: Optional[str] = None
+    type_field: str
+    email: Optional[EmailStr] = None
+    pays_id: Optional[int] = None
+
+class MonModelCreate(MonModelBase):
+    pass
+
+class MonModelUpdate(BaseModel):
+    nom: Optional[str] = None
+    description: Optional[str] = None
+    type_field: Optional[str] = None
+    email: Optional[EmailStr] = None
+    pays_id: Optional[int] = None
+
+class MonModelRead(MonModelBase):
+    id: int
+    created_at: str
+    updated_at: str
+    pays: Optional[CountryRead] = None
+    
+    class Config:
+        from_attributes = True
+```
+
+### Règles importantes
+- Base : champs requis
+- Create : hérite de Base
+- Update : tous les champs optionnels
+- Read : hérite de Base + id, timestamps, relations
+- TOUJOURS ajouter `Config` avec `from_attributes = True` pour Read
+
+## 3. Création de l'Endpoint API
+
+### Structure complète
+```python
+from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List
+from models.mon_model import MonModel
+from models.country import Country
+from schemas.mon_model import MonModelCreate, MonModelUpdate, MonModelRead
+from api.auth import get_current_user
+from models.user import User
+
+router = APIRouter()
+
+@router.get("/", response_model=List[MonModelRead])
+async def list_models(
+    skip: int = 0,
+    limit: int = 100,
+    current_user: User = Depends(get_current_user)
+):
+    models = await MonModel.query().select_related("pays").offset(skip).limit(limit).all()
+    return models
+
+@router.get("/{model_id}", response_model=MonModelRead)
+async def get_model(
+    model_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    model = await MonModel.query().select_related("pays").get(id=model_id)
+    if not model:
+        raise HTTPException(status_code=404, detail="Model not found")
+    return model
+
+@router.post("/", response_model=MonModelRead, status_code=status.HTTP_201_CREATED)
+async def create_model(
+    model: MonModelCreate,
+    current_user: User = Depends(get_current_user)
+):
+    # Validation des FK si nécessaire
+    if model.pays_id:
+        pays = await Country.query().get(id=model.pays_id)
+        if not pays:
+            raise HTTPException(status_code=400, detail="Country not found")
+    
+    new_model = await MonModel.query().create(**model.model_dump())
+    return await MonModel.query().select_related("pays").get(id=new_model.id)
+
+@router.put("/{model_id}", response_model=MonModelRead)
+async def update_model(
+    model_id: int,
+    model_update: MonModelUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    model = await MonModel.query().get(id=model_id)
+    if not model:
+        raise HTTPException(status_code=404, detail="Model not found")
+    
+    update_data = model_update.model_dump(exclude_unset=True)
+    
+    # Validation des FK si dans update_data
+    if "pays_id" in update_data and update_data["pays_id"]:
+        pays = await Country.query().get(id=update_data["pays_id"])
+        if not pays:
+            raise HTTPException(status_code=400, detail="Country not found")
+    
+    await model.update(**update_data)
+    return await MonModel.query().select_related("pays").get(id=model_id)
+
+@router.delete("/{model_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_model(
+    model_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    model = await MonModel.query().get(id=model_id)
+    if not model:
+        raise HTTPException(status_code=404, detail="Model not found")
+    
+    await model.delete()
+    return None
+```
+
+### Règles importantes API
+- TOUJOURS inclure `current_user: User = Depends(get_current_user)` pour l'authentification
+- TOUJOURS utiliser `select_related()` pour charger les relations
+- TOUJOURS valider les FK avant création/mise à jour
+- Ne PAS utiliser `get_db` ou `AsyncSession` (utiliser directement les modèles Edgy)
+- Utiliser les codes de statut HTTP appropriés
+
+## 4. Ajout du Router au main.py
+
+### Import
+```python
+from api.mon_model import router as mon_model_router
+```
+
+### Ajout dans les routes API
+```python
+api_router.include_router(mon_model_router, prefix="/mon-modele", tags=["mon-modele"])
+```
+
+## 5. Création et Application de la Migration
+
+### Commandes
+```bash
+# Activer le venv depuis la racine
+cd server && source ../. venv/bin/activate
+
+# Créer la migration
+./kt db makemigrations -m "Add MonModel"
+
+# Vérifier le fichier de migration généré
+# S'assurer qu'il n'y a pas de duplication d'enum
+
+# Appliquer la migration
+./kt db migrate
+```
+
+### Problèmes courants de migration
+
+#### Enum dupliqué
+Si l'enum est créé à la fois par `op.create_enum()` ET dans la table, supprimer la ligne `op.create_enum()`.
+
+#### Ordre de création
+Pour les enums, s'assurer que l'enum est créé AVANT la table qui l'utilise.
+
+## 6. Exemple Complet - Company
+
+Voir les fichiers :
+- `server/models/company.py`
+- `server/schemas/company.py`
+- `server/api/company.py`
+
+## 7. Checklist Finale
+
+- [ ] Modèle créé avec enum si nécessaire
+- [ ] ForeignKey avec `on_delete="CASCADE"`
+- [ ] Schémas Base, Create, Update, Read créés
+- [ ] Endpoint API avec auth et validation FK
+- [ ] Router ajouté au main.py
+- [ ] Migration créée et vérifiée
+- [ ] Migration appliquée avec succès
+
+## 8. Règles Absolues
+
+1. **JAMAIS** utiliser `CharField` avec `choices=[]` - TOUJOURS utiliser `ChoiceField` avec enum
+2. **JAMAIS** utiliser `edgy.CASCADE` - TOUJOURS utiliser `"CASCADE"` (string)
+3. **TOUJOURS** inclure l'authentification dans tous les endpoints
+4. **TOUJOURS** valider les ForeignKey avant création/mise à jour
+5. **TOUJOURS** utiliser `select_related()` pour charger les relations
+6. **JAMAIS** créer l'enum deux fois dans la migration 
