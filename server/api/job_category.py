@@ -16,32 +16,23 @@ class JobCategoryReorderItem(BaseModel):
 class JobCategoryReorder(BaseModel):
     categories: List[JobCategoryReorderItem]
 
-@router.get("", response_model=List[JobCategoryRead])
-async def list_job_categories(
-    current_user: User = Depends(get_current_user),
-    workspace = Depends(get_user_workspace)
-):
-    job_categories = await JobCategory.query.filter(workspace=workspace).order_by("sequence").all()
+@router.get("", response_model=List[JobCategoryRead], dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def list_job_categories():
+    job_categories = await JobCategory.query.order_by("sequence").all()
     return job_categories
 
-@router.post("", response_model=JobCategoryRead)
-async def create_job_category(
-    job_category_data: JobCategoryCreate,
-    current_user: User = Depends(get_current_user),
-    workspace = Depends(get_user_workspace)
-):
-    job_category = await JobCategory.query.create(**job_category_data.model_dump(), workspace=workspace)
-    return job_category
+@router.post("", response_model=JobCategoryRead, dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def create_job_category(job_category_data: JobCategoryCreate):
+    data = job_category_data.model_dump()
+    obj = JobCategory(**data)
+    await obj.save()
+    return obj
 
-@router.put("/reorder")
-async def reorder_job_categories(
-    data: JobCategoryReorder,
-    current_user: User = Depends(get_current_user),
-    workspace = Depends(get_user_workspace)
-):
+@router.put("/reorder", dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def reorder_job_categories(data: JobCategoryReorder):
     try:
         for category_item in data.categories:
-            job_category = await JobCategory.query.filter(id=category_item.id, workspace=workspace).first()
+            job_category = await JobCategory.query.filter(id=category_item.id).first()
             if job_category:
                 job_category.sequence = category_item.sequence
                 await job_category.save()
@@ -50,25 +41,16 @@ async def reorder_job_categories(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/{job_category_id}", response_model=JobCategoryRead)
-async def get_job_category(
-    job_category_id: int,
-    current_user: User = Depends(get_current_user),
-    workspace = Depends(get_user_workspace)
-):
-    job_category = await JobCategory.query.filter(id=job_category_id, workspace=workspace).first()
+@router.get("/{job_category_id}", response_model=JobCategoryRead, dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def get_job_category(job_category_id: int):
+    job_category = await JobCategory.query.get(id=job_category_id)
     if not job_category:
         raise HTTPException(status_code=404, detail="Catégorie d'intervention non trouvée")
     return job_category
 
-@router.patch("/{job_category_id}", response_model=JobCategoryRead)
-async def update_job_category(
-    job_category_id: int,
-    job_category_data: JobCategoryUpdate,
-    current_user: User = Depends(get_current_user),
-    workspace = Depends(get_user_workspace)
-):
-    job_category = await JobCategory.query.filter(id=job_category_id, workspace=workspace).first()
+@router.patch("/{job_category_id}", response_model=JobCategoryRead, dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def update_job_category(job_category_id: int, job_category_data: JobCategoryUpdate):
+    job_category = await JobCategory.query.get(id=job_category_id)
     if not job_category:
         raise HTTPException(status_code=404, detail="Catégorie d'intervention non trouvée")
     
@@ -79,13 +61,9 @@ async def update_job_category(
     await job_category.save()
     return job_category
 
-@router.delete("/{job_category_id}")
-async def delete_job_category(
-    job_category_id: int,
-    current_user: User = Depends(get_current_user),
-    workspace = Depends(get_user_workspace)
-):
-    job_category = await JobCategory.query.filter(id=job_category_id, workspace=workspace).first()
+@router.delete("/{job_category_id}", dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def delete_job_category(job_category_id: int):
+    job_category = await JobCategory.query.get(id=job_category_id)
     if not job_category:
         raise HTTPException(status_code=404, detail="Catégorie d'intervention non trouvée")
     

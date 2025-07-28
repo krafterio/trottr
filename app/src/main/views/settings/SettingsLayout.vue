@@ -45,6 +45,15 @@
                             <Users class="h-4 w-4" />
                             Utilisateurs
                         </router-link>
+                        <router-link to="/settings/operators" :class="[
+                            'w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2',
+                            $route.name === 'settings-operators'
+                                ? 'bg-primary text-neutral-100'
+                                : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                        ]">
+                            <Wrench class="h-4 w-4" />
+                            Opérateurs
+                        </router-link>
                         <router-link to="/settings/billing" :class="[
                             'w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2',
                             $route.name === 'settings-billing'
@@ -68,5 +77,5 @@
 </template>
 
 <script setup>
-import { Building, CreditCard, Map, Settings2, Users } from 'lucide-vue-next';
+import { Building, CreditCard, Map, Settings2, Users, Wrench } from 'lucide-vue-next';
 </script>

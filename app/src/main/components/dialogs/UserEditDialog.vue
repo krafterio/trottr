@@ -46,6 +46,7 @@
                             <SelectContent>
                                 <SelectItem value="Member">Membre</SelectItem>
                                 <SelectItem value="Owner">Propriétaire</SelectItem>
+                                <SelectItem value="Operator">Technicien</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

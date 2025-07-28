@@ -16,32 +16,23 @@ class JobStatusReorderItem(BaseModel):
 class JobStatusReorder(BaseModel):
     statuses: List[JobStatusReorderItem]
 
-@router.get("", response_model=List[JobStatusRead])
-async def list_job_statuses(
-    current_user: User = Depends(get_current_user),
-    workspace = Depends(get_user_workspace)
-):
-    job_statuses = await JobStatus.query.filter(workspace=workspace).order_by("sequence").all()
+@router.get("", response_model=List[JobStatusRead], dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def list_job_statuses():
+    job_statuses = await JobStatus.query.order_by("sequence").all()
     return job_statuses
 
-@router.post("", response_model=JobStatusRead)
-async def create_job_status(
-    job_status_data: JobStatusCreate,
-    current_user: User = Depends(get_current_user),
-    workspace = Depends(get_user_workspace)
-):
-    job_status = await JobStatus.query.create(**job_status_data.model_dump(), workspace=workspace)
-    return job_status
+@router.post("", response_model=JobStatusRead, dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def create_job_status(job_status_data: JobStatusCreate):
+    data = job_status_data.model_dump()
+    obj = JobStatus(**data)
+    await obj.save()
+    return obj
 
-@router.put("/reorder")
-async def reorder_job_statuses(
-    data: JobStatusReorder,
-    current_user: User = Depends(get_current_user),
-    workspace = Depends(get_user_workspace)
-):
+@router.put("/reorder", dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def reorder_job_statuses(data: JobStatusReorder):
     try:
         for status_item in data.statuses:
-            job_status = await JobStatus.query.filter(id=status_item.id, workspace=workspace).first()
+            job_status = await JobStatus.query.filter(id=status_item.id).first()
             if job_status:
                 job_status.sequence = status_item.sequence
                 await job_status.save()
@@ -50,25 +41,16 @@ async def reorder_job_statuses(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/{job_status_id}", response_model=JobStatusRead)
-async def get_job_status(
-    job_status_id: int,
-    current_user: User = Depends(get_current_user),
-    workspace = Depends(get_user_workspace)
-):
-    job_status = await JobStatus.query.filter(id=job_status_id, workspace=workspace).first()
+@router.get("/{job_status_id}", response_model=JobStatusRead, dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def get_job_status(job_status_id: int):
+    job_status = await JobStatus.query.get(id=job_status_id)
     if not job_status:
         raise HTTPException(status_code=404, detail="Statut de job non trouvé")
     return job_status
 
-@router.patch("/{job_status_id}", response_model=JobStatusRead)
-async def update_job_status(
-    job_status_id: int,
-    job_status_data: JobStatusUpdate,
-    current_user: User = Depends(get_current_user),
-    workspace = Depends(get_user_workspace)
-):
-    job_status = await JobStatus.query.filter(id=job_status_id, workspace=workspace).first()
+@router.patch("/{job_status_id}", response_model=JobStatusRead, dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def update_job_status(job_status_id: int, job_status_data: JobStatusUpdate):
+    job_status = await JobStatus.query.get(id=job_status_id)
     if not job_status:
         raise HTTPException(status_code=404, detail="Statut de job non trouvé")
     
@@ -79,13 +61,9 @@ async def update_job_status(
     await job_status.save()
     return job_status
 
-@router.delete("/{job_status_id}")
-async def delete_job_status(
-    job_status_id: int,
-    current_user: User = Depends(get_current_user),
-    workspace = Depends(get_user_workspace)
-):
-    job_status = await JobStatus.query.filter(id=job_status_id, workspace=workspace).first()
+@router.delete("/{job_status_id}", dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def delete_job_status(job_status_id: int):
+    job_status = await JobStatus.query.get(id=job_status_id)
     if not job_status:
         raise HTTPException(status_code=404, detail="Statut de job non trouvé")
     

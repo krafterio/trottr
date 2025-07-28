@@ -130,6 +130,14 @@ const router = createRouter({
           }
         },
         {
+          path: 'operators',
+          name: 'settings-operators',
+          component: () => import('@/main/views/settings/pages/SettingsOperators.vue'),
+          meta: {
+            metaTitle: 'Paramètres opérateurs'
+          }
+        },
+        {
           path: 'billing',
           name: 'settings-billing',
           component: () => import('@/main/views/settings/pages/SettingsBilling.vue'),

@@ -428,6 +428,13 @@ async def update_workspace_member(
                 if owners_count <= 1:
                     raise HTTPException(status_code=400, detail="Il doit y avoir au moins un propriétaire dans le workspace")
             user_workspace.role = WorkspaceUserRole.MEMBER
+        elif new_role == 'Operator':
+            # Check if we're not removing the last owner
+            if user_workspace.role == WorkspaceUserRole.OWNER:
+                owners_count = await WorkspaceUser.query.filter(workspace=workspace, role=WorkspaceUserRole.OWNER).count()
+                if owners_count <= 1:
+                    raise HTTPException(status_code=400, detail="Il doit y avoir au moins un propriétaire dans le workspace")
+            user_workspace.role = WorkspaceUserRole.OPERATOR
         
         await user_workspace.save()
 
