@@ -16,7 +16,7 @@
                         <SelectContent>
                             <SelectItem value="30">30 minutes</SelectItem>
                             <SelectItem value="60">1 heure</SelectItem>
-                            <SelectItem value="90">1h30</SelectItem>
+                            <SelectItem value="90">1 heure 30 minutes</SelectItem>
                             <SelectItem value="120">2 heures</SelectItem>
                             <SelectItem value="180">3 heures</SelectItem>
                             <SelectItem value="240">4 heures</SelectItem>
@@ -25,20 +25,6 @@
                     <p class="text-sm text-neutral-500">
                         Durée appliquée automatiquement lors de la création d'une nouvelle intervention.
                     </p>
-                </div>
-
-                <div class="space-y-3">
-                    <Label for="default-status">Statut par défaut</Label>
-                    <Select>
-                        <SelectTrigger class="w-full">
-                            <SelectValue placeholder="Sélectionner un statut" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="draft">Brouillon</SelectItem>
-                            <SelectItem value="planned">Planifiée</SelectItem>
-                            <SelectItem value="assigned">Assignée</SelectItem>
-                        </SelectContent>
-                    </Select>
                 </div>
 
                 <div class="space-y-3">
@@ -71,11 +57,11 @@
                             <TableRow>
                                 <TableHead class="w-12"></TableHead>
                                 <TableHead>Statut</TableHead>
-                                <TableHead class="w-24">Utilisé</TableHead>
                                 <TableHead class="w-24">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
-                        <VueDraggable v-model="jobStatuses" :animation="200" handle=".drag-handle" tag="tbody">
+                        <VueDraggable v-model="jobStatuses" :animation="200" handle=".drag-handle" tag="tbody"
+                            @end="onStatusReorder">
                             <TableRow v-for="status in jobStatuses" :key="status.id">
                                 <TableCell>
                                     <div class="drag-handle cursor-move text-neutral-400 hover:text-neutral-600">
@@ -88,13 +74,6 @@
                                             :style="{ backgroundColor: status.color }"></div>
                                         <span class="text-sm text-neutral-900">{{ status.name }}</span>
                                     </div>
-                                </TableCell>
-                                <TableCell>
-                                    <Badge :class="status.isUsed
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-neutral-100 text-neutral-600'">
-                                        {{ status.isUsed ? 'Utilisé' : 'Non utilisé' }}
-                                    </Badge>
                                 </TableCell>
                                 <TableCell>
                                     <div class="flex items-center space-x-1">
@@ -146,7 +125,6 @@
                             <TableRow>
                                 <TableHead class="w-12"></TableHead>
                                 <TableHead>Catégorie</TableHead>
-                                <TableHead class="w-24">Utilisé</TableHead>
                                 <TableHead class="w-24">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -163,13 +141,6 @@
                                             :style="{ backgroundColor: category.color }"></div>
                                         <span class="text-sm text-neutral-900">{{ category.name }}</span>
                                     </div>
-                                </TableCell>
-                                <TableCell>
-                                    <Badge :class="category.isUsed
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-neutral-100 text-neutral-600'">
-                                        {{ category.isUsed ? 'Utilisé' : 'Non utilisé' }}
-                                    </Badge>
                                 </TableCell>
                                 <TableCell>
                                     <div class="flex items-center space-x-1">
@@ -228,17 +199,14 @@
                     </div>
                     <div class="space-y-2">
                         <Label for="status-color">Couleur</Label>
-                        <div class="flex items-center space-x-2">
-                            <div class="w-6 h-6 rounded-full border-2 border-neutral-200"
-                                :style="{ backgroundColor: dialogStatus.color }"></div>
-                            <Input id="status-color" type="color" v-model="dialogStatus.color"
-                                class="w-20 h-8 p-0 border-0 cursor-pointer" />
+                        <div class="flex items-center space-x-3">
+                            <SimpleColorPicker v-model="dialogStatus.color" />
                         </div>
                     </div>
                 </div>
                 <div class="flex justify-end space-x-2 mt-6">
                     <Button variant="outline" @click="showDialog = false">Annuler</Button>
-                    <Button @click="saveStatus">{{ editingStatus ? 'Modifier' : 'Créer' }}</Button>
+                    <Button @click="saveStatus" :disabled="loading">{{ editingStatus ? 'Modifier' : 'Créer' }}</Button>
                 </div>
             </DialogContent>
         </Dialog>
@@ -255,11 +223,8 @@
                     </div>
                     <div class="space-y-2">
                         <Label for="category-color">Couleur</Label>
-                        <div class="flex items-center space-x-2">
-                            <div class="w-6 h-6 rounded-full border-2 border-neutral-200"
-                                :style="{ backgroundColor: dialogCategory.color }"></div>
-                            <Input id="category-color" type="color" v-model="dialogCategory.color"
-                                class="w-20 h-8 p-0 border-0 cursor-pointer" />
+                        <div class="flex items-center space-x-3">
+                            <SimpleColorPicker v-model="dialogCategory.color" />
                         </div>
                     </div>
                 </div>
@@ -273,7 +238,7 @@
 </template>
 
 <script setup>
-import Badge from '@/common/components/ui/badge/Badge.vue'
+import SimpleColorPicker from '@/common/components/form/color-picker/SimpleColorPicker.vue'
 import { Button } from '@/common/components/ui/button'
 import Dialog from '@/common/components/ui/dialog/Dialog.vue'
 import DialogContent from '@/common/components/ui/dialog/DialogContent.vue'
@@ -288,67 +253,23 @@ import TableCell from '@/common/components/ui/table/TableCell.vue'
 import TableHead from '@/common/components/ui/table/TableHead.vue'
 import TableHeader from '@/common/components/ui/table/TableHeader.vue'
 import TableRow from '@/common/components/ui/table/TableRow.vue'
+import { useFetcher } from '@/common/composables/fetcher'
 import { Edit, GripVertical, Info, Plus, Trash } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
+import { toast } from 'vue-sonner'
 
-const reminders = ref(true)
-const lateNotifications = ref(true)
-const calendarSync = ref(false)
-const autoReports = ref(true)
-const requiredPhotos = ref(false)
-const requiredSignature = ref(true)
+const fetcher = useFetcher()
+const loading = ref(false)
 
-const jobStatuses = ref([
-    {
-        id: 1,
-        name: 'Brouillon',
-        color: '#6b7280',
-        isUsed: false
-    },
-    {
-        id: 2,
-        name: 'Planifiée',
-        color: '#3b82f6',
-        isUsed: true
-    },
-    {
-        id: 3,
-        name: 'En cours',
-        color: '#f59e0b',
-        isUsed: true
-    },
-    {
-        id: 4,
-        name: 'En pause',
-        color: '#8b5cf6',
-        isUsed: false
-    },
-    {
-        id: 5,
-        name: 'En attente client',
-        color: '#ef4444',
-        isUsed: true
-    },
-    {
-        id: 6,
-        name: 'Terminée',
-        color: '#10b981',
-        isUsed: true
-    },
-    {
-        id: 7,
-        name: 'Annulée',
-        color: '#dc2626',
-        isUsed: false
-    }
-])
+const jobStatuses = ref([])
 
 const showDialog = ref(false)
 const editingStatus = ref(null)
 const dialogStatus = ref({
     name: '',
-    color: '#6b7280'
+    color: '#1dbcad',
+    sequence: 1
 })
 
 const jobCategories = ref([
@@ -388,17 +309,28 @@ const showCategoryDialog = ref(false)
 const editingCategory = ref(null)
 const dialogCategory = ref({
     name: '',
-    color: '#6b7280'
+    color: '#1dbcad'
 })
 
-let nextStatusId = 8
 let nextCategoryId = 6
+
+const loadJobStatuses = async () => {
+    try {
+        const response = await fetcher.get('/job-status')
+        jobStatuses.value = response.data || []
+    } catch (error) {
+        console.error('Erreur lors du chargement des statuts:', error)
+        toast.error('Impossible de charger les statuts')
+    }
+}
 
 const openCreateDialog = () => {
     editingStatus.value = null
+    const maxSequence = Math.max(...jobStatuses.value.map(s => s.sequence), 0)
     dialogStatus.value = {
         name: '',
-        color: '#6b7280'
+        color: '#1dbcad',
+        sequence: maxSequence + 1
     }
     showDialog.value = true
 }
@@ -407,30 +339,46 @@ const editStatus = (status) => {
     editingStatus.value = status
     dialogStatus.value = {
         name: status.name,
-        color: status.color
+        color: status.color,
+        sequence: status.sequence
     }
     showDialog.value = true
 }
 
-const saveStatus = () => {
-    if (editingStatus.value) {
-        editingStatus.value.name = dialogStatus.value.name
-        editingStatus.value.color = dialogStatus.value.color
-    } else {
-        jobStatuses.value.push({
-            id: nextStatusId++,
-            name: dialogStatus.value.name,
-            color: dialogStatus.value.color,
-            isUsed: false
-        })
+const saveStatus = async () => {
+    if (!dialogStatus.value.name.trim()) {
+        toast.error('Le nom du statut est requis')
+        return
     }
-    showDialog.value = false
+
+    loading.value = true
+    try {
+        if (editingStatus.value) {
+            const { sequence, ...updateData } = dialogStatus.value
+            await fetcher.patch(`/job-status/${editingStatus.value.id}`, updateData)
+        } else {
+            await fetcher.post('/job-status', dialogStatus.value)
+        }
+
+        await loadJobStatuses()
+        showDialog.value = false
+        toast.success(`Statut ${editingStatus.value ? 'modifié' : 'créé'} avec succès`)
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde:', error)
+        toast.error(error.message || 'Erreur lors de la sauvegarde')
+    } finally {
+        loading.value = false
+    }
 }
 
-const removeStatus = (statusId) => {
-    const index = jobStatuses.value.findIndex(status => status.id === statusId)
-    if (index !== -1 && !jobStatuses.value[index].isUsed) {
-        jobStatuses.value.splice(index, 1)
+const removeStatus = async (statusId) => {
+    try {
+        await fetcher.delete(`/job-status/${statusId}`)
+        await loadJobStatuses()
+        toast.success('Statut supprimé avec succès')
+    } catch (error) {
+        console.error('Erreur lors de la suppression:', error)
+        toast.error(error.message || 'Erreur lors de la suppression')
     }
 }
 
@@ -438,7 +386,7 @@ const openCreateCategoryDialog = () => {
     editingCategory.value = null
     dialogCategory.value = {
         name: '',
-        color: '#6b7280'
+        color: '#1dbcad'
     }
     showCategoryDialog.value = true
 }
@@ -480,4 +428,24 @@ const saveSettings = () => {
         categories: jobCategories.value
     })
 }
+
+const onStatusReorder = async () => {
+    try {
+        const reorderedStatuses = jobStatuses.value.map((status, index) => ({
+            id: status.id,
+            sequence: index + 1
+        }))
+
+        await fetcher.put('/job-status/reorder', { statuses: reorderedStatuses })
+        toast.success('Statuts réorganisés avec succès')
+    } catch (error) {
+        console.error('Erreur lors de la réorganisation des statuts:', error)
+        toast.error(error.message || 'Erreur lors de la réorganisation des statuts')
+        await loadJobStatuses()
+    }
+}
+
+onMounted(() => {
+    loadJobStatuses()
+})
 </script>
