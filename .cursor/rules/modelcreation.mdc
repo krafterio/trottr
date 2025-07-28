@@ -92,7 +92,7 @@ class MonModelBase(BaseModel):
     description: Optional[str] = None
     type_field: str
     email: Optional[EmailStr] = None
-    pays_id: Optional[int] = None
+    pays: Optional[int] = None
 
 class MonModelCreate(MonModelBase):
     pass
@@ -102,7 +102,7 @@ class MonModelUpdate(BaseModel):
     description: Optional[str] = None
     type_field: Optional[str] = None
     email: Optional[EmailStr] = None
-    pays_id: Optional[int] = None
+    pays: Optional[int] = None
 
 class MonModelRead(MonModelBase):
     id: int

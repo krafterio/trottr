@@ -5,6 +5,7 @@ from models.country import Country
 from models.company import Company
 from schemas.site import SiteCreate, SiteUpdate, SiteRead
 from api.auth import get_current_user
+from services.workspace import get_user_workspace
 from models.user import User
 from pydantic import BaseModel
 
@@ -56,22 +57,26 @@ async def get_site(
         raise HTTPException(status_code=404, detail="Site not found")
     return site
 
-@router.post("/", response_model=SiteRead, status_code=status.HTTP_201_CREATED)
-async def create_site(
-    site: SiteCreate,
-    current_user: User = Depends(get_current_user)
-):
-    country = await Country.query.get(id=site.country_id)
+@router.post("/", response_model=SiteRead, status_code=status.HTTP_201_CREATED, dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def create_site(site: SiteCreate):
+    country = await Country.query.get(id=site.country)
     if not country:
         raise HTTPException(status_code=400, detail="Country not found")
     
-    if site.company_id:
-        company = await Company.query.get(id=site.company_id)
+    company = None
+    if site.company:
+        company = await Company.query.get(id=site.company)
         if not company:
             raise HTTPException(status_code=400, detail="Company not found")
     
-    new_site = await Site.query.create(**site.model_dump())
-    return await Site.query.select_related("country", "company").get(id=new_site.id)
+    data = site.model_dump()
+    obj = Site(**data)
+    obj.country = country
+    if company:
+        obj.company = company
+    await obj.save()
+    
+    return obj
 
 @router.put("/{site_id}", response_model=SiteRead)
 async def update_site(
@@ -85,15 +90,19 @@ async def update_site(
     
     update_data = site_update.model_dump(exclude_unset=True)
     
-    if "country_id" in update_data:
-        country = await Country.query.get(id=update_data["country_id"])
+    if "country" in update_data and update_data["country"]:
+        country = await Country.query.get(id=update_data["country"])
         if not country:
             raise HTTPException(status_code=400, detail="Country not found")
+        update_data["country"] = country
     
-    if "company_id" in update_data and update_data["company_id"]:
-        company = await Company.query.get(id=update_data["company_id"])
+    if "company" in update_data and update_data["company"]:
+        company = await Company.query.get(id=update_data["company"])
         if not company:
             raise HTTPException(status_code=400, detail="Company not found")
+        update_data["company"] = company
+    elif "company" in update_data and update_data["company"] is None:
+        update_data["company"] = None
     
     await site.update(**update_data)
     return await Site.query.select_related("country", "company").get(id=site_id)

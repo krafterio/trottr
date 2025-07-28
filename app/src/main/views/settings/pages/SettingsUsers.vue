@@ -230,7 +230,7 @@ const showEditDialog = ref(false)
 const selectedUser = ref(null)
 const inviteLoading = ref(false)
 const editLoading = ref(false)
-const deleteAction = ref(null)
+
 
 const inviteForm = ref({
     email: ''
@@ -243,11 +243,14 @@ const editForm = ref({
     role: ''
 })
 
-// Écoute la confirmation de suppression
-useBus(bus, 'confirm-delete-dialog:confirmed', () => {
-    if (deleteAction.value) {
-        deleteAction.value()
-    }
+// Écoute la confirmation de suppression d'utilisateur
+useBus(bus, 'confirm-delete-user:confirmed', () => {
+    deleteUser()
+})
+
+// Écoute la confirmation d'annulation d'invitation
+useBus(bus, 'confirm-cancel-invitation:confirmed', () => {
+    deleteCancelInvitation()
 })
 
 useBus(bus, 'user-edit-dialog:update-open', (event) => {
@@ -347,28 +350,37 @@ const updateUser = async () => {
     }
 }
 
+const selectedUserForDelete = ref(null)
+
 const removeUser = (user) => {
     if (user.role === 'Owner') return
 
-    deleteAction.value = async () => {
-        try {
-            await fetcher.delete(`/workspace/member/${user.id}`)
-            toast.success('Utilisateur supprimé avec succès !')
-            bus.trigger('confirm-delete-dialog:close')
-            await fetchUsers()
-        } catch (err) {
-            console.error('Erreur lors de la suppression:', err)
-            const errorMessage = err.response?.data?.detail || 'Erreur lors de la suppression'
-            toast.error(errorMessage)
-            bus.trigger('confirm-delete-dialog:close')
-        }
-    }
+    selectedUserForDelete.value = user
 
     bus.trigger('confirm-delete', {
         title: 'Supprimer l\'utilisateur',
         message: 'Êtes-vous sûr de vouloir supprimer cet utilisateur du workspace ?',
-        itemName: user.name || user.email
+        itemName: user.name || user.email,
+        confirmationText: 'Cette action est irréversible.',
+        confirmEvent: 'confirm-delete-user:confirmed'
     })
+}
+
+const deleteUser = async () => {
+    if (!selectedUserForDelete.value) return
+
+    try {
+        await fetcher.delete(`/workspace/member/${selectedUserForDelete.value.id}`)
+        toast.success('Utilisateur supprimé avec succès !')
+        bus.trigger('confirm-delete-dialog:close')
+        await fetchUsers()
+        selectedUserForDelete.value = null
+    } catch (err) {
+        console.error('Erreur lors de la suppression:', err)
+        const errorMessage = err.response?.data?.detail || 'Erreur lors de la suppression'
+        toast.error(errorMessage)
+        bus.trigger('confirm-delete-dialog:close')
+    }
 }
 
 const getInitials = (name, email) => {
@@ -407,26 +419,35 @@ const formatDate = (dateString) => {
     })
 }
 
+const selectedInvitationForCancel = ref(null)
+
 const cancelInvitation = (invitation) => {
-    deleteAction.value = async () => {
-        try {
-            await fetcher.delete(`/workspace/invitation/${invitation.id}`)
-            toast.success('Invitation annulée avec succès !')
-            bus.trigger('confirm-delete-dialog:close')
-            await fetchInvitations()
-        } catch (err) {
-            console.error('Erreur lors de l\'annulation de l\'invitation:', err)
-            const errorMessage = err.response?.data?.detail || 'Erreur lors de l\'annulation de l\'invitation'
-            toast.error(errorMessage)
-            bus.trigger('confirm-delete-dialog:close')
-        }
-    }
+    selectedInvitationForCancel.value = invitation
 
     bus.trigger('confirm-delete', {
         title: 'Annuler l\'invitation',
         message: 'Êtes-vous sûr de vouloir annuler cette invitation ?',
-        itemName: invitation.email
+        itemName: invitation.email,
+        confirmationText: 'Cette action est irréversible.',
+        confirmEvent: 'confirm-cancel-invitation:confirmed'
     })
+}
+
+const deleteCancelInvitation = async () => {
+    if (!selectedInvitationForCancel.value) return
+
+    try {
+        await fetcher.delete(`/workspace/invitation/${selectedInvitationForCancel.value.id}`)
+        toast.success('Invitation annulée avec succès !')
+        bus.trigger('confirm-delete-dialog:close')
+        await fetchInvitations()
+        selectedInvitationForCancel.value = null
+    } catch (err) {
+        console.error('Erreur lors de l\'annulation de l\'invitation:', err)
+        const errorMessage = err.response?.data?.detail || 'Erreur lors de l\'annulation de l\'invitation'
+        toast.error(errorMessage)
+        bus.trigger('confirm-delete-dialog:close')
+    }
 }
 
 onMounted(async () => {

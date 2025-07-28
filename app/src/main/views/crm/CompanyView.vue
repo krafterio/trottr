@@ -215,15 +215,7 @@
                         </TabsList>
 
                         <TabsContent value="sites">
-                            <div class="p-6">
-                                <div class="text-center py-8">
-                                    <Building class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                                    <h3 class="text-lg font-medium text-neutral-900 mb-2">Sites d'intervention</h3>
-                                    <p class="text-neutral-600 mb-4">Cette section permettra de gérer les sites
-                                        rattachés à cette entreprise.</p>
-                                    <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des sites</p>
-                                </div>
-                            </div>
+                            <CompanySites :company-id="company.id" />
                         </TabsContent>
 
                         <TabsContent value="contacts">
@@ -303,6 +295,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/common/components/ui
 import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useCompany } from '@/common/composables/useCompany'
+import CompanySites from '@/main/components/companies/CompanySites.vue'
 import {
     ArrowLeft,
     Building,
@@ -340,7 +333,7 @@ const isDirty = ref(false)
 const originalForm = ref({})
 
 // Écoute la confirmation de suppression
-useBus(bus, 'confirm-delete-dialog:confirmed', () => {
+useBus(bus, 'confirm-delete-company:confirmed', () => {
     deleteCompany()
 })
 
@@ -390,7 +383,9 @@ const handleDelete = () => {
     bus.trigger('confirm-delete', {
         title: 'Supprimer l\'entreprise',
         message: 'Êtes-vous sûr de vouloir supprimer cette entreprise ?',
-        itemName: company.value.name
+        itemName: company.value.name,
+        confirmationText: 'Cette action est irréversible.',
+        confirmEvent: 'confirm-delete-company:confirmed'
     })
 }
 

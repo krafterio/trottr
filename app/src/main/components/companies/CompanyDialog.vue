@@ -6,9 +6,9 @@
             </DialogHeader>
 
             <div class="grid grid-cols-5 gap-4 py-3">
-                <div class="w-30">
-                    <div class="w-16 h-16 mx-auto mb-4 bg-neutral-100 rounded-full flex items-center justify-center">
-                        <Building2 class="w-8 h-8 text-neutral-400" :stroke-width="1.2" />
+                <div class="w-20">
+                    <div class="w-20 h-20 mb-4 bg-secondary rounded-full flex items-center justify-center">
+                        <Building2 class="w-10 h-10 text-primary" :stroke-width="1.2" />
                     </div>
                 </div>
                 <div class="flex-1 col-span-4">

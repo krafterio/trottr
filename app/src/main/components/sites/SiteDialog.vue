@@ -6,9 +6,9 @@
             </DialogHeader>
 
             <div class="grid grid-cols-5 gap-4 py-3">
-                <div class="w-30">
-                    <div class="w-16 h-16 mx-auto mb-4 bg-neutral-100 rounded-full flex items-center justify-center">
-                        <MapPin class="w-8 h-8 text-neutral-400" :stroke-width="1.2" />
+                <div class="w-20">
+                    <div class="w-20 h-20 mb-4 bg-secondary rounded-full flex items-center justify-center">
+                        <MapPin class="w-10 h-10 text-primary" :stroke-width="1.2" />
                     </div>
                 </div>
                 <div class="flex-1 col-span-4">
@@ -36,7 +36,7 @@
 
                             <div>
                                 <label class="text-sm font-medium text-neutral-700">Entreprise</label>
-                                <CompanySelect v-model="form.company_id" class="mt-1"
+                                <CompanySelect v-model="form.company" class="mt-1"
                                     placeholder="Sélectionner une entreprise" />
                             </div>
                         </div>
@@ -65,7 +65,7 @@
 
                         <div>
                             <label class="text-sm font-medium text-neutral-700">Pays *</label>
-                            <CountrySelect v-model="form.country_id" class="mt-1" placeholder="Sélectionner un pays"
+                            <CountrySelect v-model="form.country" class="mt-1" placeholder="Sélectionner un pays"
                                 required />
                         </div>
 
@@ -117,14 +117,14 @@ const defaultForm = {
     street_2: '',
     zip: '',
     city: '',
-    country_id: null,
-    company_id: null
+    country: null,
+    company: null
 }
 
 const form = reactive({ ...defaultForm })
 
 watch(() => props.site, (newSite) => {
-    if (newSite) {
+    if (newSite && newSite.id) {
         isEdit.value = true
         Object.assign(form, {
             name: newSite.name || '',
@@ -133,12 +133,12 @@ watch(() => props.site, (newSite) => {
             street_2: newSite.street_2 || '',
             zip: newSite.zip || '',
             city: newSite.city || '',
-            country_id: newSite.country_id || null,
-            company_id: newSite.company_id || null
+            country: newSite.country || (newSite.country ? newSite.country.id : null),
+            company: newSite.company || (newSite.company ? newSite.company.id : null)
         })
     } else {
         isEdit.value = false
-        Object.assign(form, defaultForm)
+        Object.assign(form, { ...defaultForm, ...(newSite || {}) })
     }
 }, { immediate: true })
 
@@ -152,24 +152,30 @@ const handleSubmit = async () => {
     loading.value = true
 
     try {
-        let response
-        if (isEdit.value) {
-            response = await fetcher.put(`/api/sites/${props.site.id}`, form)
-        } else {
-            response = await fetcher.post('/api/sites/', form)
+        const submitData = { ...form }
+
+        if (typeof submitData.country === 'object' && submitData.country?.id) {
+            submitData.country = submitData.country.id
         }
 
-        if (response.success) {
-            toast.success(isEdit.value ? 'Site modifié avec succès' : 'Site créé avec succès')
-            bus.emit('sites:refresh')
-            emit('saved', response.data)
-            handleClose()
-        } else {
-            toast.error(response.message || 'Une erreur est survenue')
+        if (typeof submitData.company === 'object' && submitData.company?.id) {
+            submitData.company = submitData.company.id
         }
+
+        let response
+        if (isEdit.value) {
+            response = await fetcher.put(`/sites/${props.site.id}`, submitData)
+        } else {
+            response = await fetcher.post('/sites/', submitData)
+        }
+
+        toast.success(isEdit.value ? 'Site modifié avec succès' : 'Site créé avec succès')
+        bus.trigger('sites:refresh')
+        emit('saved', response.data)
+        handleClose()
     } catch (error) {
         console.error('Erreur lors de la sauvegarde:', error)
-        toast.error('Une erreur est survenue lors de la sauvegarde')
+        toast.error(isEdit.value ? 'Erreur lors de la modification' : 'Erreur lors de la création')
     } finally {
         loading.value = false
     }

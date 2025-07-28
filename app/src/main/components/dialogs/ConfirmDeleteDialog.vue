@@ -9,21 +9,21 @@
         <AlertDialogDescription class="space-y-2">
           <p>{{ dialogData.message }}</p>
           <p v-if="dialogData.itemName" class="font-semibold text-foreground">{{ dialogData.itemName }}</p>
-          <p class="text-sm text-muted-foreground flex items-center">
+          <p v-if="dialogData.confirmationText" class="text-sm text-muted-foreground flex items-center">
             <Info :size="14" class=" mr-1" />
-            {{ dialogData.confirmationText || 'Cette action est irréversible.' }}
+            {{ dialogData.confirmationText }}
           </p>
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel @click="cancel" :disabled="loading">
-          {{ dialogData.cancelText || 'Annuler' }}
+          Annuler
         </AlertDialogCancel>
         <AlertDialogAction @click="confirm" :disabled="loading">
           <div v-if="loading"
             class="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
           <Trash2 :size="16" />
-          {{ dialogData.confirmText || 'Supprimer' }}
+          Supprimer
         </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
@@ -47,38 +47,26 @@ import { ref } from 'vue';
 
 const isOpen = ref(false)
 const loading = ref(false)
-const dialogData = ref({
-  title: '',
-  message: '',
-  itemName: '',
-  confirmationText: '',
-  confirmText: '',
-  cancelText: ''
-})
+const dialogData = ref({})
 
 // Écoute l'événement d'ouverture générique
 useBus(bus, 'confirm-delete', (event) => {
   const data = event.detail
-  dialogData.value = {
-    title: data.title || 'Supprimer',
-    message: data.message || 'Êtes-vous sûr de vouloir supprimer cet élément ?',
-    itemName: data.itemName || '',
-    confirmationText: data.confirmationText || '',
-    confirmText: data.confirmText || '',
-    cancelText: data.cancelText || ''
-  }
+  dialogData.value = data
   isOpen.value = true
 })
 
 const confirm = () => {
   loading.value = true
-  bus.trigger('confirm-delete-dialog:confirmed')
+  bus.trigger(dialogData.value.confirmEvent, dialogData.value)
 }
 
 const cancel = () => {
   isOpen.value = false
   loading.value = false
-  bus.trigger('confirm-delete-dialog:cancelled')
+  if (dialogData.value.cancelEvent) {
+    bus.trigger(dialogData.value.cancelEvent, dialogData.value)
+  }
 }
 
 // Écoute pour fermer après action terminée

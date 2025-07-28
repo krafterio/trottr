@@ -1,0 +1,203 @@
+---
+description: Ce fichier explique comment fonctionne le workspace et l'assignation de workspace
+alwaysApply: false
+---
+# Système de Workspace - Guide d'implémentation
+
+## Vue d'ensemble
+
+Ce projet utilise un système de workspace automatique qui permet d'isoler les données par espace de travail sans intervention manuelle dans le code métier.
+
+## Architecture du système
+
+### 1. Contexte global (`core/context.py`)
+
+Le système utilise des `ContextVar` pour stocker de manière thread-safe :
+- L'utilisateur courant (`get_user()`, `set_user()`)
+- Le workspace courant (`get_workspace()`, `set_workspace()`) 
+- L'utilisateur workspace (`get_workspace_user()`, `set_workspace_user()`)
+- La requête courante (`get_request()`, `set_request()`)
+
+### 2. Middleware de contexte (`core/http.py`)
+
+```python
+class ContextRequestMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        token = set_request(request)
+        try:
+            return await call_next(request)
+        finally:
+            reset_request(token)
+```
+
+Initialise le contexte de requête pour chaque appel HTTP.
+
+### 3. Authentification et workspace (`api/auth.py` + `services/workspace.py`)
+
+- `get_current_user()` : Authentifie l'utilisateur et définit `context.set_user()`
+- `get_user_workspace()` : Récupère le workspace de l'utilisateur et définit `context.set_workspace()` et `context.set_workspace_user()`
+
+## WorkspaceableMixin
+
+### Utilisation
+
+```python
+class MonModel(BaseModel, WorkspaceableMixin):
+    nom = edgy.CharField(max_length=255)
+    
+    class Meta:
+        tablename = "mon_model"
+```
+
+### Fonctionnalités automatiques
+
+1. **Champ workspace** : Ajoute automatiquement `workspace = fields.ForeignKey("Workspace")`
+2. **Assignation automatique** : Via la méthode `save()` qui assigne le workspace depuis le contexte
+3. **Filtrage automatique** : Via le `WorkspaceableManager` qui filtre automatiquement par workspace
+
+### Méthode save() automatique
+
+```python
+async def save(self, force_insert: bool = False, values = None, force_save = None):
+    workspace = context.get_workspace()
+    if workspace and (not hasattr(self, "workspace") or self.workspace != workspace):
+        self.workspace = workspace
+    return await super().save(force_insert, values, force_save)
+```
+
+## Manager personnalisé (`core/orm/manager.py`)
+
+### WorkspaceableManager
+
+Filtre automatiquement toutes les requêtes par le workspace courant :
+
+```python
+def filter_by_workspace(queryset: QuerySet) -> QuerySet:
+    workspace = context.get_workspace()
+    if workspace and queryset.model_class.__name__ not in ['Workspace', 'WorkspaceUser', 'UserPresence']:
+        queryset = queryset.filter(workspace=workspace)
+    return queryset
+```
+
+### Modèles exclus
+
+Les modèles suivants ne sont PAS filtrés par workspace :
+- `Workspace` 
+- `WorkspaceUser`
+- `UserPresence`
+
+## Actions CRUD - Bonnes pratiques
+
+### CREATE (Création)
+
+**✅ CORRECT :**
+```python
+@router.post("/", response_model=ModelRead, dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def create_model(model: ModelCreate):
+    data = model.model_dump()
+    obj = Model(**data)
+    await obj.save()  # Assignation automatique du workspace
+    return obj
+```
+
+**❌ INCORRECT :**
+```python
+# NE PAS passer workspace manuellement
+new_model = await Model.query.create(**data, workspace=workspace)
+```
+
+### READ (Lecture)
+
+Les requêtes sont automatiquement filtrées par workspace :
+
+```python
+@router.get("/", dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def list_models():
+    models = await Model.query.all()  # Filtrés automatiquement par workspace
+    return models
+```
+
+### UPDATE (Mise à jour)
+
+```python
+@router.put("/{model_id}", dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def update_model(model_id: int, model_update: ModelUpdate):
+    model = await Model.query.get(id=model_id)  # Filtrée automatiquement
+    update_data = model_update.model_dump(exclude_unset=True)
+    
+    for key, value in update_data.items():
+        setattr(model, key, value)
+    
+    await model.save()  # Workspace preservé automatiquement
+    return model
+```
+
+### DELETE (Suppression)
+
+```python
+@router.delete("/{model_id}", dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def delete_model(model_id: int):
+    model = await Model.query.get(id=model_id)  # Filtrée automatiquement
+    await model.delete()
+```
+
+## Dépendances obligatoires
+
+Pour que le système fonctionne, chaque endpoint doit inclure :
+
+```python
+dependencies=[Depends(get_current_user), Depends(get_user_workspace)]
+```
+
+- `get_current_user` : Définit l'utilisateur dans le contexte
+- `get_user_workspace` : Définit le workspace dans le contexte
+
+## Points critiques
+
+### 1. Ordre d'exécution
+Le workspace DOIT être défini dans le contexte AVANT toute opération de création/lecture.
+
+### 2. Méthode de création
+Toujours utiliser l'approche `Model(**data)` + `await obj.save()` pour déclencher l'assignation automatique.
+
+### 3. Pas d'assignation manuelle
+Ne JAMAIS passer `workspace=workspace` manuellement dans les opérations CRUD.
+
+### 4. Relations externes
+Pour les ForeignKey vers des modèles externes (Country, etc.), les assigner directement sur l'objet :
+
+```python
+obj = Site(**data)
+obj.country = country  # ForeignKey externe
+await obj.save()  # workspace assigné automatiquement
+```
+
+## Debugging
+
+En cas de problème, vérifier :
+
+1. **Contexte initialisé** : `context.get_workspace()` retourne bien un workspace
+2. **Dépendances présentes** : `dependencies=[Depends(get_current_user), Depends(get_user_workspace)]`
+3. **Méthode de création** : Utiliser `Model(**data)` + `save()`, pas `query.create()`
+4. **Héritage correct** : Le modèle hérite bien de `WorkspaceableMixin`
+
+## Exemple complet
+
+```python
+from fastapi import APIRouter, Depends, HTTPException
+from models.mon_model import MonModel
+from schemas.mon_model import MonModelCreate, MonModelRead
+from api.auth import get_current_user
+from services.workspace import get_user_workspace
+
+@router.post("/", response_model=MonModelRead, dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def create_mon_model(model: MonModelCreate):
+    data = model.model_dump()
+    obj = MonModel(**data)
+    await obj.save()
+    return obj
+
+@router.get("/", dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def list_mon_models():
+    return await MonModel.query.all()
+``` 

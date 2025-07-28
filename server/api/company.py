@@ -4,8 +4,9 @@ from models.company import Company
 from models.country import Country
 from schemas.company import CompanyCreate, CompanyUpdate, CompanyRead
 from api.auth import get_current_user
-from models.user import User
 from services.workspace import get_user_workspace
+from models.user import User
+
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -103,19 +104,18 @@ async def get_company(
     return company
 
 
-@router.post("/", response_model=CompanyRead, status_code=status.HTTP_201_CREATED)
-async def create_company(
-    company: CompanyCreate,
-    current_user: User = Depends(get_current_user),
-    workspace = Depends(get_user_workspace)
-):
+@router.post("/", response_model=CompanyRead, status_code=status.HTTP_201_CREATED, dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def create_company(company: CompanyCreate):
     if company.invoice_country_id:
         country = await Country.query.get(id=company.invoice_country_id)
         if not country:
             raise HTTPException(status_code=400, detail="Country not found")
     
-    new_company = await Company.query.create(**company.model_dump(), workspace=workspace)
-    return new_company
+    data = company.model_dump()
+    obj = Company(**data)
+    await obj.save()
+    
+    return obj
 
 
 @router.put("/{company_id}", response_model=CompanyRead)
@@ -149,4 +149,19 @@ async def delete_company(
         raise HTTPException(status_code=404, detail="Company not found")
     
     await company.delete()
-    return None 
+    return None
+
+
+@router.get("/{company_id}/sites", response_model=List)
+async def get_company_sites(
+    company_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    from models.site import Site
+    
+    company = await Company.query.get(id=company_id)
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    sites = await Site.query.filter(company=company).select_related("country", "company").all()
+    return sites 

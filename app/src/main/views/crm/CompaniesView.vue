@@ -182,7 +182,9 @@ const handleDelete = (company) => {
     bus.trigger('confirm-delete', {
         title: 'Supprimer l\'entreprise',
         message: 'Êtes-vous sûr de vouloir supprimer cette entreprise ?',
-        itemName: company.name
+        itemName: company.name,
+        confirmationText: 'Cette action est irréversible.',
+        confirmEvent: 'confirm-delete-company-list:confirmed'
     })
 
     selectedCompanyForDelete.value = company
@@ -222,7 +224,7 @@ useBus(bus, 'company-created-stay', () => {
     refreshList()
 })
 
-useBus(bus, 'confirm-delete-dialog:confirmed', () => {
+useBus(bus, 'confirm-delete-company-list:confirmed', () => {
     deleteCompany()
 })
 
