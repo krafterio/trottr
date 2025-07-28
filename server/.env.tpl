@@ -51,28 +51,3 @@ RECAPTCHA_ENABLED=False
 RECAPTCHA_SITE_KEY=
 RECAPTCHA_SECRET_KEY=
 RECAPTCHA_MIN_SCORE=0.5
-
-# Tokens
-AVAILABLE_CREDITS_BY_USER=100
-AVAILABLE_CREDITS_TOTAL_TRIAL=50
-
-# OPEN_AI
-OPENAI_API_KEY=your_api_key_here
-
-# MISTRAL AI
-MISTRAL_API_KEY=ta_clé_api_mistral_ici
-
-# GOOGLE
-GOOGLE_CLIENT_ID=your_api_key_here
-GOOGLE_CLIENT_SECRET=your_api_key_here
-GOOGLE_REDIRECT_URI=http://localhost:8000/api/integrations/gmail/callback
-
-# BENCHMARKR
-BENCHMARKR_URL=https://benchmarkr.app
-BENCHMARKR_API_KEY=
-
-# SXNG
-SXNG_URL=https://searxng.brihx.fr
-
-# ASSEMBLY AI
-ASSEMBLY_AI_TOKEN=your_api_key_here

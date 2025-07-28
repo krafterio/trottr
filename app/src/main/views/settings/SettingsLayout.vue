@@ -9,73 +9,67 @@
             <div class="w-64 bg-white border-r min-h-full">
                 <nav class="px-6 py-4">
                     <div class="space-y-1">
-                        <button @click="currentTab = 'general'" :class="[
+                        <router-link to="/settings/general" :class="[
                             'w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2',
-                            currentTab === 'general'
+                            $route.name === 'settings-general'
                                 ? 'bg-primary text-neutral-100'
                                 : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
                         ]">
                             <Settings2 class="h-4 w-4" />
                             Général
-                        </button>
-                        <button @click="currentTab = 'jobs'" :class="[
+                        </router-link>
+                        <router-link to="/settings/jobs" :class="[
                             'w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2',
-                            currentTab === 'jobs'
+                            $route.name === 'settings-jobs'
                                 ? 'bg-primary text-neutral-100'
                                 : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
                         ]">
                             <Map class="h-4 w-4" />
                             Interventions
-                        </button>
-                        <button @click="currentTab = 'crm'" :class="[
+                        </router-link>
+                        <router-link to="/settings/crm" :class="[
                             'w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2',
-                            currentTab === 'crm'
+                            $route.name === 'settings-crm'
                                 ? 'bg-primary text-neutral-100'
                                 : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
                         ]">
                             <Building class="h-4 w-4" />
                             CRM
-                        </button>
-                        <button @click="currentTab = 'users'" :class="[
+                        </router-link>
+                        <router-link to="/settings/users" :class="[
                             'w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2',
-                            currentTab === 'users'
+                            $route.name === 'settings-users'
                                 ? 'bg-primary text-neutral-100'
                                 : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
                         ]">
                             <Users class="h-4 w-4" />
                             Utilisateurs
-                        </button>
-                        <button @click="currentTab = 'billing'" :class="[
+                        </router-link>
+                        <router-link to="/settings/billing" :class="[
                             'w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2',
-                            currentTab === 'billing'
+                            $route.name === 'settings-billing'
                                 ? 'bg-primary text-neutral-100'
                                 : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
                         ]">
                             <CreditCard class="h-4 w-4" />
                             Facturation
-                        </button>
-                        <button @click="currentTab = 'display'" :class="[
+                        </router-link>
+                        <router-link to="/settings/display" :class="[
                             'w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2',
-                            currentTab === 'display'
+                            $route.name === 'settings-display'
                                 ? 'bg-primary text-neutral-100'
                                 : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
                         ]">
                             <Monitor class="h-4 w-4" />
                             Affichage
-                        </button>
+                        </router-link>
                     </div>
-
                 </nav>
             </div>
 
             <div class="flex-1 bg-white">
                 <div class="p-6">
-                    <SettingsGeneral v-if="currentTab === 'general'" />
-                    <SettingsJob v-if="currentTab === 'jobs'" />
-                    <SettingsCrm v-if="currentTab === 'crm'" />
-                    <SettingsUsers v-if="currentTab === 'users'" />
-                    <SettingsBilling v-if="currentTab === 'billing'" />
-                    <SettingsDisplay v-if="currentTab === 'display'" />
+                    <router-view />
                 </div>
             </div>
         </div>
@@ -83,14 +77,5 @@
 </template>
 
 <script setup>
-import SettingsBilling from '@/main/views/settings/pages/SettingsBilling.vue'
-import SettingsCrm from '@/main/views/settings/pages/SettingsCrm.vue'
-import SettingsDisplay from '@/main/views/settings/pages/SettingsDisplay.vue'
-import SettingsGeneral from '@/main/views/settings/pages/SettingsGeneral.vue'
-import SettingsJob from '@/main/views/settings/pages/SettingsJob.vue'
-import SettingsUsers from '@/main/views/settings/pages/SettingsUsers.vue'
-import { Building, CreditCard, Map, Monitor, Settings2, Users } from 'lucide-vue-next'
-import { ref } from 'vue'
-
-const currentTab = ref('general')
+import { Building, CreditCard, Map, Monitor, Settings2, Users } from 'lucide-vue-next';
 </script>

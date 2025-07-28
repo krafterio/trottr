@@ -88,12 +88,64 @@ const router = createRouter({
     },
     {
       path: '/settings',
-      name: 'settings',
-      component: () => import('@/main/views/settings/SettingsView.vue'),
+      component: () => import('@/main/views/settings/SettingsLayout.vue'),
       meta: {
         requiresAuth: true,
-        metaTitle: 'Paramètres'
-      }
+      },
+      children: [
+        {
+          path: '',
+          redirect: '/settings/general'
+        },
+        {
+          path: 'general',
+          name: 'settings-general',
+          component: () => import('@/main/views/settings/pages/SettingsGeneral.vue'),
+          meta: {
+            metaTitle: 'Paramètres généraux'
+          }
+        },
+        {
+          path: 'jobs',
+          name: 'settings-jobs',
+          component: () => import('@/main/views/settings/pages/SettingsJob.vue'),
+          meta: {
+            metaTitle: 'Paramètres interventions'
+          }
+        },
+        {
+          path: 'crm',
+          name: 'settings-crm',
+          component: () => import('@/main/views/settings/pages/SettingsCrm.vue'),
+          meta: {
+            metaTitle: 'Paramètres CRM'
+          }
+        },
+        {
+          path: 'users',
+          name: 'settings-users',
+          component: () => import('@/main/views/settings/pages/SettingsUsers.vue'),
+          meta: {
+            metaTitle: 'Paramètres utilisateurs'
+          }
+        },
+        {
+          path: 'billing',
+          name: 'settings-billing',
+          component: () => import('@/main/views/settings/pages/SettingsBilling.vue'),
+          meta: {
+            metaTitle: 'Paramètres facturation'
+          }
+        },
+        {
+          path: 'display',
+          name: 'settings-display',
+          component: () => import('@/main/views/settings/pages/SettingsDisplay.vue'),
+          meta: {
+            metaTitle: 'Paramètres affichage'
+          }
+        }
+      ]
     },
     {
       path: '/planning',

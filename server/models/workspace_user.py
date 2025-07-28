@@ -52,18 +52,9 @@ class WorkspaceUser(BaseModel):
         )
         await workspace_user.save()
 
-        credits_per_user = settings.available_credits_by_user
         active_users_count = await WorkspaceUser.query.select_related('user').filter(
             workspace=workspace,
             user__is_active=True
         ).count()
-        new_available_credits = active_users_count * credits_per_user
-
-        if new_available_credits > workspace.available_usage_credits:
-            db_workspace = await Workspace.query.filter(id=workspace.id).first()
-            db_workspace.available_usage_credits = new_available_credits
-            await db_workspace.save()
-
-            await connection_manager.broadcast('workspace_usage_update', {})
 
         return workspace_user

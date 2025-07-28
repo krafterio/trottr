@@ -1,132 +1,504 @@
 <template>
-    <div class="max-w-5xl">
-        <div class="mb-6">
-            <h2 class="text-lg font-semibold text-neutral-900">Utilisateurs</h2>
-            <p class="text-neutral-600">Gérez les utilisateurs de votre organisation.</p>
+    <div class="max-w-5xl space-y-6">
+        <div>
+            <h2 class="text-lg font-semibold">Utilisateurs</h2>
+            <p class="text-muted-foreground">Gérez les utilisateurs de votre organisation.</p>
         </div>
 
-        <div class="space-y-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-base font-medium">Membres de l'équipe</h3>
+                <p class="text-sm text-muted-foreground">{{ users.length }} utilisateur(s) actif(s)</p>
+            </div>
+            <Button @click="showInviteDialog = true">
+                <Plus class="h-4 w-4 mr-2" />
+                Inviter un utilisateur
+            </Button>
+        </div>
+
+        <div class="rounded-md border">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Utilisateur</TableHead>
+                        <TableHead>Rôle</TableHead>
+                        <TableHead>Statut</TableHead>
+                        <TableHead class="w-20">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    <TableRow v-if="loading">
+                        <TableCell colspan="4" class="text-center py-8">
+                            <div class="flex items-center justify-center space-x-2">
+                                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+                                <span>Chargement...</span>
+                            </div>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow v-else-if="error">
+                        <TableCell colspan="4" class="text-center py-8">
+                            <div class="text-destructive">
+                                Erreur lors du chargement des utilisateurs: {{ error.message }}
+                            </div>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow v-else-if="users.length === 0">
+                        <TableCell colspan="4" class="text-center py-8 text-muted-foreground">
+                            Aucun utilisateur trouvé
+                        </TableCell>
+                    </TableRow>
+                    <TableRow v-else v-for="user in users" :key="user.id">
+                        <TableCell>
+                            <div class="flex items-center space-x-3">
+                                <div
+                                    class="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary text-xs font-medium">
+                                    {{ user.initials || getInitials(user.name, user.email) }}
+                                </div>
+                                <div>
+                                    <div class="font-medium">{{ user.name || user.email }}</div>
+                                    <div class="text-sm text-muted-foreground">{{ user.email }}</div>
+                                </div>
+                            </div>
+                        </TableCell>
+                        <TableCell>
+                            <Badge :variant="getRoleBadgeVariant(user.role)">
+                                {{ getRoleLabel(user.role) }}
+                            </Badge>
+                        </TableCell>
+                        <TableCell>
+                            <Badge variant="secondary">
+                                Actif
+                            </Badge>
+                        </TableCell>
+                        <TableCell>
+                            <div class="flex items-center space-x-1">
+                                <Button variant="ghost" size="sm" @click="openEditDialog(user)">
+                                    <Edit class="h-4 w-4" />
+                                </Button>
+                                <Button v-if="user.role !== 'Owner'" variant="ghost" size="sm"
+                                    @click="removeUser(user)">
+                                    <Trash class="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
+        </div>
+
+        <!-- Section Invitations en cours -->
+        <div class="space-y-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <h3 class="text-base font-medium text-neutral-900">Membres de l'équipe</h3>
-                    <p class="text-sm text-neutral-500">{{ users.length }} utilisateur(s) actif(s)</p>
+                    <h3 class="text-base font-medium">Invitations en cours</h3>
+                    <p class="text-sm text-muted-foreground">{{ invitations.length }} invitation(s) en attente</p>
                 </div>
-                <Button>
-                    <Plus class="h-4 w-4 mr-2" />
-                    Inviter un utilisateur
-                </Button>
             </div>
 
-            <div class="border rounded-lg">
-                <div class="p-4 border-b bg-neutral-50">
-                    <div class="grid grid-cols-12 gap-4 text-sm font-medium text-neutral-700">
-                        <div class="col-span-4">Utilisateur</div>
-                        <div class="col-span-3">Rôle</div>
-                        <div class="col-span-3">Statut</div>
-                        <div class="col-span-2">Actions</div>
-                    </div>
-                </div>
-
-                <div class="divide-y">
-                    <div v-for="user in users" :key="user.id" class="p-4">
-                        <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="col-span-4">
+            <div class="rounded-md border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Envoyée le</TableHead>
+                            <TableHead>Expire le</TableHead>
+                            <TableHead class="w-20">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow v-if="loadingInvitations">
+                            <TableCell colspan="4" class="text-center py-8">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+                                    <span>Chargement des invitations...</span>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow v-else-if="invitations.length === 0">
+                            <TableCell colspan="4" class="text-center py-8 text-muted-foreground">
+                                Aucune invitation en cours
+                            </TableCell>
+                        </TableRow>
+                        <TableRow v-else v-for="invitation in invitations" :key="invitation.id">
+                            <TableCell>
                                 <div class="flex items-center space-x-3">
                                     <div
-                                        class="w-8 h-8 bg-neutral-600 rounded-full flex items-center justify-center text-white text-xs font-medium">
-                                        {{ user.initials }}
+                                        class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 text-xs font-medium">
+                                        <Mail class="h-4 w-4" />
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-neutral-900">{{ user.name }}</p>
-                                        <p class="text-xs text-neutral-500">{{ user.email }}</p>
+                                        <div class="font-medium">{{ invitation.email }}</div>
+                                        <div class="text-sm text-muted-foreground">Invitation envoyée</div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-span-3">
-                                <Badge :class="getRoleBadgeClass(user.role)">
-                                    {{ user.role }}
-                                </Badge>
-                            </div>
-                            <div class="col-span-3">
-                                <Badge :class="getStatusBadgeClass(user.status)">
-                                    {{ user.status }}
-                                </Badge>
-                            </div>
-                            <div class="col-span-2">
-                                <div class="flex items-center space-x-1">
-                                    <Button variant="ghost" size="sm">
-                                        <Edit class="h-4 w-4" />
-                                    </Button>
-                                    <Button variant="ghost" size="sm" v-if="user.role !== 'Propriétaire'">
-                                        <Trash class="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div class="text-sm">{{ formatDate(invitation.created_at) }}</div>
+                            </TableCell>
+                            <TableCell>
+                                <div class="text-sm">{{ formatDate(invitation.expires_at) }}</div>
+                            </TableCell>
+                            <TableCell>
+                                <Button variant="ghost" size="sm" @click="cancelInvitation(invitation)"
+                                    class="text-destructive hover:text-destructive">
+                                    <X class="h-4 w-4" />
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
             </div>
         </div>
+
+        <!-- Dialog d'invitation -->
+        <Dialog v-model:open="showInviteDialog">
+            <DialogContent class="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Inviter un utilisateur</DialogTitle>
+                    <DialogDescription>
+                        Saisissez l'adresse email de la personne que vous souhaitez inviter dans votre workspace.
+                    </DialogDescription>
+                </DialogHeader>
+                <form @submit.prevent="sendInvitation" class="space-y-4">
+                    <div class="space-y-2">
+                        <Label for="invite-email">Email</Label>
+                        <Input id="invite-email" v-model="inviteForm.email" type="email"
+                            placeholder="exemple@domaine.com" :disabled="inviteLoading" required />
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" @click="showInviteDialog = false"
+                            :disabled="inviteLoading">
+                            Annuler
+                        </Button>
+                        <Button type="submit" :disabled="inviteLoading || !inviteForm.email">
+                            <span v-if="inviteLoading">Envoi...</span>
+                            <span v-else>Envoyer l'invitation</span>
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Dialog d'édition -->
+        <Dialog v-model:open="showEditDialog">
+            <DialogContent class="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Modifier l'utilisateur</DialogTitle>
+                    <DialogDescription>
+                        Modifiez les informations de cet utilisateur dans votre workspace.
+                    </DialogDescription>
+                </DialogHeader>
+                <form @submit.prevent="updateUser" class="space-y-4">
+                    <div class="space-y-4">
+                        <div class="space-y-2">
+                            <Label for="edit-name">Nom</Label>
+                            <Input id="edit-name" v-model="editForm.name" disabled />
+                        </div>
+                        <div class="space-y-2">
+                            <Label for="edit-email">Email</Label>
+                            <Input id="edit-email" v-model="editForm.email" type="email" disabled />
+                        </div>
+                        <div class="space-y-2">
+                            <Label for="edit-role">Rôle</Label>
+                            <Select v-model="editForm.role" :disabled="editLoading">
+                                <SelectTrigger class="w-full">
+                                    <SelectValue placeholder="Sélectionner un rôle" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Owner">Propriétaire</SelectItem>
+                                    <SelectItem value="Member">Membre</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" @click="showEditDialog = false" :disabled="editLoading">
+                            Annuler
+                        </Button>
+                        <Button type="submit" :disabled="editLoading">
+                            <span v-if="editLoading">Mise à jour...</span>
+                            <span v-else>Mettre à jour</span>
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Dialog de confirmation de suppression -->
+        <ConfirmDeleteDialog :show="showDeleteDialog" :title="deleteDialogData.title"
+            :message="deleteDialogData.message" :item-name="deleteDialogData.itemName" :loading="deleteLoading" />
     </div>
 </template>
 
 <script setup>
-import Badge from '@/common/components/ui/badge/Badge.vue'
+import { Badge } from '@/common/components/ui/badge'
 import { Button } from '@/common/components/ui/button'
-import { Edit, Plus, Trash } from 'lucide-vue-next'
-import { ref } from 'vue'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/common/components/ui/dialog'
+import { Input } from '@/common/components/ui/input'
+import { Label } from '@/common/components/ui/label'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/common/components/ui/select'
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/common/components/ui/table'
+import { bus, useBus } from '@/common/composables/bus'
+import { useFetcher } from '@/common/composables/fetcher'
+import ConfirmDeleteDialog from '@/main/components/dialogs/ConfirmDeleteDialog.vue'
+import { useWorkspaceStore } from '@/main/stores/workspace'
+import { Edit, Mail, Plus, Trash, X } from 'lucide-vue-next'
+import { onMounted, ref } from 'vue'
+import { toast } from 'vue-sonner'
 
-const users = ref([
-    {
-        id: 1,
-        name: 'Marc Dupont',
-        email: 'marc.dupont@entreprise.com',
-        initials: 'MD',
-        role: 'Propriétaire',
-        status: 'Actif'
-    },
-    {
-        id: 2,
-        name: 'Sophie Martin',
-        email: 'sophie.martin@entreprise.com',
-        initials: 'SM',
-        role: 'Administrateur',
-        status: 'Actif'
-    },
-    {
-        id: 3,
-        name: 'Pierre Leclerc',
-        email: 'pierre.leclerc@entreprise.com',
-        initials: 'PL',
-        role: 'Technicien',
-        status: 'Actif'
-    },
-    {
-        id: 4,
-        name: 'Julie Bernard',
-        email: 'julie.bernard@entreprise.com',
-        initials: 'JB',
-        role: 'Lecture seule',
-        status: 'Invité'
+const users = ref([])
+const invitations = ref([])
+const loading = ref(false)
+const loadingInvitations = ref(false)
+const error = ref(null)
+const fetcher = useFetcher()
+const workspaceStore = useWorkspaceStore()
+
+const showInviteDialog = ref(false)
+const showEditDialog = ref(false)
+const showDeleteDialog = ref(false)
+const inviteLoading = ref(false)
+const editLoading = ref(false)
+const deleteLoading = ref(false)
+
+const deleteDialogData = ref({
+    title: '',
+    message: '',
+    itemName: '',
+    action: null,
+    data: null
+})
+
+const inviteForm = ref({
+    email: ''
+})
+
+const editForm = ref({
+    id: null,
+    name: '',
+    email: '',
+    role: ''
+})
+
+useBus(bus, 'confirm-delete-dialog:update-show', (event) => {
+    showDeleteDialog.value = event.detail
+})
+
+useBus(bus, 'confirm-delete-dialog:confirm', () => {
+    confirmDelete()
+})
+
+useBus(bus, 'confirm-delete-dialog:cancel', () => {
+    cancelDelete()
+})
+
+const fetchUsers = async () => {
+    loading.value = true
+    error.value = null
+
+    try {
+        const response = await fetcher.get('/workspace/members')
+        users.value = response.data.items || []
+    } catch (err) {
+        console.error('Erreur lors du chargement des utilisateurs:', err)
+        error.value = err
+    } finally {
+        loading.value = false
     }
-])
+}
 
-const getRoleBadgeClass = (role) => {
+const fetchInvitations = async () => {
+    loadingInvitations.value = true
+
+    try {
+        const response = await fetcher.get('/workspace/invitations')
+        invitations.value = response.data || []
+    } catch (err) {
+        console.error('Erreur lors du chargement des invitations:', err)
+    } finally {
+        loadingInvitations.value = false
+    }
+}
+
+const sendInvitation = async () => {
+    if (!inviteForm.value.email) return
+
+    inviteLoading.value = true
+
+    try {
+        const response = await fetcher.post('/workspace/invite', {
+            email: inviteForm.value.email
+        })
+
+        toast.success('Invitation envoyée avec succès !')
+        showInviteDialog.value = false
+        inviteForm.value.email = ''
+        await fetchInvitations()
+
+    } catch (err) {
+        console.error('Erreur lors de l\'envoi de l\'invitation:', err)
+        const errorMessage = err.response?.data?.detail || 'Erreur lors de l\'envoi de l\'invitation'
+        toast.error(errorMessage)
+    } finally {
+        inviteLoading.value = false
+    }
+}
+
+const openEditDialog = (user) => {
+    editForm.value = {
+        id: user.id,
+        name: user.name || user.email,
+        email: user.email,
+        role: user.role
+    }
+    showEditDialog.value = true
+}
+
+const updateUser = async () => {
+    if (!editForm.value.id) return
+
+    const currentUser = users.value.find(u => u.id === editForm.value.id)
+    if (!currentUser || currentUser.role === editForm.value.role) {
+        showEditDialog.value = false
+        return
+    }
+
+    editLoading.value = true
+
+    try {
+        if (currentUser.role === 'Owner' && editForm.value.role === 'Member') {
+            await fetcher.patch(`/workspace/member/${editForm.value.id}`)
+            toast.success('Propriétaire rétrogradé en membre avec succès !')
+        } else if (currentUser.role === 'Member' && editForm.value.role === 'Owner') {
+            await fetcher.patch(`/workspace/owner/${editForm.value.id}`)
+            toast.success('Membre promu propriétaire avec succès !')
+        }
+
+        showEditDialog.value = false
+        await fetchUsers()
+
+    } catch (err) {
+        console.error('Erreur lors de la mise à jour de l\'utilisateur:', err)
+        const errorMessage = err.response?.data?.detail || 'Erreur lors de la mise à jour de l\'utilisateur'
+        toast.error(errorMessage)
+    } finally {
+        editLoading.value = false
+    }
+}
+
+const removeUser = (user) => {
+    if (user.role === 'Owner') return
+
+    deleteDialogData.value = {
+        title: 'Supprimer l\'utilisateur',
+        message: 'Êtes-vous sûr de vouloir supprimer cet utilisateur du workspace ?',
+        itemName: user.name || user.email,
+        action: 'removeUser',
+        data: user
+    }
+    showDeleteDialog.value = true
+}
+
+const getInitials = (name, email) => {
+    if (name) {
+        return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2)
+    }
+    if (email) {
+        return email.slice(0, 2).toUpperCase()
+    }
+    return 'U'
+}
+
+const getRoleLabel = (role) => {
     switch (role) {
-        case 'Propriétaire': return 'bg-purple-100 text-purple-800'
-        case 'Administrateur': return 'bg-blue-100 text-blue-800'
-        case 'Technicien': return 'bg-green-100 text-green-800'
-        case 'Lecture seule': return 'bg-neutral-100 text-neutral-800'
-        default: return 'bg-neutral-100 text-neutral-800'
+        case 'Owner': return 'Propriétaire'
+        case 'Member': return 'Membre'
+        default: return role
     }
 }
 
-const getStatusBadgeClass = (status) => {
-    switch (status) {
-        case 'Actif': return 'bg-green-100 text-green-800'
-        case 'Invité': return 'bg-yellow-100 text-yellow-800'
-        case 'Inactif': return 'bg-neutral-100 text-neutral-800'
-        default: return 'bg-neutral-100 text-neutral-800'
+const getRoleBadgeVariant = (role) => {
+    switch (role) {
+        case 'Owner': return 'default'
+        case 'Member': return 'secondary'
+        default: return 'outline'
     }
 }
+
+const formatDate = (dateString) => {
+    if (!dateString) return '-'
+    const date = new Date(dateString)
+    return date.toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    })
+}
+
+const cancelInvitation = (invitation) => {
+    deleteDialogData.value = {
+        title: 'Annuler l\'invitation',
+        message: 'Êtes-vous sûr de vouloir annuler cette invitation ?',
+        itemName: invitation.email,
+        action: 'cancelInvitation',
+        data: invitation
+    }
+    showDeleteDialog.value = true
+}
+
+const confirmDelete = async () => {
+    const { action, data } = deleteDialogData.value
+    deleteLoading.value = true
+
+    try {
+        if (action === 'removeUser') {
+            await fetcher.delete(`/workspace/member/${data.id}`)
+            toast.success('Utilisateur supprimé avec succès !')
+            await fetchUsers()
+        } else if (action === 'cancelInvitation') {
+            await fetcher.delete(`/workspace/invitation/${data.id}`)
+            toast.success('Invitation annulée avec succès !')
+            await fetchInvitations()
+        }
+
+        showDeleteDialog.value = false
+
+    } catch (err) {
+        console.error('Erreur lors de la suppression:', err)
+        const errorMessage = err.response?.data?.detail || 'Erreur lors de la suppression'
+        toast.error(errorMessage)
+    } finally {
+        deleteLoading.value = false
+    }
+}
+
+const cancelDelete = () => {
+    showDeleteDialog.value = false
+}
+
+onMounted(async () => {
+    await workspaceStore.fetchWorkspace()
+    await fetchUsers()
+    await fetchInvitations()
+})
 </script>

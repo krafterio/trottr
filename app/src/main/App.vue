@@ -28,6 +28,8 @@ import AppSidebar from '@/main/components/AppSidebar.vue'
 import AppNavbar from '@/main/components/navbar/AppNavbar.vue'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import 'vue-sonner/style.css'
+
 
 const route = useRoute()
 

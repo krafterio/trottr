@@ -24,14 +24,14 @@
         </div>
 
         <div class="relative group">
-            <a href="/settings" :class="[
+            <router-link to="/settings" :class="[
                 'w-10 h-10 flex items-center justify-center rounded-lg transition-colors',
-                route.name === 'settings'
+                route.name?.startsWith('settings')
                     ? 'bg-primary text-white hover:bg-primary/90'
                     : 'text-gray-600 hover:bg-gray-100'
             ]">
                 <Settings class="h-5 w-5" />
-            </a>
+            </router-link>
 
             <div
                 class="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50">

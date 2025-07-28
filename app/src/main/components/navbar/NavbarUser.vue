@@ -72,7 +72,7 @@ import {
     DropdownMenuTrigger,
 } from '@/common/components/ui/dropdown-menu';
 import { useAuthStore } from '@/common/stores/auth';
-import UserEditDialog from './UserEditDialog.vue';
+import UserEditDialog from '@/main/components/dialogs/UserEditDialog.vue';
 
 const authStore = useAuthStore()
 
