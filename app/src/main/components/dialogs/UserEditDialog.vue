@@ -1,6 +1,6 @@
 <template>
     <Dialog :open="isOpen" @update:open="bus.trigger('user-edit-dialog:update-open', $event)">
-        <DialogContent class="sm:max-w-[425px]">
+        <DialogContent class="sm:max-w-[625px]">
             <DialogHeader>
                 <DialogTitle>Modifier l'utilisateur</DialogTitle>
                 <DialogDescription>
@@ -51,6 +51,30 @@
                         </Select>
                     </div>
                 </div>
+                <div class="grid grid-cols-4 items-center gap-4" v-if="editForm.role === 'Operator'">
+                    <Label for="specialities" class="text-right">
+                        Spécialités
+                    </Label>
+                    <div class="col-span-3">
+                        <JobSpecialityMultiSelect :modelValue="editForm.specialities"
+                            @update:modelValue="(value) => editForm.specialities = value"
+                            :specialities="availableSpecialities" :disabled="updateLoading" />
+                    </div>
+                </div>
+                <div class="grid grid-cols-4 items-center gap-4">
+                    <Label for="zone" class="text-right">
+                        Zone
+                    </Label>
+                    <Input id="zone" v-model="editForm.zone" class="col-span-3" :disabled="updateLoading"
+                        placeholder="Zone d'intervention" />
+                </div>
+                <div class="grid grid-cols-4 items-center gap-4">
+                    <Label for="phone" class="text-right">
+                        Téléphone
+                    </Label>
+                    <Input id="phone" v-model="editForm.phone" class="col-span-3" :disabled="updateLoading"
+                        placeholder="Numéro de téléphone" />
+                </div>
             </div>
             <DialogFooter>
                 <Button variant="outline" @click="bus.trigger('user-edit-dialog:update-open', false)"
@@ -68,6 +92,7 @@
 
 <script setup>
 import ImagePicker from '@/common/components/form/ImagePicker.vue'
+import JobSpecialityMultiSelect from '@/common/components/form/JobSpecialityMultiSelect.vue'
 import { Button } from '@/common/components/ui/button'
 import {
     Dialog,
@@ -111,32 +136,65 @@ const isCurrentUser = computed(() => props.user?.id === authStore.user?.id)
 const editForm = ref({
     name: '',
     email: '',
-    role: ''
+    role: '',
+    zone: '',
+    phone: '',
+    specialities: []
 })
 
 const avatarPath = ref(null)
+const availableSpecialities = ref([])
 
 const updateLoading = ref(false)
+
+const loadSpecialities = async () => {
+    try {
+        const response = await fetcher.get('/job-speciality')
+        availableSpecialities.value = response.data || []
+    } catch (error) {
+        console.error('Erreur lors du chargement des spécialités:', error)
+    }
+}
+
+const loadUserDetails = async (userId) => {
+    try {
+        const response = await fetcher.get(`/workspace/members/${userId}`)
+        return response.data
+    } catch (error) {
+        console.error('Erreur lors du chargement des détails utilisateur:', error)
+        return null
+    }
+}
 
 watch(() => props.user, (newUser) => {
     if (newUser) {
         editForm.value = {
             name: newUser.name || '',
             email: newUser.email || '',
-            role: newUser.role || 'Member'
+            role: newUser.role || 'Member',
+            zone: newUser.zone || '',
+            phone: newUser.phone || '',
+            specialities: newUser.job_specialities || []
         }
         avatarPath.value = newUser.avatar || null
     }
 }, { immediate: true })
 
-watch(() => props.isOpen, (isOpen) => {
+watch(() => props.isOpen, async (isOpen) => {
     if (isOpen && props.user) {
+        // Load user details with specialities
+        const userDetails = await loadUserDetails(props.user.id)
+
         editForm.value = {
             name: props.user.name || '',
             email: props.user.email || '',
-            role: props.user.role || 'Member'
+            role: props.user.role || 'Member',
+            zone: userDetails?.zone || '',
+            phone: userDetails?.phone || '',
+            specialities: userDetails?.job_specialities || []
         }
         avatarPath.value = props.user.avatar || null
+        loadSpecialities()
     }
 })
 
@@ -193,7 +251,10 @@ const updateUser = async () => {
         updateLoading.value = true
 
         const hasChanges = editForm.value.name !== props.user.name ||
-            editForm.value.role !== props.user.role
+            editForm.value.role !== props.user.role ||
+            editForm.value.zone !== props.user.zone ||
+            editForm.value.phone !== props.user.phone ||
+            JSON.stringify(editForm.value.specialities.map(s => s.id).sort()) !== JSON.stringify((props.user.job_specialities || []).map(s => s.id).sort())
 
         if (hasChanges) {
             const updateData = {}
@@ -204,6 +265,18 @@ const updateUser = async () => {
 
             if (editForm.value.role !== props.user.role) {
                 updateData.role = editForm.value.role
+            }
+
+            if (editForm.value.zone !== props.user.zone) {
+                updateData.zone = editForm.value.zone
+            }
+
+            if (editForm.value.phone !== props.user.phone) {
+                updateData.phone = editForm.value.phone
+            }
+
+            if (JSON.stringify(editForm.value.specialities.map(s => s.id).sort()) !== JSON.stringify((props.user.job_specialities || []).map(s => s.id).sort())) {
+                updateData.job_speciality_ids = editForm.value.specialities.map(s => s.id)
             }
 
             await fetcher.patch(`/workspace/member/${props.user.id}/profile`, updateData)

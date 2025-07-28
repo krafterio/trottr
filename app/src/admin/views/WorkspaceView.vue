@@ -39,24 +39,18 @@
                             </div>
                         </div>
 
-                        <v-text-field
-                            v-model="form.name"
-                            class="ma-0"
-                            required
-                            placeholder="Nom de l'espace de travail"
-                            :autofocus="!isEdit"
-                            variant="plain"
-                            hide-details
-                            density="compact"
-                        />
+                        <v-text-field v-model="form.name" class="ma-0" required placeholder="Nom de l'espace de travail"
+                            :autofocus="!isEdit" variant="plain" hide-details density="compact" />
 
                         <div class="d-flex flex-wrap ga-2 mt-2">
-                            <v-chip v-if="form.unique_id" variant="tonal" color="primary" size="small" class="font-weight-medium">
+                            <v-chip v-if="form.unique_id" variant="tonal" color="primary" size="small"
+                                class="font-weight-medium">
                                 <Fingerprint class="me-1" :size="12" />
                                 {{ form.unique_id }}
                             </v-chip>
 
-                            <v-chip v-if="form.plan" :color="getPlanColor(form.plan)" variant="tonal" size="small" class="font-weight-medium">
+                            <v-chip v-if="form.plan" :color="getPlanColor(form.plan)" variant="tonal" size="small"
+                                class="font-weight-medium">
                                 <Crown class="me-1" :size="12" />
                                 {{ form.plan }}
                             </v-chip>
@@ -65,39 +59,16 @@
                 </div>
 
                 <v-form @submit.prevent="saveWorkspace" class="mt-3 px-5 py-3">
-                    <s-field
-                        v-model="form.name"
-                        fieldType="v-text-field"
-                        horizontal
-                        label="Nom"
-                        placeholder="Nom"
-                    />
+                    <s-field v-model="form.name" fieldType="v-text-field" horizontal label="Nom" placeholder="Nom" />
 
-                    <s-field
-                        v-model="form.unique_id"
-                        fieldType="v-text-field"
-                        horizontal
-                        label="ID Unique"
-                        placeholder="ID Unique"
-                        disabled
-                    />
+                    <s-field v-model="form.unique_id" fieldType="v-text-field" horizontal label="ID Unique"
+                        placeholder="ID Unique" disabled />
 
-                    <s-field
-                        v-model="form.currency"
-                        fieldType="v-select"
-                        horizontal
-                        label="Devise"
-                        placeholder="Devise"
-                        disabled
-                    />
+                    <s-field v-model="form.currency" fieldType="v-select" horizontal label="Devise" placeholder="Devise"
+                        disabled />
 
-                    <s-field
-                        v-model="form.stripe_customer_id"
-                        fieldType="v-text-field"
-                        horizontal
-                        label="ID Client Stripe"
-                        placeholder="ID Client Stripe"
-                    />
+                    <s-field v-model="form.stripe_customer_id" fieldType="v-text-field" horizontal
+                        label="ID Client Stripe" placeholder="ID Client Stripe" />
                 </v-form>
             </v-col>
 
@@ -134,7 +105,8 @@
             <v-card>
                 <v-card-title class="text-h5">Confirmation de suppression</v-card-title>
                 <v-card-text>
-                    Êtes-vous sûr de vouloir supprimer l'espace de travail "{{ form.name }}" ? Cette action est irréversible.
+                    Êtes-vous sûr de vouloir supprimer l'espace de travail "{{ form.name }}" ? Cette action est
+                    irréversible.
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
@@ -147,24 +119,23 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
+import { useFetcher } from "@/common/composables/fetcher.js";
 import { useSnackbar } from '@/common/composables/snackbar';
+import { cloneDeep, isEqual } from 'lodash';
 import {
-    Trash2,
+    ArrowLeft,
     ChartLine,
     CreditCard,
-    Users,
     Crown,
     Fingerprint,
     MoreVertical,
     RotateCcw,
     Save,
-    ArrowLeft,
+    Trash2,
+    Users,
 } from 'lucide-vue-next';
-import {cloneDeep, isEqual} from 'lodash';
-import SField from "@/common/components/form/s-field.vue";
-import {useFetcher} from "@/common/composables/fetcher.js";
+import { computed, onMounted, ref } from 'vue';
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 
 const fetcher = useFetcher();
 const route = useRoute();
@@ -209,9 +180,9 @@ const getPlanColor = (plan) => {
 
 const fetchWorkspace = async () => {
     if (!isEdit.value) return;
-    
+
     loading.value = true;
-    
+
     try {
         const response = await fetcher.get(`/admin/workspaces/${workspaceId.value}`);
         const data = await response.data;
@@ -229,16 +200,16 @@ const fetchWorkspace = async () => {
 
 const saveWorkspace = async () => {
     loading.value = true;
-    
+
     try {
         const response = await fetcher.patch(`/admin/workspaces/${workspaceId.value}`, {
             name: form.value.name,
             stripe_customer_id: form.value.stripe_customer_id,
         });
         const data = await response.data;
-        
+
         showSnackbar(`Workspace ${isEdit.value ? 'modifié' : 'créé'} avec succès`);
-        
+
         if (!isEdit.value) {
             router.push({ name: 'workspace', params: { id: data.id } });
         } else {
@@ -262,7 +233,7 @@ const openDeleteDialog = () => {
 
 const deleteWorkspace = async () => {
     deleting.value = true;
-    
+
     try {
         await fetcher.delete(`/admin/workspaces/${workspaceId.value}`);
         showSnackbar('Workspace supprimé avec succès');

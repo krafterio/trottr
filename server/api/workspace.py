@@ -111,7 +111,7 @@ async def get_workspace_members(
     }
 
 
-@router.get("/members/{user_id:int}", response_model=WorkspaceUserRead)
+@router.get("/members/{user_id:int}")
 async def get_workspace_member(user_id: int):
     from models.workspace_user import WorkspaceUser
 
@@ -122,11 +122,26 @@ async def get_workspace_member(user_id: int):
             user=user_id,
         )
         .first())
-
+    
     if not workspace_user or not workspace_user.workspace:
         raise HTTPException(status_code=404, detail="Aucun workspace trouvé")
 
     user = workspace_user.user
+
+    # Get job specialities
+    job_specialities = []
+    try:
+        if hasattr(user, 'job_specialities'):
+            async for speciality in user.job_specialities.all():
+                job_specialities.append({
+                    "id": speciality.id,
+                    "name": speciality.name,
+                    "color": speciality.color,
+                    "sequence": speciality.sequence
+                })
+    except Exception as e:
+        print(f"Error loading specialities for user {user.id}: {e}")
+        job_specialities = []
 
     return {
         "id": user.id,
@@ -134,6 +149,9 @@ async def get_workspace_member(user_id: int):
         "email": user.email,
         "initials": user.initials,
         "avatar": user.avatar,
+        "zone": user.zone,
+        "phone": user.phone,
+        "job_specialities": job_specialities,
         "role": workspace_user.role,
     }
 
@@ -414,7 +432,31 @@ async def update_workspace_member(
     # Update user name if provided
     if 'name' in data and data['name'] is not None:
         user_to_update.name = data['name']
-        await user_to_update.save()
+
+    # Update user zone if provided
+    if 'zone' in data and data['zone'] is not None:
+        user_to_update.zone = data['zone']
+
+    # Update user phone if provided
+    if 'phone' in data and data['phone'] is not None:
+        user_to_update.phone = data['phone']
+
+    # Update user job specialities if provided
+    if 'job_speciality_ids' in data and data['job_speciality_ids'] is not None:
+        from models.job_speciality import JobSpeciality
+        
+        # Remove existing specialities
+        current_specialities = await user_to_update.job_specialities.all()
+        for speciality in current_specialities:
+            await user_to_update.job_specialities.remove(speciality)
+        
+        # Add new specialities
+        for speciality_id in data['job_speciality_ids']:
+            speciality = await JobSpeciality.query.get(id=speciality_id)
+            if speciality:
+                await user_to_update.job_specialities.add(speciality)
+
+    await user_to_update.save()
 
     # Update user role if provided
     if 'role' in data and data['role'] is not None:

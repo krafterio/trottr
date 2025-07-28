@@ -19,6 +19,9 @@ async def get_account(current_user: User = Depends(get_current_user)):
 
 class UpdateUserProfile(BaseModel):
     name: Optional[str] = None
+    zone: Optional[str] = None
+    phone: Optional[str] = None
+    job_speciality_ids: Optional[list[int]] = None
 
 
 
@@ -30,14 +33,38 @@ async def update_user_profile(
     try:
         if data.name is not None:
             current_user.name = data.name
+        if data.zone is not None:
+            current_user.zone = data.zone
+        if data.phone is not None:
+            current_user.phone = data.phone
+        
+        if data.job_speciality_ids is not None:
+            from models.job_speciality import JobSpeciality
+            await current_user.job_specialities.clear()
+            for speciality_id in data.job_speciality_ids:
+                speciality = await JobSpeciality.query.get(id=speciality_id)
+                if speciality:
+                    await current_user.job_specialities.add(speciality)
         
         await current_user.save()
+        
+        job_specialities = []
+        async for speciality in current_user.job_specialities.all():
+            job_specialities.append({
+                "id": speciality.id,
+                "name": speciality.name,
+                "color": speciality.color,
+                "sequence": speciality.sequence
+            })
         
         return {
             "id": current_user.id,
             "email": current_user.email,
             "name": current_user.name,
             "avatar": current_user.avatar,
+            "zone": current_user.zone,
+            "phone": current_user.phone,
+            "job_specialities": job_specialities,
             "is_verified": current_user.is_verified
         }
     except Exception as e:
@@ -104,6 +131,18 @@ async def update_account(
         current_user.email = str(user.email)
     if user.avatar is not None:
         current_user.avatar = user.avatar
+    if user.zone is not None:
+        current_user.zone = user.zone
+    if user.phone is not None:
+        current_user.phone = user.phone
+    
+    if user.job_speciality_ids is not None:
+        from models.job_speciality import JobSpeciality
+        await current_user.job_specialities.clear()
+        for speciality_id in user.job_speciality_ids:
+            speciality = await JobSpeciality.query.get(id=speciality_id)
+            if speciality:
+                await current_user.job_specialities.add(speciality)
 
     await current_user.save()
     return await User.query.get(id=current_user.id)

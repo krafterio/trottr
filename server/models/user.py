@@ -1,4 +1,6 @@
 from edgy import fields
+from typing import List
+import edgy
 
 from models.base import BaseModel
 from datetime import datetime
@@ -26,6 +28,10 @@ class User(BaseModel):
     google_token_expires_at: datetime | None = fields.DateTimeField(null=True, exclude=True, label="Expiration du token Google") # type: ignore
     google_email: str | None = fields.EmailField(null=True, label="Email Google connecté") # type: ignore
     google_connected_at: datetime | None = fields.DateTimeField(null=True, label="Date de connexion Google") # type: ignore
+    
+    job_specialities: List["JobSpeciality"] = edgy.ManyToManyField("JobSpeciality", related_name="users", through_tablename=edgy.NEW_M2M_NAMING) # type: ignore
+    zone: str | None = fields.TextField(null=True, label="Zone d'intervention") # type: ignore
+    phone: str | None = fields.CharField(max_length=20, null=True, label="Téléphone") # type: ignore
     
     initials: str | None = fields.ComputedField(getter='get_initials', label="Initials") # type: ignore
 

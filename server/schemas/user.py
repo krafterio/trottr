@@ -1,5 +1,6 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, model_validator
 from datetime import datetime
+from typing import List
 
 
 class UserRegister(BaseModel):
@@ -16,6 +17,9 @@ class UserUpdate(BaseModel):
     email: EmailStr
     name: str | None = None
     avatar: str | None = None
+    zone: str | None = None
+    phone: str | None = None
+    job_speciality_ids: List[int] | None = None
 
 
 class UserLoginPassword(BaseModel):
@@ -73,6 +77,16 @@ class PasswordResetResponse(BaseModel):
     message: str
 
 
+class JobSpecialityRead(BaseModel):
+    id: int
+    name: str
+    color: str
+    sequence: int
+
+    class Config:
+        from_attributes = True
+
+
 class User(BaseModel):
     id: int
     email: EmailStr
@@ -80,6 +94,25 @@ class User(BaseModel):
     avatar: str | None = None
     initials: str | None = None
     is_verified: bool = False
+    zone: str | None = None
+    phone: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class UserWithSpecialities(BaseModel):
+    id: int
+    email: EmailStr
+    name: str | None = None
+    avatar: str | None = None
+    initials: str | None = None
+    is_verified: bool = False
+    zone: str | None = None
+    phone: str | None = None
+    job_specialities: List[JobSpecialityRead] = []
     created_at: datetime
     updated_at: datetime
 
