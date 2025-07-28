@@ -6,6 +6,7 @@ from models.workspace import Workspace
 from cli.commands.db.initdemodatas.initdemo_contactrelationtype import init_contact_relation_types
 from cli.commands.db.initdemodatas.initdemo_jobstatuses import init_job_statuses
 from cli.commands.db.initdemodatas.initdemo_jobcategories import init_job_categories
+from cli.commands.db.initdemodatas.initdemo_companies import init_companies
 
 console = Console()
 
@@ -26,5 +27,6 @@ async def init_demo(app: CliApp, workspace: int):
         await init_contact_relation_types(workspace_obj)
         await init_job_statuses(workspace_obj)
         await init_job_categories(workspace_obj)
+        await init_companies(workspace_obj)
         
         console.print(f"[green]Données de démo initialisées avec succès pour le workspace {workspace}[/green]") 

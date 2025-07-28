@@ -3,6 +3,7 @@ from .base import BaseModel
 from .country import Country
 from enum import Enum
 from edgy import fields
+from .mixins import WorkspaceableMixin
 
 
 class CompanyType(str, Enum):
@@ -14,7 +15,7 @@ class CompanyType(str, Enum):
     AUTRE = "autre"
 
 
-class Company(BaseModel):
+class Company(BaseModel, WorkspaceableMixin):
     name = edgy.CharField(max_length=255)
     reference = edgy.CharField(max_length=100, null=True, blank=True)
     company_type: str | None = fields.ChoiceField(CompanyType, default=CompanyType.CLIENT_FINAL, label="Type de société") # type: ignore

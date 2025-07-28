@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from datetime import datetime
 
 class CountryRead(BaseModel):
     id: int
@@ -43,8 +44,8 @@ class CompanyUpdate(BaseModel):
 
 class CompanyRead(CompanyBase):
     id: int
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
     invoice_country: Optional[CountryRead] = None
     
     class Config:
