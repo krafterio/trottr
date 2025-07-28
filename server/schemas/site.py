@@ -4,6 +4,16 @@ from datetime import datetime
 from schemas.country import CountryResponse
 from schemas.company import CompanyRead
 
+class ContactRead(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    full_name: Optional[str] = None
+    function: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
 class SiteBase(BaseModel):
     name: str
     street: str
@@ -16,6 +26,7 @@ class SiteBase(BaseModel):
 class SiteCreate(SiteBase):
     country: int
     company: Optional[int] = None
+    contact: Optional[int] = None
 
 class SiteUpdate(BaseModel):
     name: Optional[str] = None
@@ -26,6 +37,7 @@ class SiteUpdate(BaseModel):
     country: Optional[int] = None
     building_type: Optional[str] = None
     company: Optional[int] = None
+    contact: Optional[int] = None
     access_info: Optional[str] = None
 
 class SiteRead(SiteBase):
@@ -34,6 +46,7 @@ class SiteRead(SiteBase):
     updated_at: datetime
     country: Optional[CountryResponse] = None
     company: Optional[CompanyRead] = None
+    contact: Optional[ContactRead] = None
     
     class Config:
         from_attributes = True 

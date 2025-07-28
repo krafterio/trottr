@@ -184,7 +184,7 @@
                     </TabsList>
 
                     <TabsContent value="sites" class="bg-white rounded-lg border">
-                        <CompanySites :company-id="company.id" />
+                        <SitesTable :company-id="company.id" attachment-type="company" />
                     </TabsContent>
 
                     <TabsContent value="contacts" class="bg-white rounded-lg border">
@@ -256,7 +256,7 @@ import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useCompany } from '@/common/composables/useCompany'
 import CompanyContacts from '@/main/components/companies/CompanyContacts.vue'
-import CompanySites from '@/main/components/companies/CompanySites.vue'
+import SitesTable from '@/main/components/sites/SitesTable.vue'
 import {
     ArrowLeft,
     Building,

@@ -34,10 +34,16 @@
                                 </Select>
                             </div>
 
-                            <div>
+                            <div v-if="attachmentType === 'company'">
                                 <label class="text-sm font-medium text-neutral-700">Entreprise</label>
                                 <CompanySelect v-model="form.company" class="mt-1"
                                     placeholder="Sélectionner une entreprise" />
+                            </div>
+
+                            <div v-if="attachmentType === 'contact'">
+                                <label class="text-sm font-medium text-neutral-700">Contact</label>
+                                <ContactSelect v-model="form.contact" class="mt-1"
+                                    placeholder="Sélectionner un contact" />
                             </div>
                         </div>
 
@@ -84,6 +90,7 @@
 
 <script setup>
 import { CompanySelect } from '@/common/components/form/company-select'
+import { ContactSelect } from '@/common/components/form/contact-select'
 import { CountrySelect } from '@/common/components/form/country-select'
 import { Button } from '@/common/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog'
@@ -95,6 +102,8 @@ import { useSite } from '@/common/composables/useSite'
 import { MapPin } from 'lucide-vue-next'
 import { reactive, ref } from 'vue'
 import { toast } from 'vue-sonner'
+
+const attachmentType = ref('company')
 
 const isOpen = ref(false)
 
@@ -114,7 +123,8 @@ const defaultForm = {
     zip: '',
     city: '',
     country: null,
-    company: null
+    company: null,
+    contact: null
 }
 
 const form = reactive({ ...defaultForm })
@@ -173,6 +183,10 @@ const handleSubmit = async () => {
 
 useBus(bus, 'open-site-dialog', (event) => {
     const data = event.detail || {}
+
+    // Définir le type d'attachement depuis les données
+    attachmentType.value = data.attachmentType || 'company'
+
     if (data.id) {
         isEdit.value = true
         siteId.value = data.id
@@ -184,12 +198,16 @@ useBus(bus, 'open-site-dialog', (event) => {
             zip: data.zip || '',
             city: data.city || '',
             country: data.country?.id || data.country || null,
-            company: data.company?.id || data.company || null
+            company: data.company?.id || data.company || null,
+            contact: data.contact?.id || data.contact || null
         })
     } else {
         resetForm()
         if (data.company) {
             form.company = data.company
+        }
+        if (data.contact_id) {
+            form.contact = data.contact_id
         }
     }
     isOpen.value = true

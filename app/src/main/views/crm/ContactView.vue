@@ -2,568 +2,314 @@
     <div class="h-full flex flex-col bg-neutral-100">
         <div class="bg-white border-b">
             <div class="px-6 py-4 flex items-center justify-between">
-                <div class="flex items-center space-x-4">
+                <div class="flex items-start space-x-2">
                     <Button variant="outline" @click="$router.go(-1)" class="h-9 w-9">
                         <ArrowLeft :size="20" />
                     </Button>
-                    <div class="flex flex-col gap-1">
-                        <div class="flex items-center space-x-3">
-                            <h1 class="text-xl text-neutral-900 font-semibold">{{ contact.firstName }} {{
-                                contact.lastName }}</h1>
-                        </div>
-                        <div class="flex gap-2">
-                            <Badge variant="outline">
-                                <User class="h-4 w-4" />
-                                {{ contact.function }}
-                            </Badge>
-                            <Badge variant="outline" v-if="contact.company">
-                                <Building class="h-4 w-4" />
-                                {{ contact.company }}
-                            </Badge>
-                        </div>
-                    </div>
+                    <template v-if="isDirty">
+                        <Button @click="saveContact" variant="outline" :disabled="loading" class="w-9">
+                            <Save class="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" @click="handleCancel" :disabled="loading" class="w-9">
+                            <RotateCcw class="h-4 w-4" />
+                        </Button>
+                    </template>
                 </div>
                 <div class="flex items-center space-x-3">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                            <Button variant="outline" class="h-9 w-9">
+                                <MoreHorizontal :size="20" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem @click="handleDelete">
+                                <Trash class="h-4 w-4 text-destructive" />
+                                Supprimer
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button variant="outline">
                         <MessageSquare class="h-4 w-4" />
                         Contacter
-                    </Button>
-                    <Button>
-                        <Plus class="h-4 w-4" />
-                        Ajouter
-                        <ChevronDown class="h-4 w-4" />
                     </Button>
                 </div>
             </div>
         </div>
 
-        <div class="flex-1 flex overflow-hidden">
-            <div class="w-100 bg-white border-r overflow-y-auto">
+        <div class="flex-1 flex overflow-hidden lg:flex-row flex-col">
+            <div class="w-full lg:w-1/4 xl:w-[500px] bg-white border-r overflow-y-auto">
                 <div class="p-6">
                     <h2 class="text-lg font-semibold text-neutral-900 mb-4">Informations générales</h2>
 
                     <form @submit.prevent="saveContact" class="space-y-4">
-                        <div>
-                            <label class="text-sm font-medium text-neutral-700">Prénom</label>
-                            <Input v-model="contactForm.firstName" class="mt-1" />
-                        </div>
-
-                        <div>
-                            <label class="text-sm font-medium text-neutral-700">Nom</label>
-                            <Input v-model="contactForm.lastName" class="mt-1" />
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-sm font-medium text-neutral-700">Prénom</label>
+                                <Input v-model="contactForm.first_name" class="mt-1" @input="checkDirty" />
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-neutral-700">Nom</label>
+                                <Input v-model="contactForm.last_name" class="mt-1" @input="checkDirty" />
+                            </div>
                         </div>
 
                         <div>
                             <label class="text-sm font-medium text-neutral-700">Fonction</label>
-                            <Input v-model="contactForm.function" class="mt-1" />
+                            <Input v-model="contactForm.function" class="mt-1" @input="checkDirty" />
                         </div>
 
                         <div>
-                            <label class="text-sm font-medium text-neutral-700">Rôle</label>
-                            <Select v-model="contactForm.roles">
-                                <SelectTrigger class="mt-1 w-full">
-                                    <SelectValue placeholder="Sélectionner les rôles" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="occupant">Occupant</SelectItem>
-                                    <SelectItem value="responsable-site">Responsable site</SelectItem>
-                                    <SelectItem value="contact-facturation">Contact facturation</SelectItem>
-                                    <SelectItem value="charge-exploitation">Chargé d'exploitation</SelectItem>
-                                    <SelectItem value="gardien-agent">Gardien / Agent local</SelectItem>
-                                    <SelectItem value="decideur">Décideur</SelectItem>
-                                    <SelectItem value="proprietaire">Propriétaire</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div>
-                            <label class="text-sm font-medium text-neutral-700">Société</label>
-                            <Combobox v-model="contactForm.company" class="mt-1">
-                                <ComboboxAnchor as-child>
-                                    <ComboboxTrigger as-child>
-                                        <Button variant="outline" class="justify-between w-full">
-                                            <span>{{ getDisplayValue(contactForm.company) }}</span>
-                                            <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                        </Button>
-                                    </ComboboxTrigger>
-                                </ComboboxAnchor>
-
-                                <ComboboxList class="w-88">
-                                    <div class="relative w-full max-w-sm items-center">
-                                        <ComboboxInput class="focus-visible:ring-0 border-0 rounded-none h-10 pl-2"
-                                            placeholder="Rechercher..." />
-                                        <span class="absolute start-0 inset-y-0 flex items-center justify-center px-3">
-                                            <Search class="size-4 text-muted-foreground" />
-                                        </span>
-                                    </div>
-
-                                    <ComboboxEmpty>
-                                        Aucun résultat trouvé
-                                    </ComboboxEmpty>
-
-                                    <ComboboxGroup>
-                                        <ComboboxItem v-for="company in companies" :key="company.id" :value="company">
-                                            <Building class="mr-2 h-4 w-4" />
-                                            {{ company.name }}
-                                            <ComboboxItemIndicator>
-                                                <Check class="ml-auto h-4 w-4" />
-                                            </ComboboxItemIndicator>
-                                        </ComboboxItem>
-
-                                        <ComboboxItem v-for="contact in contacts" :key="contact.id" :value="contact">
-                                            <User class="mr-2 h-4 w-4" />
-                                            {{ contact.firstName }} {{ contact.lastName }}
-                                            <ComboboxItemIndicator>
-                                                <Check class="ml-auto h-4 w-4" />
-                                            </ComboboxItemIndicator>
-                                        </ComboboxItem>
-                                    </ComboboxGroup>
-                                </ComboboxList>
-                            </Combobox>
+                            <label class="text-sm font-medium text-neutral-700">Entreprise</label>
+                            <CompanySelect v-model="contactForm.company" class="mt-1"
+                                @update:model-value="checkDirty" />
                         </div>
 
                         <Separator />
 
+                        <h3 class="text-md font-medium text-neutral-700">Informations de contact</h3>
+
                         <div>
                             <label class="text-sm font-medium text-neutral-700">Email</label>
-                            <Input v-model="contactForm.email" type="email" class="mt-1" />
+                            <Input v-model="contactForm.email" type="email" class="mt-1" @input="checkDirty" />
                         </div>
 
                         <div>
                             <label class="text-sm font-medium text-neutral-700">Téléphone mobile</label>
-                            <Input v-model="contactForm.mobilePhone" class="mt-1" />
+                            <Input v-model="contactForm.mobile" class="mt-1" @input="checkDirty" />
                         </div>
 
                         <div>
                             <label class="text-sm font-medium text-neutral-700">Téléphone fixe</label>
-                            <Input v-model="contactForm.fixedPhone" class="mt-1" />
+                            <Input v-model="contactForm.phone" class="mt-1" @input="checkDirty" />
                         </div>
                     </form>
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto">
-                <div class="bg-white m-6 mb-4 rounded-lg border">
+            <div class="flex-1 overflow-y-auto p-6">
+                <div class="bg-white mb-4 rounded-lg border">
                     <div class="p-6">
-                        <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-start justify-between">
                             <div class="flex items-start space-x-2">
                                 <User class="h-8 w-8 text-neutral-400 mt-2 me-3" :stroke-width="1.2" />
                                 <div class="flex flex-col">
-                                    <h1 class="text-2xl font-semibold">{{ contact.firstName }} {{ contact.lastName }}
-                                    </h1>
-                                    <p class="text-neutral-600">{{ contact.function }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 ps-11">
-                            <div class="flex items-start space-x-3">
-                                <MapPin class="h-7 w-7 text-neutral-400" :stroke-width="1.1" />
-                                <div>
-                                    <p class="text-sm font-medium text-neutral-900">{{ kpis.totalInterventions }}</p>
-                                    <p class="text-xs text-neutral-500">Interventions totales</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start space-x-3">
-                                <FileText class="h-7 w-7 text-neutral-400" :stroke-width="1.1" />
-                                <div>
-                                    <p class="text-sm font-medium text-neutral-900">{{ kpis.activeContracts }}</p>
-                                    <p class="text-xs text-neutral-500">Contrats actifs</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start space-x-3">
-                                <Building class="h-7 w-7 text-neutral-400" :stroke-width="1.1" />
-                                <div>
-                                    <p class="text-sm font-medium text-neutral-900">{{ kpis.totalSites }}</p>
-                                    <p class="text-xs text-neutral-500">Sites rattachés</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start space-x-3">
-                                <FolderOpen class="h-7 w-7 text-neutral-400" :stroke-width="1.1" />
-                                <div>
-                                    <p class="text-sm font-medium text-neutral-900">{{ kpis.totalDocuments }}</p>
-                                    <p class="text-xs text-neutral-500">Documents</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 pt-4 border-t border-dashed ps-11">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-4">
-                                    <div class="flex items-center space-x-2">
-                                        <Phone class="h-4 w-4 text-neutral-500" />
-                                        <span class="text-sm text-neutral-600">{{ contact.mobilePhone }}</span>
+                                    <h1 class="text-2xl font-semibold">{{ contact.full_name || `${contact.first_name}
+                                        ${contact.last_name}`.trim() }}</h1>
+                                    <p class="text-neutral-600" v-if="contact.function">{{ contact.function }}</p>
+                                    <div class="flex items-center space-x-2 mt-1" v-if="contact.company">
+                                        <Building class="h-4 w-4 text-neutral-500" />
+                                        <router-link :to="`/company/${contact.company.id}`"
+                                            class="text-neutral-600 hover:text-neutral-700 underline">
+                                            {{ contact.company.name }}
+                                        </router-link>
                                     </div>
-                                    <div class="flex items-center space-x-2">
-                                        <Mail class="h-4 w-4 text-neutral-500" />
-                                        <span class="text-sm text-neutral-600">{{ contact.email }}</span>
-                                    </div>
-
-                                    <Badge v-if="contact.company"
-                                        class="flex items-center space-x-1 bg-blue-50 text-blue-800">
-                                        <Building class="h-4 w-4 text-blue-500" />
-                                        <span class="text-sm">{{ contact.company }}</span>
-                                    </Badge>
-                                </div>
-                                <div class="flex gap-2">
-                                    <Button variant="outline">
-                                        <FileText class="h-3 w-3" />
-                                        Générer rapport de situation
-                                    </Button>
-                                    <Button>
-                                        <Plus class="h-3 w-3" />
-                                        Nouvelle intervention
-                                    </Button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white m-6 mt-0 rounded-lg border">
-                    <Tabs default-value="sites" class="border-b p-4 py-3">
-                        <TabsList>
-                            <TabsTrigger value="sites">Sites</TabsTrigger>
-                            <TabsTrigger value="equipements">Équipements</TabsTrigger>
-                            <TabsTrigger value="contrats">Contrats</TabsTrigger>
-                            <TabsTrigger value="interventions">Interventions</TabsTrigger>
-                            <TabsTrigger value="documents">Documents</TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="sites">
-                            <div class="p-2">
-                                <div class="flex items-center justify-between mb-4">
-                                    <h2 class="text-lg font-semibold text-neutral-900">Sites rattachés</h2>
-                                    <Button>
-                                        <Plus class="h-4 w-4" />
-                                        Rattacher un site
-                                    </Button>
-                                </div>
-
-                                <div class="overflow-x-auto">
-                                    <table class="w-full">
-                                        <thead class="bg-neutral-50 border-b">
-                                            <tr>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                                    Libellé
-                                                </th>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                                    Adresse
-                                                </th>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                                    Type relation
-                                                </th>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                                    Type bâtiment
-                                                </th>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                                    Actions
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="bg-white divide-y divide-neutral-200">
-                                            <tr v-for="site in contactSites" :key="site.id" class="hover:bg-neutral-50">
-                                                <td class="px-4 py-4 whitespace-nowrap">
-                                                    <div class="text-sm font-medium text-neutral-900">{{ site.label }}
-                                                    </div>
-                                                </td>
-                                                <td class="px-4 py-4 whitespace-nowrap">
-                                                    <div class="text-sm text-neutral-900">{{ site.address }}</div>
-                                                    <div class="text-sm text-neutral-500">{{ site.city }}</div>
-                                                </td>
-                                                <td class="px-4 py-4 whitespace-nowrap">
-                                                    <Badge variant="outline">{{ site.relationType }}</Badge>
-                                                </td>
-                                                <td class="px-4 py-4 whitespace-nowrap">
-                                                    <div class="text-sm text-neutral-900">{{ site.buildingType }}</div>
-                                                </td>
-                                                <td class="px-4 py-4 whitespace-nowrap">
-                                                    <Button variant="ghost" size="sm">
-                                                        <MoreVertical class="h-4 w-4" />
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </TabsContent>
-
-                        <TabsContent value="equipements">
-                            <div class="p-2">
-                                <div class="flex items-center justify-between mb-4">
-                                    <h2 class="text-lg font-semibold text-neutral-900">Équipements</h2>
-                                    <Button>
-                                        <Plus class="h-4 w-4" />
-                                        Ajouter un équipement
-                                    </Button>
-                                </div>
-
-                                <div class="overflow-x-auto">
-                                    <table class="w-full">
-                                        <thead class="bg-neutral-50 border-b">
-                                            <tr>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                                    Équipement
-                                                </th>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                                    Type
-                                                </th>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                                    Site
-                                                </th>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                                    Lot
-                                                </th>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                                    Marque / Modèle
-                                                </th>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                                    État
-                                                </th>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                                    Actions
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="bg-white divide-y divide-neutral-200">
-                                            <tr v-for="equipment in contactEquipments" :key="equipment.id"
-                                                class="hover:bg-neutral-50">
-                                                <td class="px-4 py-4 whitespace-nowrap">
-                                                    <div class="text-sm font-medium text-neutral-900">{{ equipment.name
-                                                    }}</div>
-                                                </td>
-                                                <td class="px-4 py-4 whitespace-nowrap">
-                                                    <Badge variant="outline">{{ equipment.type }}</Badge>
-                                                </td>
-                                                <td class="px-4 py-4 whitespace-nowrap">
-                                                    <div class="text-sm text-neutral-900">{{ equipment.site }}</div>
-                                                </td>
-                                                <td class="px-4 py-4 whitespace-nowrap">
-                                                    <div class="text-sm text-neutral-900">{{ equipment.lot || '-' }}
-                                                    </div>
-                                                </td>
-                                                <td class="px-4 py-4 whitespace-nowrap">
-                                                    <div class="text-sm text-neutral-900">{{ equipment.brand }}</div>
-                                                    <div class="text-sm text-neutral-500">{{ equipment.model }}</div>
-                                                </td>
-                                                <td class="px-4 py-4 whitespace-nowrap">
-                                                    <Badge :class="equipment.status === 'Fonctionnel' ? 'bg-green-100 text-green-800' :
-                                                        equipment.status === 'En panne' ? 'bg-red-100 text-red-800' :
-                                                            'bg-yellow-100 text-yellow-800'">
-                                                        {{ equipment.status }}
-                                                    </Badge>
-                                                </td>
-                                                <td class="px-4 py-4 whitespace-nowrap">
-                                                    <Button variant="ghost" size="sm">
-                                                        <MoreVertical class="h-4 w-4" />
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </TabsContent>
-
-                        <TabsContent value="contrats">
-                            <div class="p-2">
-                                <div class="flex items-center justify-between mb-4">
-                                    <h2 class="text-lg font-semibold text-neutral-900">Contrats</h2>
-                                    <Button>
-                                        <Plus class="h-4 w-4" />
-                                        Nouveau contrat
-                                    </Button>
-                                </div>
-                                <div class="text-center py-8 text-neutral-500">
-                                    <FileText class="h-12 w-12 mx-auto mb-4 text-neutral-300" />
-                                    <p>Aucun contrat pour ce contact</p>
-                                </div>
-                            </div>
-                        </TabsContent>
-
-                        <TabsContent value="interventions">
-                            <div class="p-2">
-                                <div class="flex items-center justify-between mb-4">
-                                    <h2 class="text-lg font-semibold text-neutral-900">Historique des interventions</h2>
-                                    <Button>
-                                        <Plus class="h-4 w-4" />
-                                        Nouvelle intervention
-                                    </Button>
-                                </div>
-                                <div class="text-center py-8 text-neutral-500">
-                                    <MapPin class="h-12 w-12 mx-auto mb-4 text-neutral-300" />
-                                    <p>Aucune intervention pour ce contact</p>
-                                </div>
-                            </div>
-                        </TabsContent>
-
-                        <TabsContent value="documents">
-                            <div class="p-2">
-                                <div class="flex items-center justify-between mb-4">
-                                    <h2 class="text-lg font-semibold text-neutral-900">Documents</h2>
-                                    <Button>
-                                        <Plus class="h-4 w-4" />
-                                        Ajouter document
-                                    </Button>
-                                </div>
-                                <div class="text-center py-8 text-neutral-500">
-                                    <FolderOpen class="h-12 w-12 mx-auto mb-4 text-neutral-300" />
-                                    <p>Aucun document pour ce contact</p>
-                                </div>
-                            </div>
-                        </TabsContent>
-                    </Tabs>
+                <div class="grid grid-cols-3 gap-4 mb-4">
+                    <div class="bg-white p-4 rounded-lg border">
+                        <div class="text-2xl font-semibold text-neutral-900">-</div>
+                        <div class="text-sm text-neutral-600">Sites</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border">
+                        <div class="text-2xl font-semibold text-neutral-900">-</div>
+                        <div class="text-sm text-neutral-600">Interventions</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border">
+                        <div class="text-2xl font-semibold text-neutral-900">-</div>
+                        <div class="text-sm text-neutral-600">Lots</div>
+                    </div>
                 </div>
+
+                <Tabs default-value="sites" class="mt-3">
+                    <TabsList class="w-full mb-3 bg-neutral-200">
+                        <TabsTrigger value="sites">Sites</TabsTrigger>
+                        <TabsTrigger value="interventions">Interventions</TabsTrigger>
+                        <TabsTrigger value="lots">Lots</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="sites" class="bg-white rounded-lg border">
+                        <SitesTable :contact-id="contact.id" attachment-type="contact" />
+                    </TabsContent>
+
+                    <TabsContent value="interventions" class="bg-white rounded-lg border">
+                        <div class="p-6">
+                            <div class="text-center py-8">
+                                <Wrench class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+                                <h3 class="text-lg font-medium text-neutral-900 mb-2">Interventions</h3>
+                                <p class="text-neutral-600 mb-4">Cette section permettra de consulter les interventions
+                                    liées à
+                                    ce contact.</p>
+                                <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des interventions</p>
+                            </div>
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="lots" class="bg-white rounded-lg border">
+                        <div class="p-6">
+                            <div class="text-center py-8">
+                                <FileText class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+                                <h3 class="text-lg font-medium text-neutral-900 mb-2">Lots</h3>
+                                <p class="text-neutral-600 mb-4">Cette section permettra de gérer les lots rattachés au
+                                    contact.
+                                </p>
+                                <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des lots</p>
+                            </div>
+                        </div>
+                    </TabsContent>
+                </Tabs>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { Badge } from '@/common/components/ui/badge'
+import CompanySelect from '@/common/components/form/company-select/CompanySelect.vue'
 import { Button } from '@/common/components/ui/button'
-import { Combobox, ComboboxAnchor, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxItemIndicator, ComboboxList, ComboboxTrigger } from '@/common/components/ui/combobox'
-import { Input } from '@/common/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu'
+import Input from '@/common/components/ui/input/Input.vue'
 import { Separator } from '@/common/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/common/components/ui/tabs'
+import { bus, useBus } from '@/common/composables/bus'
+import { useFetcher } from '@/common/composables/fetcher'
+import SitesTable from '@/main/components/sites/SitesTable.vue'
 import {
     ArrowLeft,
     Building,
-    Check,
-    ChevronDown,
-    ChevronsUpDown,
     FileText,
-    FolderOpen,
-    Mail,
-    MapPin,
     MessageSquare,
-    MoreVertical,
-    Phone,
-    Plus,
-    Search,
-    User
+    MoreHorizontal,
+    RotateCcw,
+    Save,
+    Trash,
+    User,
+    Wrench
 } from 'lucide-vue-next'
-import { reactive } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { toast } from 'vue-sonner'
 
-const contact = {
-    id: 1,
-    firstName: 'Pierre',
-    lastName: 'Dupont',
-    function: 'Responsable maintenance',
-    company: 'SARL Immobilier Plus',
-    email: 'pierre.dupont@immobilier-plus.fr',
-    mobilePhone: '06 12 34 56 78',
-    fixedPhone: '01 23 45 67 89',
-    roles: ['responsable-site', 'decideur'],
-    createdAt: '2023-01-15'
-}
+const route = useRoute()
+const router = useRouter()
+const fetcher = useFetcher()
 
-const contactForm = reactive({
-    firstName: contact.firstName,
-    lastName: contact.lastName,
-    function: contact.function,
-    roles: contact.roles,
-    company: contact.company,
-    email: contact.email,
-    mobilePhone: contact.mobilePhone,
-    fixedPhone: contact.fixedPhone,
-    createdAt: contact.createdAt
+const contactId = route.params.id
+const contact = ref({})
+const loading = ref(false)
+const error = ref(null)
+const isDirty = ref(false)
+const originalForm = ref({})
+
+useBus(bus, 'confirm-delete-contact:confirmed', () => {
+    deleteContact()
 })
 
-const kpis = {
-    totalInterventions: 12,
-    activeContracts: 2,
-    totalSites: 3,
-    totalDocuments: 8
+const contactForm = reactive({
+    first_name: '',
+    last_name: '',
+    function: '',
+    company: null,
+    email: '',
+    mobile: '',
+    phone: ''
+})
+
+const checkDirty = () => {
+    isDirty.value = JSON.stringify(contactForm) !== JSON.stringify(originalForm.value)
 }
 
-const contactSites = [
-    {
-        id: 1,
-        label: 'Résidence Les Jardins',
-        address: '15 rue des Lilas, 75015',
-        city: 'Paris',
-        relationType: 'Responsable site',
-        buildingType: 'Résidence collective'
-    },
-    {
-        id: 2,
-        label: 'Villa Dupont',
-        address: '8 avenue de la Paix, 69003',
-        city: 'Lyon',
-        relationType: 'Propriétaire',
-        buildingType: 'Maison individuelle'
-    }
-]
-
-const companies = [
-    { id: 1, name: 'SARL Immobilier Plus' },
-    { id: 2, name: 'SCI Bellecour' },
-    { id: 3, name: 'Syndic Moderne' },
-    { id: 4, name: 'Office Management SA' },
-    { id: 5, name: 'Gestimmo Nantes' }
-]
-
-const getDisplayValue = (value) => {
-    if (!value) return 'Optionnel pour particuliers'
-    if (typeof value === 'string') return value
-    if (value.name) return value.name
-    if (value.firstName && value.lastName) return `${value.firstName} ${value.lastName}`
-    return 'Optionnel pour particuliers'
-}
-
-const saveContact = () => {
-    console.log('Saving contact:', contactForm)
-}
-
-const contactEquipments = [
-    {
-        id: 1,
-        name: 'Chaudière lot A101',
-        type: 'Chauffage',
-        site: 'Résidence Les Jardins',
-        lot: 'A101',
-        brand: 'Chaffoteaux',
-        model: 'Niagara C Green',
-        status: 'Fonctionnel'
-    },
-    {
-        id: 2,
-        name: 'Climatiseur bureau',
-        type: 'Climatisation',
-        site: 'Villa Dupont',
-        lot: null,
-        brand: 'Daikin',
-        model: 'Sensira FTXC25B',
-        status: 'Maintenance requise'
-    }
-]
-
-const resetForm = () => {
+const resetForm = (data) => {
     Object.assign(contactForm, {
-        firstName: contact.firstName,
-        lastName: contact.lastName,
-        function: contact.function,
-        roles: contact.roles,
-        company: contact.company,
-        email: contact.email,
-        mobilePhone: contact.mobilePhone,
-        fixedPhone: contact.fixedPhone,
-        createdAt: contact.createdAt
+        first_name: data.first_name || '',
+        last_name: data.last_name || '',
+        function: data.function || '',
+        company: data.company?.id || null,
+        email: data.email || '',
+        mobile: data.mobile || '',
+        phone: data.phone || ''
+    })
+    originalForm.value = JSON.parse(JSON.stringify(contactForm))
+    isDirty.value = false
+}
+
+const handleCancel = () => {
+    resetForm(contact.value)
+}
+
+const handleDelete = () => {
+    if (!contactId || !contact.value.full_name) return
+
+    bus.trigger('confirm-delete', {
+        title: 'Supprimer le contact',
+        message: 'Êtes-vous sûr de vouloir supprimer ce contact ?',
+        itemName: contact.value.full_name || `${contact.value.first_name} ${contact.value.last_name}`.trim(),
+        confirmationText: 'Cette action est irréversible.',
+        confirmEvent: 'confirm-delete-contact:confirmed'
     })
 }
+
+const deleteContact = async () => {
+    try {
+        await fetcher.delete(`/contacts/${contactId}`)
+        toast.success('Contact supprimé avec succès')
+        bus.trigger('confirm-delete-dialog:close')
+        router.push('/contacts')
+    } catch (err) {
+        console.error('Erreur lors de la suppression:', err)
+        toast.error('Erreur lors de la suppression')
+        bus.trigger('confirm-delete-dialog:close')
+    }
+}
+
+const fetchContact = async () => {
+    if (!contactId) return
+
+    loading.value = true
+    error.value = null
+
+    try {
+        const response = await fetcher.get(`/contacts/${contactId}`)
+        contact.value = response.data
+        resetForm(contact.value)
+    } catch (err) {
+        console.error('Erreur lors du chargement du contact:', err)
+        error.value = err
+    } finally {
+        loading.value = false
+    }
+}
+
+const saveContact = async () => {
+    if (!contactId) return
+
+    loading.value = true
+    error.value = null
+
+    try {
+        const submitData = { ...contactForm }
+
+        if (typeof submitData.company === 'object' && submitData.company?.id) {
+            submitData.company = submitData.company.id
+        }
+
+        const response = await fetcher.put(`/contacts/${contactId}`, submitData)
+        contact.value = response.data
+        resetForm(contact.value)
+        toast.success('Contact sauvegardé avec succès')
+    } catch (err) {
+        console.error('Erreur lors de la sauvegarde:', err)
+        error.value = err
+        toast.error('Erreur lors de la sauvegarde')
+    } finally {
+        loading.value = false
+    }
+}
+
+onMounted(() => {
+    fetchContact()
+})
 </script>

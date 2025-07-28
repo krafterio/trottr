@@ -101,7 +101,16 @@ import { toast } from 'vue-sonner'
 const props = defineProps({
     companyId: {
         type: Number,
-        required: true
+        default: null
+    },
+    contactId: {
+        type: Number,
+        default: null
+    },
+    attachmentType: {
+        type: String,
+        default: 'company',
+        validator: (value) => ['company', 'contact'].includes(value)
     }
 })
 
@@ -112,12 +121,20 @@ const sites = ref([])
 const loading = ref(false)
 
 const fetchSites = async () => {
-    if (!props.companyId) return
+    const entityId = props.attachmentType === 'company' ? props.companyId : props.contactId
+    if (!entityId) return
 
     loading.value = true
     try {
-        const response = await fetcher.get(`/companies/${props.companyId}/sites`)
-        sites.value = response.data || []
+        const params = {}
+        if (props.attachmentType === 'company') {
+            params.company_id = props.companyId
+        } else {
+            params.contact_id = props.contactId
+        }
+
+        const response = await fetcher.get('/sites', { params })
+        sites.value = response.data.items || []
     } catch (error) {
         console.error('Erreur lors du chargement des sites:', error)
         toast.error('Erreur lors du chargement des sites')
@@ -127,7 +144,13 @@ const fetchSites = async () => {
 }
 
 const handleCreateSite = () => {
-    bus.trigger('open-site-dialog', { company: props.companyId })
+    const data = { attachmentType: props.attachmentType }
+    if (props.attachmentType === 'company') {
+        data.company = props.companyId
+    } else {
+        data.contact_id = props.contactId
+    }
+    bus.trigger('open-site-dialog', data)
 }
 
 const viewSite = (site) => {
@@ -189,8 +212,9 @@ useBus(bus, 'site-created-stay', () => {
     fetchSites()
 })
 
-watch(() => props.companyId, (newId) => {
-    if (newId) {
+watch(() => [props.companyId, props.contactId, props.attachmentType], () => {
+    const entityId = props.attachmentType === 'company' ? props.companyId : props.contactId
+    if (entityId) {
         fetchSites()
     }
 }, { immediate: true })

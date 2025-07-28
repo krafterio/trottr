@@ -3,6 +3,7 @@ from typing import List
 from models.site import Site
 from models.country import Country
 from models.company import Company
+from models.contact import Contact
 from schemas.site import SiteCreate, SiteUpdate, SiteRead
 from api.auth import get_current_user
 from services.workspace import get_user_workspace
@@ -24,6 +25,8 @@ class PaginatedSiteResponse(BaseModel):
 async def list_sites(
     page: int = 1,
     per_page: int = 50,
+    company_id: int = None,
+    contact_id: int = None,
     current_user: User = Depends(get_current_user)
 ):
     if per_page not in [20, 50, 80]:
@@ -34,8 +37,14 @@ async def list_sites(
     
     skip = (page - 1) * per_page
     
-    total = await Site.query.count()
-    sites = await Site.query.select_related("country", "company").order_by("-created_at").offset(skip).limit(per_page).all()
+    query = Site.query
+    if company_id:
+        query = query.filter(Site.columns.company == company_id)
+    if contact_id:
+        query = query.filter(Site.columns.contact == contact_id)
+    
+    total = await query.count()
+    sites = await query.select_related("country", "company", "contact").order_by("-created_at").offset(skip).limit(per_page).all()
     
     total_pages = (total + per_page - 1) // per_page
     
@@ -52,7 +61,7 @@ async def get_site(
     site_id: int,
     current_user: User = Depends(get_current_user)
 ):
-    site = await Site.query.select_related("country", "company").get(id=site_id)
+    site = await Site.query.select_related("country", "company", "contact").get(id=site_id)
     if not site:
         raise HTTPException(status_code=404, detail="Site not found")
     return site
@@ -69,11 +78,19 @@ async def create_site(site: SiteCreate):
         if not company:
             raise HTTPException(status_code=400, detail="Company not found")
     
+    contact = None
+    if site.contact:
+        contact = await Contact.query.get(id=site.contact)
+        if not contact:
+            raise HTTPException(status_code=400, detail="Contact not found")
+    
     data = site.model_dump()
     obj = Site(**data)
     obj.country = country
     if company:
         obj.company = company
+    if contact:
+        obj.contact = contact
     await obj.save()
     
     return obj
@@ -104,8 +121,16 @@ async def update_site(
     elif "company" in update_data and update_data["company"] is None:
         update_data["company"] = None
     
+    if "contact" in update_data and update_data["contact"]:
+        contact = await Contact.query.get(id=update_data["contact"])
+        if not contact:
+            raise HTTPException(status_code=400, detail="Contact not found")
+        update_data["contact"] = contact
+    elif "contact" in update_data and update_data["contact"] is None:
+        update_data["contact"] = None
+    
     await site.update(**update_data)
-    return await Site.query.select_related("country", "company").get(id=site_id)
+    return await Site.query.select_related("country", "company", "contact").get(id=site_id)
 
 @router.patch("/{site_id}", response_model=SiteRead)
 async def patch_site(
@@ -134,8 +159,17 @@ async def patch_site(
         else:
             update_data["company"] = None
     
+    if "contact" in update_data:
+        if update_data["contact"]:
+            contact = await Contact.query.get(id=update_data["contact"])
+            if not contact:
+                raise HTTPException(status_code=400, detail="Contact not found")
+            update_data["contact"] = contact
+        else:
+            update_data["contact"] = None
+    
     await site.update(**update_data)
-    return await Site.query.select_related("country", "company").get(id=site_id)
+    return await Site.query.select_related("country", "company", "contact").get(id=site_id)
 
 @router.delete("/{site_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_site(
