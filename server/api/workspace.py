@@ -380,6 +380,49 @@ async def demote_workspace_owner(
     return await _get_workspace_read(workspace    )
 
 
+@router.patch("/member/{user_id}/profile", response_model=WorkspaceRead)
+async def update_workspace_member(
+    user_id: int,
+    data: dict = Body(...),
+    current_user: User = Depends(get_current_user),
+    workspace: Workspace = Depends(get_user_workspace)
+):
+    # Import here to avoid circular imports
+    from models.workspace_user import WorkspaceUser, WorkspaceUserRole
+
+    # Get the user to update
+    user_to_update = await User.query.get(id=user_id)
+    if not user_to_update:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+
+    # Check if the user is a member of the workspace
+    user_workspace = await WorkspaceUser.query.filter(workspace=workspace, user=user_to_update).first()
+    if not user_workspace:
+        raise HTTPException(status_code=400, detail="L'utilisateur n'est pas membre du workspace")
+
+    # Update user name if provided
+    if 'name' in data and data['name'] is not None:
+        user_to_update.name = data['name']
+        await user_to_update.save()
+
+    # Update user role if provided
+    if 'role' in data and data['role'] is not None:
+        new_role = data['role']
+        if new_role == 'Owner':
+            user_workspace.role = WorkspaceUserRole.OWNER
+        elif new_role == 'Member':
+            # Check if we're not removing the last owner
+            if user_workspace.role == WorkspaceUserRole.OWNER:
+                owners_count = await WorkspaceUser.query.filter(workspace=workspace, role=WorkspaceUserRole.OWNER).count()
+                if owners_count <= 1:
+                    raise HTTPException(status_code=400, detail="Il doit y avoir au moins un propriétaire dans le workspace")
+            user_workspace.role = WorkspaceUserRole.MEMBER
+        
+        await user_workspace.save()
+
+    return await _get_workspace_read(workspace)
+
+
 @router.post("/invite", response_model=WorkspaceInvitationResponse)
 async def invite_user_to_workspace(
     invitation_data: WorkspaceInvitationCreate,

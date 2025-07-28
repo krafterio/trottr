@@ -46,7 +46,7 @@
         </DropdownMenuContent>
     </DropdownMenu>
 
-    <UserEditDialog :is-open="isDialogOpen" :user="authStore.user" />
+    <AccountDialog :is-open="isDialogOpen" :user="authStore.user" />
 </template>
 
 <script setup>
@@ -74,7 +74,7 @@ import {
 } from '@/common/components/ui/dropdown-menu';
 import { bus, useBus } from '@/common/composables/bus';
 import { useAuthStore } from '@/common/stores/auth';
-import UserEditDialog from '@/main/components/dialogs/UserEditDialog.vue';
+import AccountDialog from '@/main/components/dialogs/AccountDialog.vue';
 
 const authStore = useAuthStore()
 
@@ -88,11 +88,13 @@ const openEditDialog = () => {
     isDialogOpen.value = true
 }
 
-useBus(bus, 'user-edit-dialog:update-open', (event) => {
+useBus(bus, 'account-dialog:update-open', (event) => {
     isDialogOpen.value = event.detail
 })
 
-useBus(bus, 'user-edit-dialog:user-updated', () => {
-    // L'utilisateur a été mis à jour via authStore dans UserEditDialog
+useBus(bus, 'account-dialog:user-updated', () => {
+    // L'utilisateur a été mis à jour via authStore dans AccountDialog
+    // Déclencher aussi l'événement pour SettingsUsers si ouvert
+    bus.trigger('user-edit-dialog:user-updated', { user: authStore.user })
 })
 </script>

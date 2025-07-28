@@ -116,7 +116,7 @@ async def _get_record(
         workspace: Workspace
 ) -> BaseModel:
     if model == "users":
-        record = await User.query.get(id=current_user.id)
+        record = await User.query.get(id=model_id)
 
         if field not in User.meta.fields:
             raise ValueError(f"Field {field} not found in model {model}")

@@ -1,7 +1,7 @@
 <template>
   <!-- Mode Avatar minimaliste -->
   <div v-if="avatar" class="relative group w-16">
-    <Avatar :class="[avatarClass, 'h-16', 'w-16', 'cursor-pointer']" @click="triggerFileInput">
+    <Avatar :class="[avatarClass, 'h-16', 'w-16', 'cursor-pointer', 'rounded-md']" @click="triggerFileInput">
       <AvatarImage v-if="modelValue && !imageError" :src="imageUrl" :alt="alt" v-fetcher-src.lazy />
       <AvatarFallback :class="[avatarClass, 'bg-muted']">
         <slot name="placeholder">

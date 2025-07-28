@@ -50,10 +50,13 @@
                     <TableRow v-else v-for="user in users" :key="user.id">
                         <TableCell>
                             <div class="flex items-center space-x-3">
-                                <div
-                                    class="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary text-xs font-medium">
-                                    {{ user.initials || getInitials(user.name, user.email) }}
-                                </div>
+                                <Avatar class="w-8 h-8 rounded-md">
+                                    <AvatarImage v-if="user.avatar" :src="`/storage/download/${user.avatar}`"
+                                        v-fetcher-src.lazy :alt="user.name || user.email" />
+                                    <AvatarFallback class="bg-primary/10 text-primary text-xs font-medium rounded-md">
+                                        {{ user.initials || getInitials(user.name, user.email) }}
+                                    </AvatarFallback>
+                                </Avatar>
                                 <div>
                                     <div class="font-medium">{{ user.name || user.email }}</div>
                                     <div class="text-sm text-muted-foreground">{{ user.email }}</div>
@@ -189,6 +192,7 @@
 </template>
 
 <script setup>
+import { Avatar, AvatarFallback, AvatarImage } from '@/common/components/ui/avatar'
 import { Badge } from '@/common/components/ui/badge'
 import { Button } from '@/common/components/ui/button'
 import {

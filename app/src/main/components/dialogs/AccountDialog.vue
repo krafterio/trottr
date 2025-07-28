@@ -1,11 +1,10 @@
 <template>
-    <Dialog :open="isOpen" @update:open="bus.trigger('user-edit-dialog:update-open', $event)">
+    <Dialog :open="isOpen" @update:open="bus.trigger('account-dialog:update-open', $event)">
         <DialogContent class="sm:max-w-[425px]">
             <DialogHeader>
-                <DialogTitle>Modifier l'utilisateur</DialogTitle>
+                <DialogTitle>Modifier le profil</DialogTitle>
                 <DialogDescription>
-                    Modifiez les informations de cet utilisateur. Seuls les propriétaires peuvent modifier les autres
-                    utilisateurs.
+                    Modifiez vos informations personnelles. Cliquez sur sauvegarder pour enregistrer les modifications.
                 </DialogDescription>
             </DialogHeader>
             <div class="grid gap-4 py-4">
@@ -19,10 +18,8 @@
                     <Label for="email" class="text-right">
                         Email
                     </Label>
-                    <Input id="email" v-model="editForm.email" type="email" class="col-span-3" disabled readonly />
-                    <div class="col-span-4 text-xs text-muted-foreground">
-                        L'email ne peut pas être modifié pour les autres utilisateurs
-                    </div>
+                    <Input id="email" v-model="editForm.email" type="email" class="col-span-3"
+                        :disabled="updateLoading" />
                 </div>
                 <div class="grid grid-cols-4 items-center gap-4">
                     <Label for="avatar" class="text-right">
@@ -34,29 +31,13 @@
                             @upload="handleAvatarUpload" @remove="handleAvatarRemove" />
                     </div>
                 </div>
-                <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="role" class="text-right">
-                        Rôle
-                    </Label>
-                    <div class="col-span-3">
-                        <Select v-model="editForm.role" :disabled="updateLoading">
-                            <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner un rôle" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Member">Membre</SelectItem>
-                                <SelectItem value="Owner">Propriétaire</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
             </div>
             <DialogFooter>
-                <Button variant="outline" @click="bus.trigger('user-edit-dialog:update-open', false)"
+                <Button variant="outline" @click="bus.trigger('account-dialog:update-open', false)"
                     :disabled="updateLoading">
                     Annuler
                 </Button>
-                <Button type="submit" @click="updateUser" :disabled="updateLoading">
+                <Button type="submit" @click="updateProfile" :disabled="updateLoading">
                     <span v-if="updateLoading">Sauvegarde...</span>
                     <span v-else>Sauvegarder</span>
                 </Button>
@@ -78,13 +59,6 @@ import {
 } from '@/common/components/ui/dialog'
 import { Input } from '@/common/components/ui/input'
 import { Label } from '@/common/components/ui/label'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/common/components/ui/select'
 import { bus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useAuthStore } from '@/common/stores/auth'
@@ -105,26 +79,23 @@ const props = defineProps({
 const authStore = useAuthStore()
 const fetcher = useFetcher()
 
-const isCurrentUser = computed(() => props.user?.id === authStore.user?.id)
-
 const editForm = ref({
     name: '',
-    email: '',
-    role: ''
+    email: ''
 })
 
-const avatarPath = ref(null)
-
 const updateLoading = ref(false)
+const avatarPath = ref('')
+
+const isCurrentUser = computed(() => props.user?.id === authStore.user?.id)
 
 watch(() => props.user, (newUser) => {
     if (newUser) {
         editForm.value = {
             name: newUser.name || '',
-            email: newUser.email || '',
-            role: newUser.role || 'Member'
+            email: newUser.email || ''
         }
-        avatarPath.value = newUser.avatar || null
+        avatarPath.value = newUser.avatar || ''
     }
 }, { immediate: true })
 
@@ -132,33 +103,32 @@ watch(() => props.isOpen, (isOpen) => {
     if (isOpen && props.user) {
         editForm.value = {
             name: props.user.name || '',
-            email: props.user.email || '',
-            role: props.user.role || 'Member'
+            email: props.user.email || ''
         }
-        avatarPath.value = props.user.avatar || null
+        avatarPath.value = props.user.avatar || ''
     }
 })
 
 const handleAvatarUpload = async (file) => {
     try {
         updateLoading.value = true
+
         const formData = new FormData()
         formData.append('file', file)
 
-        const response = await fetcher.post(`/storage/upload/users/${props.user.id}/avatar`, formData)
-        avatarPath.value = response.data
+        const response = await fetcher.post(`/account/upload-image`, formData)
+        avatarPath.value = response.data.avatar
 
-        // Si c'est l'utilisateur connecté, rafraîchir authStore
+        // Rafraîchir les données utilisateur immédiatement
         if (isCurrentUser.value) {
             await authStore.fetchUser()
-            bus.trigger('account-dialog:user-updated', { user: props.user })
         }
 
-        bus.trigger('user-edit-dialog:user-updated', { user: props.user })
         toast.success('Avatar mis à jour avec succès !')
+
     } catch (error) {
-        console.error('Erreur lors du téléchargement de l\'avatar:', error)
-        toast.error('Erreur lors du téléchargement de l\'avatar')
+        console.error('Erreur lors de l\'upload:', error)
+        toast.error('Erreur lors de la mise à jour de l\'avatar')
     } finally {
         updateLoading.value = false
     }
@@ -168,60 +138,66 @@ const handleAvatarRemove = async () => {
     try {
         updateLoading.value = true
 
-        await fetcher.delete(`/storage/file/users/${props.user.id}/avatar`)
-        avatarPath.value = null
+        await fetcher.delete('/account/image')
+        avatarPath.value = ''
 
-        // Si c'est l'utilisateur connecté, rafraîchir authStore
+        // Rafraîchir les données utilisateur immédiatement
         if (isCurrentUser.value) {
             await authStore.fetchUser()
-            bus.trigger('account-dialog:user-updated', { user: props.user })
         }
 
-        bus.trigger('user-edit-dialog:user-updated', { user: props.user })
         toast.success('Avatar supprimé avec succès !')
+
     } catch (error) {
-        console.error('Erreur lors de la suppression de l\'avatar:', error)
+        console.error('Erreur lors de la suppression:', error)
         toast.error('Erreur lors de la suppression de l\'avatar')
     } finally {
         updateLoading.value = false
     }
 }
 
-const updateUser = async () => {
+const updateProfile = async () => {
     try {
         updateLoading.value = true
 
-        const hasChanges = editForm.value.name !== props.user.name ||
-            editForm.value.role !== props.user.role
+        const hasProfileChanges = editForm.value.name !== props.user.name ||
+            editForm.value.email !== props.user.email
 
-        if (hasChanges) {
-            const updateData = {}
-
-            if (editForm.value.name !== props.user.name) {
-                updateData.name = editForm.value.name
+        if (hasProfileChanges) {
+            const profileData = {
+                name: editForm.value.name,
+                email: editForm.value.email
             }
 
-            if (editForm.value.role !== props.user.role) {
-                updateData.role = editForm.value.role
-            }
-
-            await fetcher.patch(`/workspace/member/${props.user.id}/profile`, updateData)
-
-            // Si c'est l'utilisateur connecté, rafraîchir authStore
             if (isCurrentUser.value) {
+                // Modifier son propre profil
+                await fetcher.patch('/account', profileData)
+
+                // Rafraîchir les données utilisateur
                 await authStore.fetchUser()
-                bus.trigger('account-dialog:user-updated', { user: props.user })
+            } else {
+                // Pour les autres utilisateurs, on ne peut modifier que le nom
+                // car l'email est unique et géré différemment
+                if (editForm.value.name !== props.user.name) {
+                    // Il faudrait un endpoint spécifique pour ça
+                    // Pour l'instant, on affiche une erreur
+                    throw new Error("La modification d'autres utilisateurs n'est pas encore supportée")
+                }
             }
 
-            bus.trigger('user-edit-dialog:user-updated', { user: props.user })
-            toast.success('Utilisateur mis à jour avec succès !')
+            bus.trigger('account-dialog:user-updated', { user: props.user })
+            toast.success('Profil mis à jour avec succès !')
         }
 
-        bus.trigger('user-edit-dialog:update-open', false)
+        bus.trigger('account-dialog:update-open', false)
 
     } catch (error) {
         console.error('Erreur lors de la mise à jour:', error)
-        toast.error('Erreur lors de la mise à jour de l\'utilisateur')
+        if (error.message) {
+            toast.error(error.message)
+        } else {
+            toast.error('Erreur lors de la mise à jour du profil')
+        }
     } finally {
         updateLoading.value = false
     }
