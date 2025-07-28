@@ -210,6 +210,7 @@ import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import TablePagination from '@/main/components/TablePagination.vue'
 import UserEditDialog from '@/main/components/dialogs/UserEditDialog.vue'
+import { usePreferencesStore } from '@/main/stores/preferences'
 import { debounce } from 'lodash'
 import {
     Download,
@@ -221,9 +222,11 @@ import {
     Search,
     Users
 } from 'lucide-vue-next'
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { toast } from 'vue-sonner'
 
 const fetcher = useFetcher()
+const preferencesStore = usePreferencesStore()
 
 const operators = ref([])
 const availableSpecialities = ref([])
@@ -234,12 +237,21 @@ const itemsPerPage = ref(50)
 const loading = ref(false)
 const error = ref(null)
 const searchQuery = ref('')
-const showFilters = ref(true)
 const selectedFilters = reactive({
     speciality_ids: []
 })
 const showEditDialog = ref(false)
 const selectedUser = ref(null)
+
+const showFilters = computed({
+    get() {
+        return preferencesStore.getPreference('display_filters', true)
+    },
+    set(value) {
+        preferencesStore.updatePreference('display_filters', value)
+        toast.success('Préférences mises à jour')
+    }
+})
 
 const getInitials = (name, email) => {
     if (name) {

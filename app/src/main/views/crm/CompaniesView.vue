@@ -201,6 +201,8 @@ import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useCompany } from '@/common/composables/useCompany'
 import TablePagination from '@/main/components/TablePagination.vue'
+import { usePreferencesStore } from '@/main/stores/preferences'
+
 import { debounce } from 'lodash'
 import { Building2, Download, Eye, MoreVertical, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Trash } from 'lucide-vue-next'
 import { computed, onMounted, reactive, ref } from 'vue'
@@ -210,6 +212,7 @@ import { toast } from 'vue-sonner'
 const router = useRouter()
 const fetcher = useFetcher()
 const { getCompanyTypeLabel, getCompanyTypeOptions } = useCompany()
+const preferencesStore = usePreferencesStore()
 
 const companies = ref([])
 const currentPage = ref(1)
@@ -221,9 +224,18 @@ const error = ref(null)
 const searchQuery = ref('')
 const selectedCompanies = ref([])
 const selectedCompanyForDelete = ref(null)
-const showFilters = ref(true)
 const selectedFilters = reactive({
     company_type: []
+})
+
+const showFilters = computed({
+    get() {
+        return preferencesStore.getPreference('display_filters', true)
+    },
+    set(value) {
+        preferencesStore.updatePreference('display_filters', value)
+        toast.success('Préférences mises à jour')
+    }
 })
 
 const companyTypeOptions = getCompanyTypeOptions()
@@ -241,7 +253,7 @@ const selectAll = computed({
     }
 })
 
-const toggleFilters = () => {
+const toggleFilters = async () => {
     showFilters.value = !showFilters.value
 }
 

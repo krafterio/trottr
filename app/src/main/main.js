@@ -1,6 +1,7 @@
 import { createFetcher } from '@/common/plugins/fetcher'
 import App from '@/main/App.vue'
 import router from '@/main/router/router'
+import { usePreferencesStore } from '@/main/stores/preferences'
 import '@/style.css'
 import ganttastic from '@infectoone/vue-ganttastic'
 import { createPinia } from 'pinia'
@@ -14,6 +15,9 @@ app.use(pinia)
 app.use(fetcher)
 app.use(router)
 app.use(ganttastic)
+
+const preferencesStore = usePreferencesStore()
+preferencesStore.loadPreferences()
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

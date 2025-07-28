@@ -137,42 +137,52 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-4 gap-4 mb-4">
-                        <div class="bg-white p-4 rounded-lg border">
-                            <div class="text-2xl font-semibold text-neutral-900">{{ kpis.totalLots }}</div>
-                            <div class="text-sm text-neutral-600">Lots/Logements</div>
-                        </div>
-                        <div class="bg-white p-4 rounded-lg border">
-                            <div class="text-2xl font-semibold text-neutral-900">{{ kpis.totalEquipments }}</div>
-                            <div class="text-sm text-neutral-600">Équipements</div>
-                        </div>
+                    <div class="grid grid-cols-1 gap-4 mb-4"
+                        :class="{ 'grid-cols-2': workspaceStore.workspace?.use_subsites }">
                         <div class="bg-white p-4 rounded-lg border">
                             <div class="text-2xl font-semibold text-neutral-900">{{ kpis.totalInterventions }}</div>
                             <div class="text-sm text-neutral-600">Interventions</div>
                         </div>
-                        <div class="bg-white p-4 rounded-lg border">
-                            <div class="text-2xl font-semibold text-neutral-900">{{ kpis.totalDocuments }}</div>
-                            <div class="text-sm text-neutral-600">Documents</div>
+                        <div v-if="workspaceStore.workspace?.use_subsites" class="bg-white p-4 rounded-lg border">
+                            <div class="text-2xl font-semibold text-neutral-900">{{ kpis.totalLots }}</div>
+                            <div class="text-sm text-neutral-600">Lots/Logements</div>
                         </div>
                     </div>
 
-                    <Tabs default-value="lots" class="w-full">
-                        <TabsList class="grid w-full grid-cols-3 mb-3 bg-neutral-200">
-                            <TabsTrigger value="lots" class="flex items-center space-x-2">
+                    <Tabs default-value="interventions" class="w-full">
+                        <TabsList class="grid w-full mb-3 bg-neutral-200"
+                            :class="workspaceStore.workspace?.use_subsites ? 'grid-cols-2' : 'grid-cols-1'">
+                            <TabsTrigger value="interventions" class="flex items-center space-x-2">
+                                <Wrench class="h-4 w-4" />
+                                <span>Interventions</span>
+                            </TabsTrigger>
+                            <TabsTrigger v-if="workspaceStore.workspace?.use_subsites" value="lots"
+                                class="flex items-center space-x-2">
                                 <Building class="h-4 w-4" />
                                 <span>Lots</span>
                             </TabsTrigger>
-                            <TabsTrigger value="equipments" class="flex items-center space-x-2">
-                                <Wrench class="h-4 w-4" />
-                                <span>Équipements</span>
-                            </TabsTrigger>
-                            <TabsTrigger value="documents" class="flex items-center space-x-2">
-                                <FileText class="h-4 w-4" />
-                                <span>Documents</span>
-                            </TabsTrigger>
                         </TabsList>
 
-                        <TabsContent value="lots">
+                        <TabsContent value="interventions">
+                            <div class="bg-white rounded-lg border">
+                                <div class="px-6 py-4 border-b">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-lg font-semibold text-neutral-900">Interventions</h3>
+                                        <Button size="sm">
+                                            <Plus class="h-4 w-4" />
+                                            Programmer une intervention
+                                        </Button>
+                                    </div>
+                                </div>
+                                <div class="p-6 text-center text-neutral-500">
+                                    <Wrench class="h-12 w-12 mx-auto mb-4 text-neutral-300" />
+                                    <p>Fonctionnalité à venir</p>
+                                    <p class="text-sm">La gestion des interventions sera bientôt disponible</p>
+                                </div>
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent v-if="workspaceStore.workspace?.use_subsites" value="lots">
                             <div class="bg-white rounded-lg border">
                                 <div class="px-6 py-4 border-b">
                                     <div class="flex items-center justify-between">
@@ -187,44 +197,6 @@
                                     <Building class="h-12 w-12 mx-auto mb-4 text-neutral-300" />
                                     <p>Fonctionnalité à venir</p>
                                     <p class="text-sm">Les lots et logements seront bientôt disponibles</p>
-                                </div>
-                            </div>
-                        </TabsContent>
-
-                        <TabsContent value="equipments">
-                            <div class="bg-white rounded-lg border">
-                                <div class="px-6 py-4 border-b">
-                                    <div class="flex items-center justify-between">
-                                        <h3 class="text-lg font-semibold text-neutral-900">Équipements</h3>
-                                        <Button size="sm">
-                                            <Plus class="h-4 w-4" />
-                                            Ajouter un équipement
-                                        </Button>
-                                    </div>
-                                </div>
-                                <div class="p-6 text-center text-neutral-500">
-                                    <Wrench class="h-12 w-12 mx-auto mb-4 text-neutral-300" />
-                                    <p>Fonctionnalité à venir</p>
-                                    <p class="text-sm">La gestion des équipements sera bientôt disponible</p>
-                                </div>
-                            </div>
-                        </TabsContent>
-
-                        <TabsContent value="documents">
-                            <div class="bg-white rounded-lg border">
-                                <div class="px-6 py-4 border-b">
-                                    <div class="flex items-center justify-between">
-                                        <h3 class="text-lg font-semibold text-neutral-900">Documents</h3>
-                                        <Button size="sm">
-                                            <Plus class="h-4 w-4" />
-                                            Ajouter un document
-                                        </Button>
-                                    </div>
-                                </div>
-                                <div class="p-6 text-center text-neutral-500">
-                                    <FileText class="h-12 w-12 mx-auto mb-4 text-neutral-300" />
-                                    <p>Fonctionnalité à venir</p>
-                                    <p class="text-sm">La gestion documentaire sera bientôt disponible</p>
                                 </div>
                             </div>
                         </TabsContent>
@@ -265,11 +237,12 @@ import { useFetcher } from '@/common/composables/fetcher'
 import Badge from '@/common/components/ui/badge/Badge.vue'
 import { bus, useBus } from '@/common/composables/bus'
 import { useSite } from '@/common/composables/useSite'
+
+import { useWorkspaceStore } from '@/main/stores/workspace'
 import {
     ArrowLeft,
     Building,
     Building2,
-    FileText,
     MapPin,
     MapPinIcon,
     MoreHorizontal,
@@ -287,6 +260,7 @@ const route = useRoute()
 const router = useRouter()
 const fetcher = useFetcher()
 const { getSiteBuildingTypeLabel, getSiteBuildingTypeOptions } = useSite()
+const workspaceStore = useWorkspaceStore()
 
 const site = ref(null)
 const loading = ref(false)
@@ -304,9 +278,7 @@ const siteForm = reactive({
 
 const kpis = reactive({
     totalLots: 0,
-    totalEquipments: 0,
-    totalInterventions: 0,
-    totalDocuments: 0
+    totalInterventions: 0
 })
 
 const isDirty = ref(false)
@@ -337,9 +309,7 @@ const fetchSite = async () => {
         })
 
         kpis.totalLots = 0
-        kpis.totalEquipments = 0
         kpis.totalInterventions = 0
-        kpis.totalDocuments = 0
 
         isDirty.value = false
 

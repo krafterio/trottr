@@ -212,6 +212,7 @@ import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useSite } from '@/common/composables/useSite'
 import TablePagination from '@/main/components/TablePagination.vue'
+import { usePreferencesStore } from '@/main/stores/preferences'
 import { debounce } from 'lodash'
 import { Building, Download, Eye, MapPin, MoreVertical, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Trash, User } from 'lucide-vue-next'
 import { computed, onMounted, reactive, ref } from 'vue'
@@ -220,6 +221,7 @@ import { toast } from 'vue-sonner'
 
 const router = useRouter()
 const fetcher = useFetcher()
+const preferencesStore = usePreferencesStore()
 const { getSiteBuildingTypeLabel, getSiteBuildingTypeOptions } = useSite()
 
 const sites = ref([])
@@ -232,9 +234,18 @@ const error = ref(null)
 const searchQuery = ref('')
 const selectedSites = ref([])
 const selectedSiteForDelete = ref(null)
-const showFilters = ref(true)
 const selectedFilters = reactive({
     building_type: []
+})
+
+const showFilters = computed({
+    get() {
+        return preferencesStore.getPreference('display_filters', true)
+    },
+    set(value) {
+        preferencesStore.updatePreference('display_filters', value)
+        toast.success('Préférences mises à jour')
+    }
 })
 
 const buildingTypeOptions = getSiteBuildingTypeOptions()

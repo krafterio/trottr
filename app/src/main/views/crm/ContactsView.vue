@@ -181,6 +181,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import TablePagination from '@/main/components/TablePagination.vue'
+import { usePreferencesStore } from '@/main/stores/preferences'
 import { debounce } from 'lodash'
 import { Download, Eye, MoreVertical, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Trash, Users } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
@@ -189,6 +190,7 @@ import { toast } from 'vue-sonner'
 
 const router = useRouter()
 const fetcher = useFetcher()
+const preferencesStore = usePreferencesStore()
 
 const contacts = ref([])
 const currentPage = ref(1)
@@ -200,7 +202,16 @@ const error = ref(null)
 const searchQuery = ref('')
 const selectedContacts = ref([])
 const selectedContactForDelete = ref(null)
-const showFilters = ref(true)
+
+const showFilters = computed({
+    get() {
+        return preferencesStore.getPreference('display_filters', true)
+    },
+    set(value) {
+        preferencesStore.updatePreference('display_filters', value)
+        toast.success('Préférences mises à jour')
+    }
+})
 
 const selectAll = computed({
     get() {
