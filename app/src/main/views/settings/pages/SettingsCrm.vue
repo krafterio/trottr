@@ -22,8 +22,9 @@
                                 <TableHead class="w-24">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
-                        <VueDraggable v-model="contactSiteRelations" :animation="200" handle=".drag-handle" tag="tbody">
-                            <TableRow v-for="relation in contactSiteRelations" :key="relation.id">
+                        <VueDraggable v-model="contactRelationTypes" :animation="200" handle=".drag-handle" tag="tbody"
+                            @end="onRelationReorder">
+                            <TableRow v-for="relation in contactRelationTypes" :key="relation.id">
                                 <TableCell>
                                     <div class="drag-handle cursor-move text-neutral-400 hover:text-neutral-600">
                                         <GripVertical class="h-4 w-4" />
@@ -70,22 +71,22 @@
             </div>
         </div>
 
-        <!-- Modal d'édition -->
-        <Dialog v-model:open="isEditModalOpen">
+        <Dialog :open="showDialog" @update:open="showDialog = $event">
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>{{ editingRelation?.id ? 'Modifier' : 'Ajouter' }} une relation</DialogTitle>
+                    <DialogTitle>{{ editingRelation ? 'Modifier la relation' : 'Nouvelle relation' }}</DialogTitle>
                 </DialogHeader>
                 <div class="space-y-4">
-                    <div>
-                        <label class="text-sm font-medium text-neutral-700">Libellé</label>
-                        <Input v-model="editingRelation.name" class="mt-1" placeholder="Ex: Responsable site" />
+                    <div class="space-y-2">
+                        <Label for="relation-name">Nom de la relation</Label>
+                        <Input id="relation-name" v-model="dialogRelation.name" placeholder="Ex: Responsable site" />
                     </div>
                 </div>
-                <DialogFooter>
-                    <Button variant="outline" @click="cancelEdit">Annuler</Button>
-                    <Button @click="saveRelation">{{ editingRelation?.id ? 'Modifier' : 'Ajouter' }}</Button>
-                </DialogFooter>
+                <div class="flex justify-end space-x-2 mt-6">
+                    <Button variant="outline" @click="showDialog = false">Annuler</Button>
+                    <Button @click="saveRelation" :disabled="loading">{{ editingRelation ? 'Modifier' : 'Créer'
+                        }}</Button>
+                </div>
             </DialogContent>
         </Dialog>
     </div>
@@ -93,9 +94,18 @@
 
 <script setup>
 import { Button } from '@/common/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog'
+import Dialog from '@/common/components/ui/dialog/Dialog.vue'
+import DialogContent from '@/common/components/ui/dialog/DialogContent.vue'
+import DialogHeader from '@/common/components/ui/dialog/DialogHeader.vue'
+import DialogTitle from '@/common/components/ui/dialog/DialogTitle.vue'
 import { Input } from '@/common/components/ui/input'
-import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/common/components/ui/table'
+import { Label } from '@/common/components/ui/label'
+import Table from '@/common/components/ui/table/Table.vue'
+import TableCell from '@/common/components/ui/table/TableCell.vue'
+import TableHead from '@/common/components/ui/table/TableHead.vue'
+import TableHeader from '@/common/components/ui/table/TableHeader.vue'
+import TableRow from '@/common/components/ui/table/TableRow.vue'
+import { useFetcher } from '@/common/composables/fetcher'
 import {
     Edit,
     GripVertical,
@@ -103,87 +113,105 @@ import {
     Plus,
     Trash
 } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
+import { toast } from 'vue-sonner'
 
-const contactSiteRelations = ref([
-    {
-        id: 1,
-        name: 'Responsable site',
-        isUsed: true
-    },
-    {
-        id: 2,
-        name: 'Propriétaire',
-        isUsed: true
-    },
-    {
-        id: 3,
-        name: 'Occupant',
-        isUsed: false
-    },
-    {
-        id: 4,
-        name: 'Gestionnaire',
-        isUsed: true
-    },
-    {
-        id: 5,
-        name: 'Gardien / Agent local',
-        isUsed: false
-    },
-    {
-        id: 6,
-        name: 'Chargé d\'exploitation',
-        isUsed: false
-    }
-])
+const fetcher = useFetcher()
+const loading = ref(false)
 
-const isEditModalOpen = ref(false)
-const editingRelation = ref({
-    id: null,
-    name: ''
+const contactRelationTypes = ref([])
+
+const showDialog = ref(false)
+const editingRelation = ref(null)
+const dialogRelation = ref({
+    name: '',
+    sequence: 1
 })
 
-const editRelation = (relation) => {
-    editingRelation.value = { ...relation }
-    isEditModalOpen.value = true
-}
-
-const removeRelation = (id) => {
-    contactSiteRelations.value = contactSiteRelations.value.filter(relation => relation.id !== id)
+const loadContactRelationTypes = async () => {
+    try {
+        const response = await fetcher.get('/contact-relation-type')
+        contactRelationTypes.value = response.data || []
+    } catch (error) {
+        console.error('Erreur lors du chargement des relations:', error)
+        toast.error('Impossible de charger les relations')
+    }
 }
 
 const openCreateDialog = () => {
-    editingRelation.value = {
-        id: null,
-        name: ''
+    editingRelation.value = null
+    const maxSequence = Math.max(...contactRelationTypes.value.map(r => r.sequence), 0)
+    dialogRelation.value = {
+        name: '',
+        sequence: maxSequence + 1
     }
-    isEditModalOpen.value = true
+    showDialog.value = true
 }
 
-const cancelEdit = () => {
-    editingRelation.value = {
-        id: null,
-        name: ''
+const editRelation = (relation) => {
+    editingRelation.value = relation
+    dialogRelation.value = {
+        name: relation.name,
+        sequence: relation.sequence
     }
-    isEditModalOpen.value = false
+    showDialog.value = true
 }
 
-const saveRelation = () => {
-    if (editingRelation.value.id) {
-        const index = contactSiteRelations.value.findIndex(relation => relation.id === editingRelation.value.id)
-        if (index !== -1) {
-            contactSiteRelations.value[index] = { ...editingRelation.value }
+const saveRelation = async () => {
+    if (!dialogRelation.value.name.trim()) {
+        toast.error('Le nom de la relation est requis')
+        return
+    }
+
+    loading.value = true
+    try {
+        if (editingRelation.value) {
+            const { sequence, ...updateData } = dialogRelation.value
+            await fetcher.patch(`/contact-relation-type/${editingRelation.value.id}`, updateData)
+        } else {
+            await fetcher.post('/contact-relation-type', dialogRelation.value)
         }
-    } else {
-        const newId = Math.max(...contactSiteRelations.value.map(s => s.id)) + 1
-        contactSiteRelations.value.push({
-            ...editingRelation.value,
-            id: newId,
-            isUsed: false
-        })
+
+        await loadContactRelationTypes()
+        showDialog.value = false
+        toast.success(`Relation ${editingRelation.value ? 'modifiée' : 'créée'} avec succès`)
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde:', error)
+        toast.error(error.message || 'Erreur lors de la sauvegarde')
+    } finally {
+        loading.value = false
     }
-    cancelEdit()
 }
+
+const removeRelation = async (relationId) => {
+    try {
+        await fetcher.delete(`/contact-relation-type/${relationId}`)
+        await loadContactRelationTypes()
+        toast.success('Relation supprimée avec succès')
+    } catch (error) {
+        console.error('Erreur lors de la suppression:', error)
+        toast.error(error.message || 'Erreur lors de la suppression')
+    }
+}
+
+const onRelationReorder = async () => {
+    try {
+        const reorderedTypes = contactRelationTypes.value.map((relation, index) => ({
+            id: relation.id,
+            sequence: index + 1
+        }))
+
+        await fetcher.put('/contact-relation-type/reorder', { types: reorderedTypes })
+        toast.success('Relations réorganisées avec succès')
+    } catch (error) {
+        console.error('Erreur lors de la réorganisation des relations:', error)
+        toast.error(error.message || 'Erreur lors de la réorganisation des relations')
+        await loadContactRelationTypes()
+    }
+}
+
+onMounted(() => {
+    loadContactRelationTypes()
+})
 </script>
