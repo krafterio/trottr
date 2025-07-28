@@ -137,14 +137,6 @@ const router = createRouter({
             metaTitle: 'Paramètres facturation'
           }
         },
-        {
-          path: 'display',
-          name: 'settings-display',
-          component: () => import('@/main/views/settings/pages/SettingsDisplay.vue'),
-          meta: {
-            metaTitle: 'Paramètres affichage'
-          }
-        }
       ]
     },
     {

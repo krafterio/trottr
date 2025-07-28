@@ -54,15 +54,6 @@
                             <CreditCard class="h-4 w-4" />
                             Facturation
                         </router-link>
-                        <router-link to="/settings/display" :class="[
-                            'w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2',
-                            $route.name === 'settings-display'
-                                ? 'bg-primary text-neutral-100'
-                                : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
-                        ]">
-                            <Monitor class="h-4 w-4" />
-                            Affichage
-                        </router-link>
                     </div>
                 </nav>
             </div>
@@ -77,5 +68,5 @@
 </template>
 
 <script setup>
-import { Building, CreditCard, Map, Monitor, Settings2, Users } from 'lucide-vue-next';
+import { Building, CreditCard, Map, Settings2, Users } from 'lucide-vue-next';
 </script>
