@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 class WorkspaceUserRole(str, Enum):
     OWNER = "Owner"
     MEMBER = "Member"
+    OPERATOR = "Operator"
 
 class WorkspaceUser(BaseModel):
     """Model for managing workspace users and their roles"""

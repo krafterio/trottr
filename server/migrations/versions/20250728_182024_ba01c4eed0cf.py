@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: b67974558869
+Revision ID: ba01c4eed0cf
 Revises: 
-Create Date: 2025-07-25 21:47:23.023522
+Create Date: 2025-07-28 18:20:24.116597
 
 """
 
@@ -14,7 +14,7 @@ from edgy import monkay, run_sync
 
 
 # revision identifiers, used by Alembic.
-revision = 'b67974558869'
+revision = 'ba01c4eed0cf'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -82,18 +82,33 @@ def upgrade_ZLTGSQOZ566UATSNRB2Y5JTWOA():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
+    op.create_table('user_refresh_tokens',
+    sa.Column('token', sa.String(length=256), autoincrement=False, nullable=False),
+    sa.Column('user', sa.Integer(), autoincrement=False, nullable=False),
+    sa.Column('expires_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
+    sa.Column('revoked', sa.Boolean(), server_default=sa.text('false'), autoincrement=False, nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
+    sa.ForeignKeyConstraint(['user'], ['users.id'], name='fk_user_refresh_tokens_users_user', onupdate='CASCADE', ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('token')
+    )
     op.create_table('workspaces',
     sa.Column('name', sa.String(length=255), autoincrement=False, nullable=False),
     sa.Column('unique_id', sa.String(length=8), autoincrement=False, nullable=False),
     sa.Column('image_url', sa.String(length=255), autoincrement=False, nullable=True),
     sa.Column('currency', sa.String(length=20), server_default=sa.text("'EUR'"), autoincrement=False, nullable=False),
-    sa.Column('available_usage_credits', sa.Float(), server_default=sa.text('0.0'), autoincrement=False, nullable=False),
-    sa.Column('plan_available_usage_credits', sa.Float(), server_default=sa.text('0.0'), autoincrement=False, nullable=False),
-    sa.Column('pack_available_usage_credits', sa.Float(), server_default=sa.text('0.0'), autoincrement=False, nullable=False),
-    sa.Column('current_usage_credits', sa.Float(), server_default=sa.text('0.0'), autoincrement=False, nullable=False),
-    sa.Column('plan_current_usage_credits', sa.Float(), server_default=sa.text('0.0'), autoincrement=False, nullable=False),
-    sa.Column('pack_current_usage_credits', sa.Float(), server_default=sa.text('0.0'), autoincrement=False, nullable=False),
-    sa.Column('reset_usage_date', sa.DateTime(timezone=True), autoincrement=False, nullable=True),
+    sa.Column('street', sa.String(length=255), autoincrement=False, nullable=True),
+    sa.Column('street2', sa.String(length=255), autoincrement=False, nullable=True),
+    sa.Column('default_job_duration', sa.Enum('minutes_60', 'minutes_90', 'minutes_120', 'minutes_180', 'minutes_240', 'minutes_300', 'minutes_360', 'minutes_420', 'minutes_480', name='defaultjobduration'), server_default=sa.text("'minutes_60'"), autoincrement=False, nullable=False),
+    sa.Column('default_job_priority', sa.Enum('low', 'normal', 'high', 'urgent', name='defaultjobpriority'), server_default=sa.text("'normal'"), autoincrement=False, nullable=False),
+    sa.Column('metadata', sa.JSON(), autoincrement=False, nullable=True),
+    sa.Column('zip', sa.String(length=20), autoincrement=False, nullable=True),
+    sa.Column('city', sa.String(length=255), autoincrement=False, nullable=True),
+    sa.Column('country', sa.Integer(), autoincrement=False, nullable=True),
+    sa.Column('siren', sa.String(length=20), autoincrement=False, nullable=True),
+    sa.Column('vat', sa.String(length=30), autoincrement=False, nullable=True),
     sa.Column('dashboard_config', sa.JSON(), autoincrement=False, nullable=True),
     sa.Column('stripe_customer_id', sa.String(length=255), autoincrement=False, nullable=True),
     sa.Column('trial_end', sa.DateTime(timezone=True), autoincrement=False, nullable=True),
@@ -101,9 +116,62 @@ def upgrade_ZLTGSQOZ566UATSNRB2Y5JTWOA():
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
+    sa.ForeignKeyConstraint(['country'], ['countries.id'], name='fk_workspaces_countries_country', onupdate='CASCADE', ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('stripe_customer_id'),
     sa.UniqueConstraint('unique_id')
+    )
+    op.create_table('companies',
+    sa.Column('name', sa.String(length=255), autoincrement=False, nullable=False),
+    sa.Column('reference', sa.String(length=100), autoincrement=False, nullable=True),
+    sa.Column('company_type', sa.Enum('CLIENT_FINAL', 'REGIE_GESTIONNAIRE', 'DONNEUR_ORDRE', 'SOUS_TRAITANT', 'FOURNISSEUR', 'AUTRE', name='companytype'), server_default=sa.text("'CLIENT_FINAL'"), autoincrement=False, nullable=False),
+    sa.Column('phone', sa.String(length=20), autoincrement=False, nullable=True),
+    sa.Column('email', sa.String(length=255), autoincrement=False, nullable=True),
+    sa.Column('invoice_street', sa.String(length=255), autoincrement=False, nullable=True),
+    sa.Column('invoice_zip', sa.String(length=10), autoincrement=False, nullable=True),
+    sa.Column('invoice_city', sa.String(length=100), autoincrement=False, nullable=True),
+    sa.Column('invoice_country', sa.Integer(), autoincrement=False, nullable=True),
+    sa.Column('siret', sa.String(length=14), autoincrement=False, nullable=True),
+    sa.Column('vat', sa.String(length=20), autoincrement=False, nullable=True),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
+    sa.Column('workspace', sa.Integer(), autoincrement=False, nullable=True),
+    sa.ForeignKeyConstraint(['invoice_country'], ['countries.id'], name='fk_companies_countries_invoice_country', onupdate='CASCADE', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['workspace'], ['workspaces.id'], name='fk_companies_workspaces_workspace', onupdate='CASCADE', ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('contact_relation_types',
+    sa.Column('sequence', sa.Integer(), autoincrement=False, nullable=False),
+    sa.Column('name', sa.String(length=255), autoincrement=False, nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
+    sa.Column('workspace', sa.Integer(), autoincrement=False, nullable=True),
+    sa.ForeignKeyConstraint(['workspace'], ['workspaces.id'], name='fk_contact_relation_types_workspaces_workspace', onupdate='CASCADE', ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('job_categories',
+    sa.Column('sequence', sa.Integer(), autoincrement=False, nullable=False),
+    sa.Column('color', sa.String(length=7), autoincrement=False, nullable=False),
+    sa.Column('name', sa.String(length=255), autoincrement=False, nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
+    sa.Column('workspace', sa.Integer(), autoincrement=False, nullable=True),
+    sa.ForeignKeyConstraint(['workspace'], ['workspaces.id'], name='fk_job_categories_workspaces_workspace', onupdate='CASCADE', ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('job_status',
+    sa.Column('sequence', sa.Integer(), autoincrement=False, nullable=False),
+    sa.Column('color', sa.String(length=7), autoincrement=False, nullable=False),
+    sa.Column('name', sa.String(length=255), autoincrement=False, nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
+    sa.Column('workspace', sa.Integer(), autoincrement=False, nullable=True),
+    sa.ForeignKeyConstraint(['workspace'], ['workspaces.id'], name='fk_job_status_workspaces_workspace', onupdate='CASCADE', ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user_presences',
     sa.Column('user', sa.Integer(), autoincrement=False, nullable=False),
@@ -119,19 +187,7 @@ def upgrade_ZLTGSQOZ566UATSNRB2Y5JTWOA():
     sa.ForeignKeyConstraint(['user'], ['users.id'], name='fk_user_presences_users_user', onupdate='CASCADE', ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['workspace'], ['workspaces.id'], name='fk_user_presences_workspaces_workspace', onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('user', 'workspace', name='uc_4HYJJVJSEGIVQ4BYFZRCEPTV7Y')
-    )
-    op.create_table('user_refresh_tokens',
-    sa.Column('token', sa.String(length=256), autoincrement=False, nullable=False),
-    sa.Column('user', sa.Integer(), autoincrement=False, nullable=False),
-    sa.Column('expires_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
-    sa.Column('revoked', sa.Boolean(), server_default=sa.text('false'), autoincrement=False, nullable=False),
-    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
-    sa.ForeignKeyConstraint(['user'], ['users.id'], name='fk_user_refresh_tokens_users_user', onupdate='CASCADE', ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('token')
+    sa.UniqueConstraint('workspace', 'user', name='uc_4HYJJVJSEGIVQ4BYFZRCEPTV7Y')
     )
     op.create_table('workspace_invitations',
     sa.Column('email', sa.String(length=255), autoincrement=False, nullable=False),
@@ -144,23 +200,41 @@ def upgrade_ZLTGSQOZ566UATSNRB2Y5JTWOA():
     sa.Column('workspace', sa.Integer(), autoincrement=False, nullable=True),
     sa.ForeignKeyConstraint(['workspace'], ['workspaces.id'], name='fk_workspace_invitations_workspaces_workspace', onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('invitation_token'),
-    sa.UniqueConstraint('workspace', 'email', name='uc_JM3CQM7RSMQTWELZRHD7VIJ5P4')
+    sa.UniqueConstraint('email', 'workspace', name='uc_JM3CQM7RSMQTWELZRHD7VIJ5P4'),
+    sa.UniqueConstraint('invitation_token')
     )
     op.create_table('workspace_users',
     sa.Column('workspace', sa.Integer(), autoincrement=False, nullable=False),
     sa.Column('user', sa.Integer(), autoincrement=False, nullable=False),
-    sa.Column('role', sa.Enum('OWNER', 'MEMBER', name='workspaceuserrole'), server_default=sa.text("'MEMBER'"), autoincrement=False, nullable=False),
+    sa.Column('role', sa.Enum('OWNER', 'MEMBER', 'OPERATOR', name='workspaceuserrole'), server_default=sa.text("'MEMBER'"), autoincrement=False, nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
     sa.ForeignKeyConstraint(['user'], ['users.id'], name='fk_workspace_users_users_user', onupdate='CASCADE', ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['workspace'], ['workspaces.id'], name='fk_workspace_users_workspaces_workspace', onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('user', 'workspace', name='uc_XC4RL2OZHUVBPS7MOTMBYXQSWQ')
+    sa.UniqueConstraint('workspace', 'user', name='uc_XC4RL2OZHUVBPS7MOTMBYXQSWQ')
     )
-    op.create_enum('workspaceuserrole', ['OWNER', 'MEMBER'])
-    op.create_enum('presencestatus', ['ONLINE', 'AWAY', 'OFFLINE'])
+    op.create_table('site',
+    sa.Column('name', sa.String(length=255), autoincrement=False, nullable=False),
+    sa.Column('street', sa.String(length=255), autoincrement=False, nullable=False),
+    sa.Column('street_2', sa.String(length=255), autoincrement=False, nullable=True),
+    sa.Column('zip', sa.String(length=20), autoincrement=False, nullable=False),
+    sa.Column('city', sa.String(length=255), autoincrement=False, nullable=False),
+    sa.Column('country', sa.Integer(), autoincrement=False, nullable=False),
+    sa.Column('building_type', sa.Enum('RESIDENCE_COLLECTIVE', 'MAISON_INDIVIDUELLE', 'BATIMENT_TERTIAIRE', 'LOCAL_COMMERCIAL', 'AUTRE', name='buildingtype'), server_default=sa.text("'AUTRE'"), autoincrement=False, nullable=False),
+    sa.Column('company', sa.Integer(), autoincrement=False, nullable=True),
+    sa.Column('access_info', sa.Text(), autoincrement=False, nullable=True),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), autoincrement=False, nullable=False),
+    sa.Column('workspace', sa.Integer(), autoincrement=False, nullable=True),
+    sa.ForeignKeyConstraint(['company'], ['companies.id'], name='fk_site_companies_company', onupdate='CASCADE', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['country'], ['countries.id'], name='fk_site_countries_country', onupdate='CASCADE', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['workspace'], ['workspaces.id'], name='fk_site_workspaces_workspace', onupdate='CASCADE', ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
+    )
+
     # ### end Alembic commands ###
     if not context.is_offline_mode():
         try:
@@ -180,13 +254,17 @@ def downgrade_ZLTGSQOZ566UATSNRB2Y5JTWOA():
     # Migration of:
     # main database
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_enum('presencestatus', ['ONLINE', 'AWAY', 'OFFLINE'])
-    op.drop_enum('workspaceuserrole', ['OWNER', 'MEMBER'])
+
+    op.drop_table('site')
     op.drop_table('workspace_users')
     op.drop_table('workspace_invitations')
-    op.drop_table('user_refresh_tokens')
     op.drop_table('user_presences')
+    op.drop_table('job_status')
+    op.drop_table('job_categories')
+    op.drop_table('contact_relation_types')
+    op.drop_table('companies')
     op.drop_table('workspaces')
+    op.drop_table('user_refresh_tokens')
     op.drop_table('users')
     op.drop_table('countries')
     # ### end Alembic commands ###
