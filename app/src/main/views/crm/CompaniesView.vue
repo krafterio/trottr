@@ -1,8 +1,8 @@
 <template>
     <ListView :config="config" :columns="columns" :items="formattedCompanies" :filter-fields="filterFields"
-        :current-page="currentPage" :total-pages="totalPages" :total-items="totalItems" :items-per-page="itemsPerPage"
-        :loading="loading" @create="handleCreate" @row-click="handleRowClick" @search="handleSearch"
-        @page-change="handlePageChange" @items-per-page-change="handleItemsPerPageChange"
+        :search-fields="searchFields" :current-page="currentPage" :total-pages="totalPages" :total-items="totalItems"
+        :items-per-page="itemsPerPage" :loading="loading" @create="handleCreate" @row-click="handleRowClick"
+        @search="handleSearch" @page-change="handlePageChange" @items-per-page-change="handleItemsPerPageChange"
         @filter-change="handleFilterChange" @selection-change="handleSelectionChange" />
 </template>
 
@@ -15,6 +15,7 @@ import {
     companiesConfig,
     companiesFilters
 } from '@/main/components/companies/columns.js'
+import { debounce } from 'lodash'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -25,6 +26,7 @@ const { getCompanyTypeLabel } = useCompany()
 const config = reactive(companiesConfig)
 const columns = companiesColumns
 const filterFields = companiesFilters
+const searchFields = "name,city,reference"
 
 const companies = ref([])
 const currentPage = ref(1)
@@ -33,6 +35,7 @@ const totalItems = ref(0)
 const itemsPerPage = ref(20)
 const loading = ref(false)
 const error = ref(null)
+const searchQuery = ref('')
 
 const formattedCompanies = computed(() => {
     return companies.value.map(company => ({
@@ -63,6 +66,36 @@ const fetchCompanies = async () => {
     }
 }
 
+const searchCompanies = async (query) => {
+    if (!query || query.trim().length < 2) {
+        fetchCompanies()
+        return
+    }
+
+    loading.value = true
+    error.value = null
+
+    try {
+        const response = await fetcher.get('/companies/quick_search', {
+            params: {
+                q: query.trim(),
+                limit: 50
+            }
+        })
+        companies.value = response.data || []
+        totalItems.value = response.data.length
+        totalPages.value = 1
+        currentPage.value = 1
+    } catch (err) {
+        console.error('Erreur lors de la recherche:', err)
+        error.value = err
+    } finally {
+        loading.value = false
+    }
+}
+
+const debouncedSearchCompanies = debounce(searchCompanies, 300)
+
 onMounted(() => {
     fetchCompanies()
 })
@@ -76,15 +109,22 @@ const handleRowClick = (company) => {
 }
 
 const handleSearch = (query) => {
-    console.log('Search:', query)
+    searchQuery.value = query
+    debouncedSearchCompanies(query)
 }
 
 const handlePageChange = (page) => {
+    if (searchQuery.value) {
+        return
+    }
     currentPage.value = page
     fetchCompanies()
 }
 
 const handleItemsPerPageChange = (itemsCount) => {
+    if (searchQuery.value) {
+        return
+    }
     itemsPerPage.value = itemsCount
     currentPage.value = 1
     fetchCompanies()

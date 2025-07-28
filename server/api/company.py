@@ -19,6 +19,25 @@ async def list_companies(
     return companies
 
 
+@router.get("/quick_search", response_model=List[CompanyRead])
+async def quick_search_companies(
+    q: str,
+    limit: int = 10,
+    current_user: User = Depends(get_current_user)
+):
+    if not q or len(q.strip()) < 2:
+        return []
+    
+    search_term = f"%{q.strip()}%"
+    companies = await Company.query.select_related("invoice_country").filter(
+        Company.columns.name.ilike(search_term) | 
+        Company.columns.reference.ilike(search_term) | 
+        Company.columns.invoice_city.ilike(search_term)
+    ).limit(limit).all()
+    
+    return companies
+
+
 @router.get("/{company_id}", response_model=CompanyRead)
 async def get_company(
     company_id: int,

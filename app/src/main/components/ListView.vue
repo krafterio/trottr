@@ -63,7 +63,7 @@
                                     @update:checked="toggleFilter(filter.key, option.value)" />
                                 <span class="ml-2 text-sm text-neutral-600">{{ option.label }}</span>
                                 <span v-if="option.count" class="ml-auto text-xs text-neutral-400">{{ option.count
-                                }}</span>
+                                    }}</span>
                             </label>
                         </div>
                     </div>
@@ -75,16 +75,17 @@
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto">
+            <div class="flex-1 overflow-y-auto pb-16">
                 <div class="px-6 py-4 border-b">
                     <div class="flex items-center justify-between">
-                        <div class="relative">
+                        <div v-if="searchFields" class="relative">
                             <Search
                                 class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                             <Input type="text" :placeholder="config.searchPlaceholder || 'Recherche rapide...'"
                                 class="h-9 pl-10 pr-4 py-2 w-64" v-model="searchQuery"
                                 @input="$emit('search', searchQuery)" />
                         </div>
+                        <div v-else></div>
 
                         <div class="flex items-center space-x-3">
                             <span class="text-sm text-muted-foreground">{{ totalItems }} {{ config.itemsLabel }}</span>
@@ -214,6 +215,10 @@ const props = defineProps({
     filterFields: {
         type: Array,
         default: () => []
+    },
+    searchFields: {
+        type: String,
+        default: null
     },
     kpis: {
         type: Array,
