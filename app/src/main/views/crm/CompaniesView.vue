@@ -152,6 +152,10 @@ useBus(bus, 'company-saved', () => {
     refreshList()
 })
 
+useBus(bus, 'company-created-stay', () => {
+    refreshList()
+})
+
 onMounted(() => {
     fetchCompanies()
 })

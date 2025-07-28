@@ -1,29 +1,29 @@
 <template>
-  <AlertDialog v-model:open="localShow">
+  <AlertDialog v-model:open="isOpen">
     <AlertDialogContent>
       <AlertDialogHeader>
         <AlertDialogTitle class="flex items-center gap-2">
           <Trash2 :size="16" />
-          {{ title }}
+          {{ dialogData.title }}
         </AlertDialogTitle>
         <AlertDialogDescription class="space-y-2">
-          <p>{{ message }}</p>
-          <p v-if="itemName" class="font-semibold text-foreground">{{ itemName }}</p>
+          <p>{{ dialogData.message }}</p>
+          <p v-if="dialogData.itemName" class="font-semibold text-foreground">{{ dialogData.itemName }}</p>
           <p class="text-sm text-muted-foreground flex items-center">
             <Info :size="14" class=" mr-1" />
-            {{ confirmationText || 'Cette action est irréversible.' }}
+            {{ dialogData.confirmationText || 'Cette action est irréversible.' }}
           </p>
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel @click="cancel" :disabled="loading">
-          {{ cancelText || 'Annuler' }}
+          {{ dialogData.cancelText || 'Annuler' }}
         </AlertDialogCancel>
         <AlertDialogAction @click="confirm" :disabled="loading">
           <div v-if="loading"
             class="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
           <Trash2 :size="16" />
-          {{ confirmText || 'Supprimer' }}
+          {{ dialogData.confirmText || 'Supprimer' }}
         </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
@@ -41,56 +41,49 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/common/components/ui/alert-dialog';
-import { bus } from '@/common/composables/bus';
+import { bus, useBus } from '@/common/composables/bus';
 import { Info, Trash2 } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { ref } from 'vue';
 
-const props = defineProps({
-  show: {
-    type: Boolean,
-    default: false
-  },
-  title: {
-    type: String,
-    required: true
-  },
-  message: {
-    type: String,
-    required: true
-  },
-  itemName: {
-    type: String,
-    default: ''
-  },
-  confirmationText: {
-    type: String,
-    default: ''
-  },
-  confirmText: {
-    type: String,
-    default: ''
-  },
-  cancelText: {
-    type: String,
-    default: ''
-  },
-  loading: {
-    type: Boolean,
-    default: false
+const isOpen = ref(false)
+const loading = ref(false)
+const dialogData = ref({
+  title: '',
+  message: '',
+  itemName: '',
+  confirmationText: '',
+  confirmText: '',
+  cancelText: ''
+})
+
+// Écoute l'événement d'ouverture générique
+useBus(bus, 'confirm-delete', (event) => {
+  const data = event.detail
+  dialogData.value = {
+    title: data.title || 'Supprimer',
+    message: data.message || 'Êtes-vous sûr de vouloir supprimer cet élément ?',
+    itemName: data.itemName || '',
+    confirmationText: data.confirmationText || '',
+    confirmText: data.confirmText || '',
+    cancelText: data.cancelText || ''
   }
-});
-
-const localShow = computed({
-  get: () => props.show,
-  set: (value) => bus.trigger('confirm-delete-dialog:update-show', value)
-});
+  isOpen.value = true
+})
 
 const confirm = () => {
-  bus.trigger('confirm-delete-dialog:confirm');
-};
+  loading.value = true
+  bus.trigger('confirm-delete-dialog:confirmed')
+}
 
 const cancel = () => {
-  bus.trigger('confirm-delete-dialog:cancel');
-  localShow.value = false;
-};
+  isOpen.value = false
+  loading.value = false
+  bus.trigger('confirm-delete-dialog:cancelled')
+}
+
+// Écoute pour fermer après action terminée
+useBus(bus, 'confirm-delete-dialog:close', () => {
+  isOpen.value = false
+  loading.value = false
+})
 </script>

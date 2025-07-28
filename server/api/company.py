@@ -34,7 +34,7 @@ async def list_companies(
     skip = (page - 1) * per_page
     
     total = await Company.query.count()
-    companies = await Company.query.offset(skip).limit(per_page).all()
+    companies = await Company.query.order_by("-created_at").offset(skip).limit(per_page).all()
     
     total_pages = (total + per_page - 1) // per_page
     
@@ -79,7 +79,7 @@ async def quick_search_companies(
     )
     
     total = await query.count()
-    companies = await query.offset(skip).limit(per_page).all()
+    companies = await query.order_by("-created_at").offset(skip).limit(per_page).all()
     
     total_pages = (total + per_page - 1) // per_page
     

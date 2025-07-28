@@ -2,26 +2,31 @@
     <div class="h-full flex flex-col bg-neutral-100">
         <div class="bg-white border-b">
             <div class="px-6 py-4 flex items-center justify-between">
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
                     <Button variant="outline" @click="$router.go(-1)" class="h-9 w-9">
                         <ArrowLeft :size="20" />
                     </Button>
-                    <div class="flex flex-col gap-1">
-                        <div class="flex items-center space-x-3">
-                            <h1 class="text-xl text-neutral-900 font-semibold">{{ company.name || 'Chargement...' }}
-                            </h1>
-                        </div>
-                        <div class="flex gap-2">
-                            <Badge variant="outline" v-if="company.company_type">
-                                <Building class="h-4 w-4" />
-                                {{ getCompanyTypeLabel(company.company_type) }}
-                            </Badge>
-                            <Badge variant="outline" v-if="company.siret">
-                                <FileText class="h-4 w-4" />
-                                SIRET: {{ company.siret }}
-                            </Badge>
-                        </div>
-                    </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                            <Button variant="outline" class="h-9 w-9">
+                                <MoreHorizontal :size="20" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                            <DropdownMenuItem @click="handleDelete" class="text-red-600 focus:text-red-600">
+                                <Trash class="h-4 w-4 mr-2" />
+                                Supprimer
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <template v-if="isDirty"">
+                        <Button @click="saveCompany" variant="outline" :disabled="loading" class="w-9">
+                        <Save class="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" @click="handleCancel" :disabled="loading" class="w-9">
+                            <RotateCcw class="h-4 w-4" />
+                        </Button>
+                    </template>
                 </div>
                 <div class="flex items-center space-x-3">
                     <Button variant="outline" v-if="company.email" @click="contactCompany">
@@ -45,12 +50,12 @@
                     <form @submit.prevent="saveCompany" class="space-y-4">
                         <div>
                             <label class="text-sm font-medium text-neutral-700">Raison sociale</label>
-                            <Input v-model="companyForm.name" class="mt-1" />
+                            <Input v-model="companyForm.name" class="mt-1" @input="checkDirty" />
                         </div>
 
                         <div>
                             <label class="text-sm font-medium text-neutral-700">Type de société</label>
-                            <Select v-model="companyForm.company_type">
+                            <Select v-model="companyForm.company_type" @update:model-value="checkDirty">
                                 <SelectTrigger class="mt-1 w-full">
                                     <SelectValue placeholder="Sélectionner un type" />
                                 </SelectTrigger>
@@ -65,18 +70,20 @@
 
                         <div>
                             <label class="text-sm font-medium text-neutral-700">Référence interne</label>
-                            <Input v-model="companyForm.reference" class="mt-1" placeholder="CLI-001" />
+                            <Input v-model="companyForm.reference" class="mt-1" placeholder="CLI-001"
+                                @input="checkDirty" />
                         </div>
 
                         <div>
                             <label class="text-sm font-medium text-neutral-700">Téléphone</label>
-                            <Input v-model="companyForm.phone" class="mt-1" placeholder="01 42 33 44 55" />
+                            <Input v-model="companyForm.phone" class="mt-1" placeholder="01 42 33 44 55"
+                                @input="checkDirty" />
                         </div>
 
                         <div>
                             <label class="text-sm font-medium text-neutral-700">Email</label>
                             <Input v-model="companyForm.email" type="email" class="mt-1"
-                                placeholder="contact@entreprise.fr" />
+                                placeholder="contact@entreprise.fr" @input="checkDirty" />
                         </div>
 
                         <Separator />
@@ -85,17 +92,20 @@
 
                         <div>
                             <label class="text-sm font-medium text-neutral-700">Rue</label>
-                            <Input v-model="companyForm.invoice_street" class="mt-1" placeholder="123 Rue de la Paix" />
+                            <Input v-model="companyForm.invoice_street" class="mt-1" placeholder="123 Rue de la Paix"
+                                @input="checkDirty" />
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-sm font-medium text-neutral-700">Code postal</label>
-                                <Input v-model="companyForm.invoice_zip" class="mt-1" placeholder="75001" />
+                                <Input v-model="companyForm.invoice_zip" class="mt-1" placeholder="75001"
+                                    @input="checkDirty" />
                             </div>
                             <div>
                                 <label class="text-sm font-medium text-neutral-700">Ville</label>
-                                <Input v-model="companyForm.invoice_city" class="mt-1" placeholder="Paris" />
+                                <Input v-model="companyForm.invoice_city" class="mt-1" placeholder="Paris"
+                                    @input="checkDirty" />
                             </div>
                         </div>
 
@@ -103,18 +113,14 @@
 
                         <div>
                             <label class="text-sm font-medium text-neutral-700">SIRET</label>
-                            <Input v-model="companyForm.siret" class="mt-1" placeholder="12345678901234" />
+                            <Input v-model="companyForm.siret" class="mt-1" placeholder="12345678901234"
+                                @input="checkDirty" />
                         </div>
 
                         <div>
                             <label class="text-sm font-medium text-neutral-700">TVA</label>
-                            <Input v-model="companyForm.vat" class="mt-1" placeholder="FR12345678901" />
-                        </div>
-
-                        <div class="pt-4">
-                            <Button type="submit" :disabled="loading">
-                                {{ loading ? 'Sauvegarde...' : 'Sauvegarder' }}
-                            </Button>
+                            <Input v-model="companyForm.vat" class="mt-1" placeholder="FR12345678901"
+                                @input="checkDirty" />
                         </div>
                     </form>
                 </div>
@@ -288,12 +294,13 @@
 </template>
 
 <script setup>
-import { Badge } from '@/common/components/ui/badge'
 import { Button } from '@/common/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu'
 import Input from '@/common/components/ui/input/Input.vue'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select'
 import { Separator } from '@/common/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/common/components/ui/tabs'
+import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useCompany } from '@/common/composables/useCompany'
 import {
@@ -306,16 +313,22 @@ import {
     MapPin,
     MapPinIcon,
     MessageSquare,
+    MoreHorizontal,
     Phone,
     Plus,
+    RotateCcw,
+    Save,
     Settings,
+    Trash,
     Users,
     Wrench
 } from 'lucide-vue-next'
 import { onMounted, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { toast } from 'vue-sonner'
 
 const route = useRoute()
+const router = useRouter()
 const fetcher = useFetcher()
 const { getCompanyTypeLabel, getCompanyTypeOptions } = useCompany()
 
@@ -323,6 +336,13 @@ const companyId = route.params.id
 const company = ref({})
 const loading = ref(false)
 const error = ref(null)
+const isDirty = ref(false)
+const originalForm = ref({})
+
+// Écoute la confirmation de suppression
+useBus(bus, 'confirm-delete-dialog:confirmed', () => {
+    deleteCompany()
+})
 
 const companyTypeOptions = getCompanyTypeOptions()
 
@@ -339,6 +359,54 @@ const companyForm = reactive({
     vat: ''
 })
 
+const checkDirty = () => {
+    isDirty.value = JSON.stringify(companyForm) !== JSON.stringify(originalForm.value)
+}
+
+const resetForm = (data) => {
+    Object.assign(companyForm, {
+        name: data.name || '',
+        company_type: data.company_type || '',
+        reference: data.reference || '',
+        phone: data.phone || '',
+        email: data.email || '',
+        invoice_street: data.invoice_street || '',
+        invoice_zip: data.invoice_zip || '',
+        invoice_city: data.invoice_city || '',
+        siret: data.siret || '',
+        vat: data.vat || ''
+    })
+    originalForm.value = JSON.parse(JSON.stringify(companyForm))
+    isDirty.value = false
+}
+
+const handleCancel = () => {
+    resetForm(company.value)
+}
+
+const handleDelete = () => {
+    if (!companyId || !company.value.name) return
+
+    bus.trigger('confirm-delete', {
+        title: 'Supprimer l\'entreprise',
+        message: 'Êtes-vous sûr de vouloir supprimer cette entreprise ?',
+        itemName: company.value.name
+    })
+}
+
+const deleteCompany = async () => {
+    try {
+        await fetcher.delete(`/companies/${companyId}`)
+        toast.success('Entreprise supprimée avec succès')
+        bus.trigger('confirm-delete-dialog:close')
+        router.push('/companies')
+    } catch (err) {
+        console.error('Erreur lors de la suppression:', err)
+        toast.error('Erreur lors de la suppression')
+        bus.trigger('confirm-delete-dialog:close')
+    }
+}
+
 const fetchCompany = async () => {
     if (!companyId) return
 
@@ -348,19 +416,7 @@ const fetchCompany = async () => {
     try {
         const response = await fetcher.get(`/companies/${companyId}`)
         company.value = response.data
-
-        Object.assign(companyForm, {
-            name: company.value.name || '',
-            company_type: company.value.company_type || '',
-            reference: company.value.reference || '',
-            phone: company.value.phone || '',
-            email: company.value.email || '',
-            invoice_street: company.value.invoice_street || '',
-            invoice_zip: company.value.invoice_zip || '',
-            invoice_city: company.value.invoice_city || '',
-            siret: company.value.siret || '',
-            vat: company.value.vat || ''
-        })
+        resetForm(company.value)
     } catch (err) {
         console.error('Erreur lors du chargement de l\'entreprise:', err)
         error.value = err
@@ -378,11 +434,12 @@ const saveCompany = async () => {
     try {
         const response = await fetcher.put(`/companies/${companyId}`, companyForm)
         company.value = response.data
-
-        console.log('Entreprise sauvegardée avec succès')
+        resetForm(company.value)
+        toast.success('Entreprise sauvegardée avec succès')
     } catch (err) {
         console.error('Erreur lors de la sauvegarde:', err)
         error.value = err
+        toast.error('Erreur lors de la sauvegarde')
     } finally {
         loading.value = false
     }

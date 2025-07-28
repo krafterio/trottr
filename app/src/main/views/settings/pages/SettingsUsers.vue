@@ -184,10 +184,6 @@
 
         <!-- Dialog d'édition utilisateur -->
         <UserEditDialog :is-open="showEditDialog" :user="selectedUser" />
-
-        <!-- Dialog de confirmation de suppression -->
-        <ConfirmDeleteDialog :show="showDeleteDialog" :title="deleteDialogData.title"
-            :message="deleteDialogData.message" :item-name="deleteDialogData.itemName" :loading="deleteLoading" />
     </div>
 </template>
 
@@ -215,7 +211,6 @@ import {
 } from '@/common/components/ui/table'
 import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
-import ConfirmDeleteDialog from '@/main/components/dialogs/ConfirmDeleteDialog.vue'
 import UserEditDialog from '@/main/components/dialogs/UserEditDialog.vue'
 import { useWorkspaceStore } from '@/main/stores/workspace'
 import { Edit, Mail, Plus, Trash, X } from 'lucide-vue-next'
@@ -232,19 +227,10 @@ const workspaceStore = useWorkspaceStore()
 
 const showInviteDialog = ref(false)
 const showEditDialog = ref(false)
-const showDeleteDialog = ref(false)
 const selectedUser = ref(null)
 const inviteLoading = ref(false)
 const editLoading = ref(false)
-const deleteLoading = ref(false)
-
-const deleteDialogData = ref({
-    title: '',
-    message: '',
-    itemName: '',
-    action: null,
-    data: null
-})
+const deleteAction = ref(null)
 
 const inviteForm = ref({
     email: ''
@@ -257,16 +243,11 @@ const editForm = ref({
     role: ''
 })
 
-useBus(bus, 'confirm-delete-dialog:update-show', (event) => {
-    showDeleteDialog.value = event.detail
-})
-
-useBus(bus, 'confirm-delete-dialog:confirm', () => {
-    confirmDelete()
-})
-
-useBus(bus, 'confirm-delete-dialog:cancel', () => {
-    cancelDelete()
+// Écoute la confirmation de suppression
+useBus(bus, 'confirm-delete-dialog:confirmed', () => {
+    if (deleteAction.value) {
+        deleteAction.value()
+    }
 })
 
 useBus(bus, 'user-edit-dialog:update-open', (event) => {
@@ -369,14 +350,25 @@ const updateUser = async () => {
 const removeUser = (user) => {
     if (user.role === 'Owner') return
 
-    deleteDialogData.value = {
+    deleteAction.value = async () => {
+        try {
+            await fetcher.delete(`/workspace/member/${user.id}`)
+            toast.success('Utilisateur supprimé avec succès !')
+            bus.trigger('confirm-delete-dialog:close')
+            await fetchUsers()
+        } catch (err) {
+            console.error('Erreur lors de la suppression:', err)
+            const errorMessage = err.response?.data?.detail || 'Erreur lors de la suppression'
+            toast.error(errorMessage)
+            bus.trigger('confirm-delete-dialog:close')
+        }
+    }
+
+    bus.trigger('confirm-delete', {
         title: 'Supprimer l\'utilisateur',
         message: 'Êtes-vous sûr de vouloir supprimer cet utilisateur du workspace ?',
-        itemName: user.name || user.email,
-        action: 'removeUser',
-        data: user
-    }
-    showDeleteDialog.value = true
+        itemName: user.name || user.email
+    })
 }
 
 const getInitials = (name, email) => {
@@ -416,44 +408,25 @@ const formatDate = (dateString) => {
 }
 
 const cancelInvitation = (invitation) => {
-    deleteDialogData.value = {
+    deleteAction.value = async () => {
+        try {
+            await fetcher.delete(`/workspace/invitation/${invitation.id}`)
+            toast.success('Invitation annulée avec succès !')
+            bus.trigger('confirm-delete-dialog:close')
+            await fetchInvitations()
+        } catch (err) {
+            console.error('Erreur lors de l\'annulation de l\'invitation:', err)
+            const errorMessage = err.response?.data?.detail || 'Erreur lors de l\'annulation de l\'invitation'
+            toast.error(errorMessage)
+            bus.trigger('confirm-delete-dialog:close')
+        }
+    }
+
+    bus.trigger('confirm-delete', {
         title: 'Annuler l\'invitation',
         message: 'Êtes-vous sûr de vouloir annuler cette invitation ?',
-        itemName: invitation.email,
-        action: 'cancelInvitation',
-        data: invitation
-    }
-    showDeleteDialog.value = true
-}
-
-const confirmDelete = async () => {
-    const { action, data } = deleteDialogData.value
-    deleteLoading.value = true
-
-    try {
-        if (action === 'removeUser') {
-            await fetcher.delete(`/workspace/member/${data.id}`)
-            toast.success('Utilisateur supprimé avec succès !')
-            await fetchUsers()
-        } else if (action === 'cancelInvitation') {
-            await fetcher.delete(`/workspace/invitation/${data.id}`)
-            toast.success('Invitation annulée avec succès !')
-            await fetchInvitations()
-        }
-
-        showDeleteDialog.value = false
-
-    } catch (err) {
-        console.error('Erreur lors de la suppression:', err)
-        const errorMessage = err.response?.data?.detail || 'Erreur lors de la suppression'
-        toast.error(errorMessage)
-    } finally {
-        deleteLoading.value = false
-    }
-}
-
-const cancelDelete = () => {
-    showDeleteDialog.value = false
+        itemName: invitation.email
+    })
 }
 
 onMounted(async () => {

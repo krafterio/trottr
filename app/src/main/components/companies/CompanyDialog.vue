@@ -166,9 +166,12 @@ const handleSubmit = async (action = 'close') => {
 
         if (action === 'view') {
             router.push(`/company/${company.id}`)
+            bus.trigger('company-saved', company)
+        } else {
+            // Action 'close' - on émet un événement spécifique pour rafraîchir la liste
+            bus.trigger('company-created-stay', company)
         }
 
-        bus.trigger('company-saved', company)
         handleClose()
     } catch (error) {
         console.error('Erreur lors de la sauvegarde:', error)
