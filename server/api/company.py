@@ -19,7 +19,7 @@ class PaginatedCompanyResponse(BaseModel):
     total_pages: int
 
 
-@router.get("/", response_model=PaginatedCompanyResponse)
+@router.get("", response_model=PaginatedCompanyResponse)
 async def list_companies(
     page: int = 1,
     per_page: int = 50,

@@ -77,7 +77,7 @@ const fetchCompanies = async () => {
     error.value = null
 
     try {
-        const response = await fetcher.get('/companies/', {
+        const response = await fetcher.get('/companies', {
             params: {
                 page: currentPage.value,
                 per_page: itemsPerPage.value

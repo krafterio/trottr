@@ -30,6 +30,7 @@ class MonModel(BaseModel):
         tablename = "mon_modele"
 ```
 
+Il faut hériter de BaseModel pour pouvoir créer de base les champs techniques comme created_at et updated_at. Mais il faut aussi hériter de WorkspaceableMixin quand le model est propre à un workspace. 
 ### Types de champs importants
 
 #### CharField
