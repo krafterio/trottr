@@ -11,14 +11,8 @@
                         <Download class="h-4 w-4" />
                         Exporter
                     </Button>
-                    <Button @click="openCreateDialog">
-                        <Plus class="h-4 w-4" />
-                        Nouveau technicien
-                    </Button>
                 </div>
             </div>
-
-
         </div>
 
         <div class="flex-1 flex overflow-hidden">
@@ -46,210 +40,152 @@
                 <div v-show="showFilters" class="space-y-6">
                     <div class="mb-6">
                         <h4 class="text-sm font-medium text-neutral-700 mb-2">Spécialité</h4>
-                        <div class="space-y-2">
-                            <label class="flex items-center">
-                                <Checkbox checked />
-                                <span class="ml-2 text-sm text-neutral-600">Électricité</span>
-                                <span class="ml-auto text-xs text-neutral-400">8</span>
+                        <div class="space-y-2" v-if="availableSpecialities.length > 0">
+                            <label v-for="speciality in availableSpecialities" :key="speciality.id"
+                                class="flex items-center">
+                                <Checkbox :checked="selectedFilters.speciality_ids?.includes(speciality.id) || false"
+                                    @update:checked="toggleFilter('speciality_ids', speciality.id)" />
+                                <div class="flex items-center ml-2">
+                                    <span class="text-sm text-neutral-600">{{ speciality.name }}</span>
+                                </div>
                             </label>
-                            <label class="flex items-center">
-                                <Checkbox checked />
-                                <span class="ml-2 text-sm text-neutral-600">Plomberie</span>
-                                <span class="ml-auto text-xs text-neutral-400">6</span>
-                            </label>
-                            <label class="flex items-center">
-                                <Checkbox checked />
-                                <span class="ml-2 text-sm text-neutral-600">Chauffage</span>
-                                <span class="ml-auto text-xs text-neutral-400">5</span>
-                            </label>
-                            <label class="flex items-center">
-                                <Checkbox checked />
-                                <span class="ml-2 text-sm text-neutral-600">Climatisation</span>
-                                <span class="ml-auto text-xs text-neutral-400">4</span>
-                            </label>
-                            <label class="flex items-center">
-                                <Checkbox checked />
-                                <span class="ml-2 text-sm text-neutral-600">Généraliste</span>
-                                <span class="ml-auto text-xs text-neutral-400">5</span>
-                            </label>
+                        </div>
+                        <div v-else class="text-sm text-neutral-400 italic">
+                            Aucune spécialité
                         </div>
                     </div>
 
-                    <Button variant="outline" size="sm" class="w-full">
+                    <Button variant="outline" size="sm" class="w-full" @click="resetFilters">
                         <RotateCcw class="h-4 w-4 mr-2" />
                         Réinitialiser
                     </Button>
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto">
-                <div class="">
-                    <div class="px-6 py-4 border-b">
-                        <div class="flex items-center justify-between">
-                            <div class="relative">
-                                <Search
-                                    class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                                <Input type="text" placeholder="Recherche rapide..." class="h-9 pl-10 pr-4 py-2 w-64" />
-                            </div>
-
-                            <div class="flex items-center space-x-3">
-                                <span class="text-sm text-muted-foreground">28 techniciens</span>
-
-                                <Button variant="outline" size="sm" class="w-8">
-                                    <MoreVertical class="h-4 w-4" />
-                                </Button>
-                                <Button variant="outline">
-                                    <Columns class="h-4 w-4" />
-                                    Colonnes
-                                    <ChevronDown class="h-4 w-4" />
-                                </Button>
-                            </div>
+            <div class="flex-1 overflow-y-auto pb-16">
+                <div class="px-6 py-4 border-b">
+                    <div class="flex items-center justify-between">
+                        <div class="relative">
+                            <Search
+                                class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                            <Input type="text" placeholder="Rechercher un technicien..."
+                                class="h-9 pl-10 pr-4 py-2 w-64" v-model="searchQuery" @input="handleSearch" />
                         </div>
+                        <span class="text-sm text-muted-foreground">{{ totalItems }} techniciens</span>
                     </div>
+                </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-neutral-50 border-b">
-                                <tr>
-                                    <th
-                                        class="px-3 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider max-w-5">
-                                        <Checkbox />
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                        Technicien
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                        Spécialité
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                        Zone intervention
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                        Téléphone
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                        Email
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                        Interventions
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                        Actions
-                                    </th>
+                <div v-if="loading" class="flex-1 flex items-center justify-center py-12">
+                    <div class="text-center">
+                        <div
+                            class="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4">
+                        </div>
+                        <p class="text-neutral-600">Chargement...</p>
+                    </div>
+                </div>
 
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-neutral-200">
-                                <tr v-for="operator in operators" :key="operator.id"
-                                    class="hover:bg-neutral-50 cursor-pointer" @click.stop="editOperator(operator)">
-                                    <td class="px-3 py-2 whitespace-nowrap max-w-5" @click.stop>
-                                        <Checkbox />
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-neutral-900">{{ operator.firstName }} {{
-                                            operator.lastName }}</div>
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap">
-                                        <Badge variant="outline">{{ operator.specialty }}
+                <div v-else-if="operators.length === 0" class="flex-1 flex items-center justify-center py-12">
+                    <div class="text-center py-8">
+                        <div
+                            class="w-16 h-16 mx-auto mb-4 bg-neutral-100 rounded-full flex items-center justify-center">
+                            <Users class="w-8 h-8 text-neutral-400" :stroke-width="1.2" />
+                        </div>
+                        <h3 class="text-lg font-semibold text-neutral-900 mb-2">Aucun technicien trouvé</h3>
+                        <p class="text-neutral-600 mb-6 max-w-md mx-auto">
+                            Commencez par inviter des techniciens dans votre workspace ou modifiez vos filtres de
+                            recherche.
+                        </p>
+                        <Button @click="handleCreate" class="inline-flex items-center">
+                            <Plus class="w-4 h-4 mr-2" />
+                            Inviter un technicien
+                        </Button>
+                    </div>
+                </div>
+
+                <div v-else class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-neutral-50 border-b">
+                            <tr>
+                                <th
+                                    class="px-3 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider max-w-5">
+                                    <Checkbox />
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                                    Technicien
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                                    Spécialités
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                                    Zone intervention
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                                    Téléphone
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                                    Email
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-neutral-200">
+                            <tr v-for="operator in operators" :key="operator.id"
+                                class="hover:bg-neutral-50 cursor-pointer" @click.stop="editOperator(operator)">
+                                <td class="px-3 py-2 whitespace-nowrap max-w-5" @click.stop>
+                                    <Checkbox />
+                                </td>
+                                <td class="px-6 py-2 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-neutral-900">{{ operator.name || operator.email
+                                    }}</div>
+                                </td>
+                                <td class="px-6 py-2 whitespace-nowrap">
+                                    <div class="flex flex-wrap gap-1"
+                                        v-if="operator.job_specialities && operator.job_specialities.length > 0">
+                                        <Badge v-for="speciality in operator.job_specialities" :key="speciality.id"
+                                            variant="outline" class="flex items-center gap-1">
+                                            <div class="w-2 h-2 rounded-full"
+                                                :style="{ backgroundColor: speciality.color }"></div>
+                                            {{ speciality.name }}
                                         </Badge>
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap">
-                                        <div class="text-sm text-neutral-900">{{ operator.zone }}</div>
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap">
-                                        <div class="text-sm text-neutral-900">{{ operator.phone }}</div>
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap">
-                                        <div class="text-sm text-neutral-900">{{ operator.email }}</div>
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap">
-                                        <div class="text-sm text-neutral-900">{{ operator.interventionsCount }}</div>
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap">
-                                        <Button variant="ghost" size="sm" @click.stop="editOperator(operator)">
-                                            <Edit class="h-4 w-4" />
-                                        </Button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                                    </div>
+                                    <span v-else class="text-sm text-neutral-400">Aucune spécialité</span>
+                                </td>
+                                <td class="px-6 py-2 whitespace-nowrap">
+                                    <div class="text-sm text-neutral-900">{{ operator.zone || '-' }}</div>
+                                </td>
+                                <td class="px-6 py-2 whitespace-nowrap">
+                                    <div class="text-sm text-neutral-900">{{ operator.phone || '-' }}</div>
+                                </td>
+                                <td class="px-6 py-2 whitespace-nowrap">
+                                    <div class="text-sm text-neutral-900">{{ operator.email }}</div>
+                                </td>
+                                <td class="px-6 py-2 whitespace-nowrap">
+                                    <Button variant="ghost" size="sm" @click.stop="editOperator(operator)">
+                                        <Edit class="h-4 w-4" />
+                                    </Button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <TablePagination :current-page="1" :total-pages="2" :total-items="28" :items-per-page="20"
-            :position-classes="`bottom-0 ${showFilters ? 'left-80' : 'left-32'} right-0`"
+        <TablePagination :current-page="currentPage" :total-pages="totalPages" :total-items="totalItems"
+            :items-per-page="itemsPerPage"
+            :position-classes="showFilters ? 'bottom-0 left-80 right-0' : 'bottom-0 left-32 right-0'"
             @page-change="handlePageChange" @items-per-page-change="handleItemsPerPageChange" />
 
-        <!-- Dialog d'édition -->
-        <Dialog v-model:open="isEditModalOpen">
-            <DialogContent class="max-w-md">
-                <DialogHeader>
-                    <DialogTitle>{{ editingOperator?.id ? 'Modifier' : 'Ajouter' }} un technicien</DialogTitle>
-                </DialogHeader>
-                <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-sm font-medium text-neutral-700">Prénom</label>
-                            <Input v-model="editingOperator.firstName" class="mt-1" placeholder="Prénom" />
-                        </div>
-                        <div>
-                            <label class="text-sm font-medium text-neutral-700">Nom</label>
-                            <Input v-model="editingOperator.lastName" class="mt-1" placeholder="Nom" />
-                        </div>
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-neutral-700">Spécialité</label>
-                        <Select v-model="editingOperator.specialty">
-                            <SelectTrigger class="mt-1 w-full">
-                                <SelectValue placeholder="Sélectionner une spécialité" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Électricité">Électricité</SelectItem>
-                                <SelectItem value="Plomberie">Plomberie</SelectItem>
-                                <SelectItem value="Chauffage">Chauffage</SelectItem>
-                                <SelectItem value="Climatisation">Climatisation</SelectItem>
-                                <SelectItem value="Généraliste">Généraliste</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-neutral-700">Zone d'intervention</label>
-                        <Select v-model="editingOperator.zone">
-                            <SelectTrigger class="mt-1 w-full">
-                                <SelectValue placeholder="Sélectionner une zone" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Paris">Paris</SelectItem>
-                                <SelectItem value="Île-de-France">Île-de-France</SelectItem>
-                                <SelectItem value="National">National</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-neutral-700">Téléphone</label>
-                        <Input v-model="editingOperator.phone" class="mt-1" placeholder="06 12 34 56 78" />
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-neutral-700">Email</label>
-                        <Input v-model="editingOperator.email" type="email" class="mt-1"
-                            placeholder="email@trottr.com" />
-                    </div>
-                </div>
-                <DialogFooter>
-                    <Button variant="outline" @click="cancelEdit">Annuler</Button>
-                    <Button @click="saveOperator">{{ editingOperator?.id ? 'Modifier' : 'Ajouter' }}</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <!-- Dialog d'édition utilisateur -->
+        <UserEditDialog :is-open="showEditDialog" :user="selectedUser" />
     </div>
 </template>
 
@@ -257,178 +193,155 @@
 import { Badge } from '@/common/components/ui/badge'
 import { Button } from '@/common/components/ui/button'
 import { Checkbox } from '@/common/components/ui/checkbox'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog'
 import Input from '@/common/components/ui/input/Input.vue'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select'
+import { bus, useBus } from '@/common/composables/bus'
+import { useFetcher } from '@/common/composables/fetcher'
 import TablePagination from '@/main/components/TablePagination.vue'
+import UserEditDialog from '@/main/components/dialogs/UserEditDialog.vue'
+import { debounce } from 'lodash'
 import {
-    ChevronDown,
-    Columns,
     Download,
     Edit,
-    MoreVertical,
     PanelLeftClose,
     PanelLeftOpen,
     Plus,
     RotateCcw,
-    Search
+    Search,
+    Users
 } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 
+const fetcher = useFetcher()
+
+const operators = ref([])
+const availableSpecialities = ref([])
+const currentPage = ref(1)
+const totalPages = ref(1)
+const totalItems = ref(0)
+const itemsPerPage = ref(50)
+const loading = ref(false)
+const error = ref(null)
+const searchQuery = ref('')
 const showFilters = ref(true)
-const isEditModalOpen = ref(false)
-const editingOperator = ref({
-    id: null,
-    firstName: '',
-    lastName: '',
-    specialty: '',
-    zone: '',
-    phone: '',
-    email: '',
-    interventionsCount: 0
+const selectedFilters = reactive({
+    speciality_ids: []
 })
+const showEditDialog = ref(false)
+const selectedUser = ref(null)
 
 const toggleFilters = () => {
     showFilters.value = !showFilters.value
 }
 
-const openCreateDialog = () => {
-    editingOperator.value = {
-        id: null,
-        firstName: '',
-        lastName: '',
-        specialty: '',
-        zone: '',
-        phone: '',
-        email: '',
-        interventionsCount: 0
+const toggleFilter = (filterKey, value) => {
+    if (!selectedFilters[filterKey]) {
+        selectedFilters[filterKey] = []
     }
-    isEditModalOpen.value = true
+
+    const index = selectedFilters[filterKey].indexOf(value)
+    if (index > -1) {
+        selectedFilters[filterKey].splice(index, 1)
+    } else {
+        selectedFilters[filterKey].push(value)
+    }
+
+    applyFilters()
+}
+
+const resetFilters = () => {
+    selectedFilters.speciality_ids = []
+    applyFilters()
+}
+
+const applyFilters = () => {
+    currentPage.value = 1
+    fetchOperators()
+}
+
+const fetchOperators = async () => {
+    loading.value = true
+    error.value = null
+
+    try {
+        const params = {
+            page: currentPage.value,
+            per_page: itemsPerPage.value
+        }
+
+        if (selectedFilters.speciality_ids.length > 0) {
+            params.speciality_ids = selectedFilters.speciality_ids
+        }
+
+        if (searchQuery.value && searchQuery.value.trim().length >= 2) {
+            params.q = searchQuery.value.trim()
+        }
+
+        const response = await fetcher.get('/operators', { params })
+        operators.value = response.data.items || []
+        totalItems.value = response.data.total || 0
+        totalPages.value = response.data.total_pages || 1
+        currentPage.value = response.data.page || 1
+    } catch (err) {
+        console.error('Erreur lors du chargement des techniciens:', err)
+        error.value = err
+    } finally {
+        loading.value = false
+    }
+}
+
+const fetchSpecialities = async () => {
+    try {
+        const response = await fetcher.get('/job-speciality')
+        availableSpecialities.value = response.data || []
+    } catch (err) {
+        console.error('Erreur lors du chargement des spécialités:', err)
+    }
+}
+
+const debouncedSearchOperators = debounce(() => {
+    currentPage.value = 1
+    fetchOperators()
+}, 300)
+
+const handleCreate = () => {
+    selectedUser.value = { role: 'OPERATOR' }
+    showEditDialog.value = true
 }
 
 const editOperator = (operator) => {
-    editingOperator.value = { ...operator }
-    isEditModalOpen.value = true
+    selectedUser.value = operator
+    showEditDialog.value = true
 }
 
-const cancelEdit = () => {
-    editingOperator.value = {
-        id: null,
-        firstName: '',
-        lastName: '',
-        specialty: '',
-        zone: '',
-        phone: '',
-        email: '',
-        interventionsCount: 0
-    }
-    isEditModalOpen.value = false
+const handleSearch = () => {
+    debouncedSearchOperators()
 }
-
-const saveOperator = () => {
-    if (editingOperator.value.id) {
-        const index = operators.findIndex(op => op.id === editingOperator.value.id)
-        if (index !== -1) {
-            operators[index] = { ...editingOperator.value }
-        }
-    } else {
-        const newId = Math.max(...operators.map(op => op.id)) + 1
-        operators.push({
-            ...editingOperator.value,
-            id: newId
-        })
-    }
-    cancelEdit()
-}
-
-const operators = [
-    {
-        id: 1,
-        firstName: 'Pierre',
-        lastName: 'Martin',
-        specialty: 'Électricité',
-        zone: 'Paris',
-        phone: '06 12 34 56 78',
-        email: 'pierre.martin@trottr.com',
-        interventionsCount: 45
-    },
-    {
-        id: 2,
-        firstName: 'Marie',
-        lastName: 'Dubois',
-        specialty: 'Plomberie',
-        zone: 'Île-de-France',
-        phone: '06 98 76 54 32',
-        email: 'marie.dubois@trottr.com',
-        interventionsCount: 38
-    },
-    {
-        id: 3,
-        firstName: 'Jean',
-        lastName: 'Dupont',
-        specialty: 'Chauffage',
-        zone: 'Paris',
-        phone: '06 45 67 89 12',
-        email: 'jean.dupont@trottr.com',
-        interventionsCount: 52
-    },
-    {
-        id: 4,
-        firstName: 'Sophie',
-        lastName: 'Leroy',
-        specialty: 'Climatisation',
-        zone: 'Île-de-France',
-        phone: '06 23 45 67 89',
-        email: 'sophie.leroy@trottr.com',
-        interventionsCount: 29
-    },
-    {
-        id: 5,
-        firstName: 'Thomas',
-        lastName: 'Bernard',
-        specialty: 'Généraliste',
-        zone: 'National',
-        phone: '06 78 90 12 34',
-        email: 'thomas.bernard@trottr.com',
-        interventionsCount: 67
-    },
-    {
-        id: 6,
-        firstName: 'Émilie',
-        lastName: 'Moreau',
-        specialty: 'Électricité',
-        zone: 'Paris',
-        phone: '06 56 78 90 12',
-        email: 'emilie.moreau@trottr.com',
-        interventionsCount: 41
-    },
-    {
-        id: 7,
-        firstName: 'Nicolas',
-        lastName: 'Rousseau',
-        specialty: 'Plomberie',
-        zone: 'Île-de-France',
-        phone: '06 34 56 78 90',
-        email: 'nicolas.rousseau@trottr.com',
-        interventionsCount: 33
-    },
-    {
-        id: 8,
-        firstName: 'Lucie',
-        lastName: 'Simon',
-        specialty: 'Chauffage',
-        zone: 'Paris',
-        phone: '06 12 78 90 34',
-        email: 'lucie.simon@trottr.com',
-        interventionsCount: 0
-    }
-]
 
 const handlePageChange = (page) => {
-    console.log('Page changed to:', page)
+    currentPage.value = page
+    fetchOperators()
 }
 
-const handleItemsPerPageChange = (itemsPerPage) => {
-    console.log('Items per page changed to:', itemsPerPage)
+const handleItemsPerPageChange = (itemsCount) => {
+    itemsPerPage.value = parseInt(itemsCount)
+    currentPage.value = 1
+    fetchOperators()
 }
+
+const refreshList = () => {
+    fetchOperators()
+}
+
+useBus(bus, 'user-edit-dialog:update-open', (event) => {
+    showEditDialog.value = event.detail
+})
+
+useBus(bus, 'user-edit-dialog:user-updated', () => {
+    refreshList()
+})
+
+onMounted(() => {
+    fetchOperators()
+    fetchSpecialities()
+})
 </script>
