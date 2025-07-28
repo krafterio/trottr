@@ -622,4 +622,5 @@ async def _get_workspace_read(workspace: Workspace) -> WorkspaceRead:
         is_trial=workspace.is_trial,
         default_job_duration=workspace.default_job_duration,
         default_job_priority=workspace.default_job_priority,
+        use_subsites=workspace.use_subsites,
     )

@@ -72,7 +72,9 @@
                         <div>
                             <label class="text-sm font-medium text-neutral-700">Pays *</label>
                             <CountrySelect v-model="form.country" class="mt-1" placeholder="Sélectionner un pays"
-                                required />
+                                required :class="{ 'border-red-500': errors.country }"
+                                @update:model-value="clearCountryError" />
+                            <p v-if="errors.country" class="text-sm text-red-600 mt-1">{{ errors.country }}</p>
                         </div>
 
                         <DialogFooter>
@@ -114,6 +116,7 @@ const loading = ref(false)
 const isEdit = ref(false)
 const siteId = ref(null)
 const buildingTypeOptions = getSiteBuildingTypeOptions()
+const errors = ref({})
 
 const defaultForm = {
     name: '',
@@ -133,6 +136,15 @@ const resetForm = () => {
     Object.assign(form, defaultForm)
     isEdit.value = false
     siteId.value = null
+    errors.value = {}
+}
+
+const clearErrors = () => {
+    errors.value = {}
+}
+
+const clearCountryError = () => {
+    errors.value.country = null
 }
 
 const handleClose = () => {
@@ -141,8 +153,19 @@ const handleClose = () => {
 }
 
 const handleSubmit = async () => {
+    // Nettoyer les erreurs précédentes
+    clearErrors()
+
+    // Validation du nom
     if (!form.name.trim()) {
         toast.error('Le nom du site est obligatoire')
+        return
+    }
+
+    // Validation du pays
+    if (!form.country) {
+        errors.value.country = 'Le pays est obligatoire'
+        toast.error('Le pays est obligatoire')
         return
     }
 
@@ -175,7 +198,25 @@ const handleSubmit = async () => {
         handleClose()
     } catch (error) {
         console.error('Erreur lors de la sauvegarde:', error)
-        toast.error(isEdit.value ? 'Erreur lors de la modification' : 'Erreur lors de la création')
+
+        // Gestion des erreurs spécifiques
+        if (error.response?.status === 400) {
+            const errorDetail = error.response.data?.detail
+            if (typeof errorDetail === 'string') {
+                if (errorDetail.includes('country')) {
+                    errors.value.country = 'Le pays sélectionné est invalide'
+                    toast.error('Le pays sélectionné est invalide')
+                } else if (errorDetail.includes('name')) {
+                    toast.error('Le nom du site est invalide')
+                } else {
+                    toast.error(errorDetail)
+                }
+            } else {
+                toast.error('Données invalides. Vérifiez que tous les champs obligatoires sont remplis.')
+            }
+        } else {
+            toast.error(isEdit.value ? 'Erreur lors de la modification' : 'Erreur lors de la création')
+        }
     } finally {
         loading.value = false
     }
@@ -206,8 +247,8 @@ useBus(bus, 'open-site-dialog', (event) => {
         if (data.company) {
             form.company = data.company
         }
-        if (data.contact_id) {
-            form.contact = data.contact_id
+        if (data.contact) {
+            form.contact = data.contact
         }
     }
     isOpen.value = true

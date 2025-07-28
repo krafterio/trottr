@@ -146,7 +146,13 @@ async def update_contact(
         if not company:
             raise HTTPException(status_code=400, detail="Company not found")
     
-    await contact.update(**update_data)
+    # Mettre à jour les champs
+    for key, value in update_data.items():
+        setattr(contact, key, value)
+    
+    # Sauvegarder pour déclencher le recalcul du full_name
+    await contact.save()
+    
     return await Contact.query.select_related("company").get(id=contact_id)
 
 

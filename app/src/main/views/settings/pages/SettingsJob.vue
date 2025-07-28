@@ -14,12 +14,15 @@
                             <SelectValue placeholder="Sélectionner une durée" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="30">30 minutes</SelectItem>
                             <SelectItem value="60">1 heure</SelectItem>
                             <SelectItem value="90">1 heure 30 minutes</SelectItem>
                             <SelectItem value="120">2 heures</SelectItem>
                             <SelectItem value="180">3 heures</SelectItem>
                             <SelectItem value="240">4 heures</SelectItem>
+                            <SelectItem value="300">5 heures</SelectItem>
+                            <SelectItem value="360">6 heures</SelectItem>
+                            <SelectItem value="420">7 heures</SelectItem>
+                            <SelectItem value="480">8 heures</SelectItem>
                         </SelectContent>
                     </Select>
                     <p class="text-sm text-neutral-500">
@@ -40,6 +43,21 @@
                             <SelectItem value="urgent">Urgente</SelectItem>
                         </SelectContent>
                     </Select>
+                </div>
+            </div>
+
+            <Separator />
+
+            <div class="space-y-4">
+                <h3 class="text-base font-medium text-neutral-900">Gestion des lots</h3>
+                <div class="flex items-center justify-between">
+                    <div class="space-y-1">
+                        <Label for="use-subsites">Utiliser la gestion des lots</Label>
+                        <p class="text-sm text-neutral-500">
+                            Active la gestion des lots pour organiser les sites en sous-groupes.
+                        </p>
+                    </div>
+                    <Switch id="use-subsites" :model-value="useSubsites" @update:model-value="useSubsites = $event" />
                 </div>
             </div>
 
@@ -249,6 +267,7 @@ import { Input } from '@/common/components/ui/input'
 import { Label } from '@/common/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select'
 import { Separator } from '@/common/components/ui/separator'
+import { Switch } from '@/common/components/ui/switch'
 import Table from '@/common/components/ui/table/Table.vue'
 import TableCell from '@/common/components/ui/table/TableCell.vue'
 import TableHead from '@/common/components/ui/table/TableHead.vue'
@@ -265,6 +284,7 @@ const loading = ref(false)
 
 const defaultJobDuration = ref(null)
 const defaultJobPriority = ref(null)
+const useSubsites = ref(false)
 
 const jobStatuses = ref([])
 
@@ -293,6 +313,7 @@ const loadWorkspaceSettings = async () => {
 
         defaultJobDuration.value = workspace.default_job_duration ? String(workspace.default_job_duration) : null
         defaultJobPriority.value = workspace.default_job_priority || null
+        useSubsites.value = workspace.use_subsites || false
     } catch (error) {
         console.error('Erreur lors du chargement des paramètres:', error)
         toast.error('Impossible de charger les paramètres du workspace')
@@ -302,8 +323,9 @@ const loadWorkspaceSettings = async () => {
 const saveWorkspaceSettings = async () => {
     try {
         const payload = {
-            default_job_duration: defaultJobDuration.value ? parseInt(defaultJobDuration.value) : null,
-            default_job_priority: defaultJobPriority.value || null
+            default_job_duration: defaultJobDuration.value || null,
+            default_job_priority: defaultJobPriority.value || null,
+            use_subsites: useSubsites.value
         }
 
         await fetcher.patch('/workspace', payload)

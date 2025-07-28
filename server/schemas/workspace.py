@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
 from models.workspace_user import WorkspaceUserRole
-from models.workspace import Currency
+from models.workspace import Currency, DefaultJobDuration, DefaultJobPriority
 
 
 class CountryRead(BaseModel):
@@ -41,9 +41,9 @@ class WorkspaceUpdate(BaseModel):
     siren: str | None = None
     vat: str | None = None
     comply_with_local_privacy_laws: bool | None = None
-    default_job_duration: int | None = None
-    default_job_priority: str | None = None
-
+    default_job_duration: DefaultJobDuration | None = None
+    default_job_priority: DefaultJobPriority | None = None
+    use_subsites: bool | None = None
 
 class WorkspaceUserRead(UserRead):
     role: WorkspaceUserRole
@@ -75,8 +75,9 @@ class WorkspaceRead(BaseModel):
     comply_with_local_privacy_laws: bool
     trial_end: datetime | None = None
     is_trial: bool
-    default_job_duration: int | None = None
-    default_job_priority: str | None = None
-
+    default_job_duration: DefaultJobDuration | None = None
+    default_job_priority: DefaultJobPriority | None = None
+    use_subsites: bool
+    
     class Config:
         from_attributes = True

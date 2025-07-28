@@ -153,7 +153,8 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-4 gap-4 mb-4">
+                <div class="grid grid-cols-3 gap-4 mb-4"
+                    :class="{ 'grid-cols-4': workspaceStore.workspace?.use_subsites }">
                     <div class="bg-white p-4 rounded-lg border">
                         <div class="text-2xl font-semibold text-neutral-900">{{ kpis.sites_count || '-' }}</div>
                         <div class="text-sm text-neutral-600">Sites</div>
@@ -166,7 +167,7 @@
                         <div class="text-2xl font-semibold text-neutral-900">{{ kpis.interventions_count || '-' }}</div>
                         <div class="text-sm text-neutral-600">Interventions</div>
                     </div>
-                    <div class="bg-white p-4 rounded-lg border">
+                    <div v-if="workspaceStore.workspace?.use_subsites" class="bg-white p-4 rounded-lg border">
                         <div class="text-2xl font-semibold text-neutral-900">{{ kpis.lots_count || '-' }}</div>
                         <div class="text-sm text-neutral-600">Lots</div>
                     </div>
@@ -177,10 +178,10 @@
                     <TabsList class="w-full mb-3 bg-neutral-200">
                         <TabsTrigger value="sites">Sites</TabsTrigger>
                         <TabsTrigger value="contacts">Contacts</TabsTrigger>
-                        <TabsTrigger value="equipements">Équipements</TabsTrigger>
-                        <TabsTrigger value="contrats">Contrats</TabsTrigger>
                         <TabsTrigger value="interventions">Interventions</TabsTrigger>
-                        <TabsTrigger value="documents">Documents</TabsTrigger>
+                        <TabsTrigger v-if="workspaceStore.workspace?.use_subsites" value="lots">Lots</TabsTrigger>
+                        <TabsTrigger value="contrats">Contrats</TabsTrigger>
+
                     </TabsList>
 
                     <TabsContent value="sites" class="bg-white rounded-lg border">
@@ -191,14 +192,16 @@
                         <CompanyContacts :company-id="company.id" />
                     </TabsContent>
 
-                    <TabsContent value="equipements" class="bg-white rounded-lg border">
+                    <TabsContent v-if="workspaceStore.workspace?.use_subsites" value="lots"
+                        class="bg-white rounded-lg border">
                         <div class="p-6">
                             <div class="text-center py-8">
-                                <Settings class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                                <h3 class="text-lg font-medium text-neutral-900 mb-2">Équipements</h3>
-                                <p class="text-neutral-600 mb-4">Cette section permettra de gérer les équipements de
-                                    l'entreprise.</p>
-                                <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des équipements</p>
+                                <Package class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+                                <h3 class="text-lg font-medium text-neutral-900 mb-2">Lots</h3>
+                                <p class="text-neutral-600 mb-4">Cette section permettra de gérer les lots rattachés à
+                                    cette
+                                    entreprise.</p>
+                                <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des lots</p>
                             </div>
                         </div>
                     </TabsContent>
@@ -227,18 +230,6 @@
                             </div>
                         </div>
                     </TabsContent>
-
-                    <TabsContent value="documents" class="bg-white rounded-lg border">
-                        <div class="p-6">
-                            <div class="text-center py-8">
-                                <FolderOpen class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                                <h3 class="text-lg font-medium text-neutral-900 mb-2">Documents</h3>
-                                <p class="text-neutral-600 mb-4">Cette section permettra de gérer les documents de
-                                    l'entreprise.</p>
-                                <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des documents</p>
-                            </div>
-                        </div>
-                    </TabsContent>
                 </Tabs>
             </div>
         </div>
@@ -257,18 +248,19 @@ import { useFetcher } from '@/common/composables/fetcher'
 import { useCompany } from '@/common/composables/useCompany'
 import CompanyContacts from '@/main/components/companies/CompanyContacts.vue'
 import SitesTable from '@/main/components/sites/SitesTable.vue'
+import { useWorkspaceStore } from '@/main/stores/workspace'
+
 import {
     ArrowLeft,
     Building,
     ChevronDown,
     FileText,
-    FolderOpen,
     MapPin,
     MoreHorizontal,
+    Package,
     Plus,
     RotateCcw,
     Save,
-    Settings,
     Trash,
     User,
     Wrench
@@ -281,6 +273,7 @@ const route = useRoute()
 const router = useRouter()
 const fetcher = useFetcher()
 const { getCompanyTypeLabel, getCompanyTypeOptions } = useCompany()
+const workspaceStore = useWorkspaceStore()
 
 const companyId = route.params.id
 const company = ref({})

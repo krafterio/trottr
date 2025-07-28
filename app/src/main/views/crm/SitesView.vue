@@ -116,7 +116,7 @@
                                 <TableHead>Ville</TableHead>
                                 <TableHead>Code postal</TableHead>
                                 <TableHead>Pays</TableHead>
-                                <TableHead>Entreprise</TableHead>
+                                <TableHead>Rattaché à</TableHead>
                                 <TableHead class="w-10"></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -150,10 +150,21 @@
                                     {{ site.country?.name || '-' }}
                                 </TableCell>
                                 <TableCell class="text-neutral-900">
-                                    <router-link v-if="site.company" :to="`/company/${site.company.id}`"
-                                        class="text-neutral-900 hover:text-neutral-700 underline">
-                                        {{ site.company.name }}
-                                    </router-link>
+                                    <div v-if="site.company" class="flex items-center space-x-2">
+                                        <Building class="h-4 w-4 text-neutral-500" />
+                                        <router-link :to="`/company/${site.company.id}`"
+                                            class="text-neutral-900 hover:text-neutral-700 underline">
+                                            {{ site.company.name }}
+                                        </router-link>
+                                    </div>
+                                    <div v-else-if="site.contact" class="flex items-center space-x-2">
+                                        <User class="h-4 w-4 text-neutral-500" />
+                                        <router-link :to="`/contact/${site.contact.id}`"
+                                            class="text-neutral-900 hover:text-neutral-700 underline">
+                                            {{ site.contact.full_name || `${site.contact.first_name}
+                                            ${site.contact.last_name}`.trim() }}
+                                        </router-link>
+                                    </div>
                                     <span v-else class="text-neutral-500">-</span>
                                 </TableCell>
                                 <TableCell @click.stop>
@@ -202,7 +213,7 @@ import { useFetcher } from '@/common/composables/fetcher'
 import { useSite } from '@/common/composables/useSite'
 import TablePagination from '@/main/components/TablePagination.vue'
 import { debounce } from 'lodash'
-import { Download, Eye, MapPin, MoreVertical, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Trash } from 'lucide-vue-next'
+import { Building, Download, Eye, MapPin, MoreVertical, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Trash, User } from 'lucide-vue-next'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'

@@ -7,7 +7,7 @@
         </div>
 
         <div v-else-if="sites.length === 0" class="text-center py-8">
-            <Building class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+            <MapPin class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
             <h3 class="text-lg font-medium text-neutral-900 mb-2">Aucun site</h3>
             <p class="text-neutral-600 mb-4">Cette entreprise n'a pas encore de sites d'intervention associés.</p>
             <Button @click="handleCreateSite" class="inline-flex items-center">
@@ -94,7 +94,7 @@ import { Button } from '@/common/components/ui/button'
 import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useSite } from '@/common/composables/useSite'
-import { Building, Edit, Eye, Plus, Trash } from 'lucide-vue-next'
+import { Edit, Eye, MapPin, Plus, Trash } from 'lucide-vue-next'
 import { onMounted, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 
@@ -148,7 +148,7 @@ const handleCreateSite = () => {
     if (props.attachmentType === 'company') {
         data.company = props.companyId
     } else {
-        data.contact_id = props.contactId
+        data.contact = props.contactId
     }
     bus.trigger('open-site-dialog', data)
 }
@@ -158,7 +158,8 @@ const viewSite = (site) => {
 }
 
 const editSite = (site) => {
-    bus.trigger('open-site-dialog', site)
+    const data = { ...site, attachmentType: props.attachmentType }
+    bus.trigger('open-site-dialog', data)
 }
 
 const deleteSite = (site) => {

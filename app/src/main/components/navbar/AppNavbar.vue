@@ -51,7 +51,7 @@
                 <NavbarUser />
 
                 <Button
-                    class="h-8 w-8 p-0 text-black hover:bg-neutral-800 bg-secondary cursor-pointer hover:bg-secondary/80">
+                    class="h-8 w-8 p-0 text-black hover:bg-neutral-800 bg-secondary cursor-pointer hover:bg-secondary/80 rounded-sm">
                     <Plus class="h-4 w-4" />
                 </Button>
             </div>
@@ -68,24 +68,33 @@ import {
     NavigationMenuLink,
     NavigationMenuList,
 } from '@/common/components/ui/navigation-menu'
+import { useWorkspaceStore } from '@/main/stores/workspace'
 import { Bell, HelpCircle, Plus, Search } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import NavbarUser from './NavbarUser.vue'
 
 const route = useRoute()
+const workspaceStore = useWorkspaceStore()
 
 const moduleLinks = {
     interventions: [
         { href: '/', label: 'Toutes les interventions' },
         { href: '/job-planner', label: 'Planificateur d\'interventions' }
     ],
-    crm: [
-        { href: '/companies', label: 'Sociétés' },
-        { href: '/contacts', label: 'Contacts' },
-        { href: '/sites', label: 'Sites' },
-        { href: '/subsites', label: 'Lots' }
-    ],
+    crm: computed(() => {
+        const baseLinks = [
+            { href: '/companies', label: 'Sociétés' },
+            { href: '/contacts', label: 'Contacts' },
+            { href: '/sites', label: 'Sites' }
+        ]
+
+        if (workspaceStore.workspace?.use_subsites) {
+            baseLinks.push({ href: '/subsites', label: 'Lots' })
+        }
+
+        return baseLinks
+    }),
     vente: [
         { href: '/devis', label: 'Devis' },
         { href: '/contrats', label: 'Contrats' }
@@ -135,7 +144,12 @@ const currentModule = computed(() => {
 })
 
 const currentModuleLinks = computed(() => {
-    return currentModule.value ? moduleLinks[currentModule.value] || [] : []
+    const module = currentModule.value
+    if (!module) return []
+
+    const links = moduleLinks[module]
+    // Si c'est un computed ref, on accède à .value
+    return links?.value ? links.value : (links || [])
 })
 
 const isActiveLink = (href) => {

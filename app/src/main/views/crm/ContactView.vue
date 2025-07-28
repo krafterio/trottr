@@ -110,7 +110,8 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="grid grid-cols-2 gap-4 mb-4"
+                    :class="{ 'grid-cols-3': workspaceStore.workspace?.use_subsites }">
                     <div class="bg-white p-4 rounded-lg border">
                         <div class="text-2xl font-semibold text-neutral-900">-</div>
                         <div class="text-sm text-neutral-600">Sites</div>
@@ -119,7 +120,7 @@
                         <div class="text-2xl font-semibold text-neutral-900">-</div>
                         <div class="text-sm text-neutral-600">Interventions</div>
                     </div>
-                    <div class="bg-white p-4 rounded-lg border">
+                    <div v-if="workspaceStore.workspace?.use_subsites" class="bg-white p-4 rounded-lg border">
                         <div class="text-2xl font-semibold text-neutral-900">-</div>
                         <div class="text-sm text-neutral-600">Lots</div>
                     </div>
@@ -129,7 +130,7 @@
                     <TabsList class="w-full mb-3 bg-neutral-200">
                         <TabsTrigger value="sites">Sites</TabsTrigger>
                         <TabsTrigger value="interventions">Interventions</TabsTrigger>
-                        <TabsTrigger value="lots">Lots</TabsTrigger>
+                        <TabsTrigger v-if="workspaceStore.workspace?.use_subsites" value="lots">Lots</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="sites" class="bg-white rounded-lg border">
@@ -149,10 +150,11 @@
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="lots" class="bg-white rounded-lg border">
+                    <TabsContent v-if="workspaceStore.workspace?.use_subsites" value="lots"
+                        class="bg-white rounded-lg border">
                         <div class="p-6">
                             <div class="text-center py-8">
-                                <FileText class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+                                <Package class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
                                 <h3 class="text-lg font-medium text-neutral-900 mb-2">Lots</h3>
                                 <p class="text-neutral-600 mb-4">Cette section permettra de gérer les lots rattachés au
                                     contact.
@@ -177,12 +179,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/common/components/ui
 import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import SitesTable from '@/main/components/sites/SitesTable.vue'
+
+import { useWorkspaceStore } from '@/main/stores/workspace'
 import {
     ArrowLeft,
     Building,
-    FileText,
     MessageSquare,
     MoreHorizontal,
+    Package,
     RotateCcw,
     Save,
     Trash,
@@ -192,6 +196,8 @@ import {
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
+
+const workspaceStore = useWorkspaceStore()
 
 const route = useRoute()
 const router = useRouter()
@@ -241,12 +247,12 @@ const handleCancel = () => {
 }
 
 const handleDelete = () => {
-    if (!contactId || !contact.value.full_name) return
+    if (!contactId || !contact.value.id) return
 
     bus.trigger('confirm-delete', {
         title: 'Supprimer le contact',
         message: 'Êtes-vous sûr de vouloir supprimer ce contact ?',
-        itemName: contact.value.full_name || `${contact.value.first_name} ${contact.value.last_name}`.trim(),
+        itemName: contact.value.full_name || `${contact.value.first_name} ${contact.value.last_name}`.trim() || 'Contact sans nom',
         confirmationText: 'Cette action est irréversible.',
         confirmEvent: 'confirm-delete-contact:confirmed'
     })

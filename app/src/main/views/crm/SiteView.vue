@@ -2,10 +2,33 @@
     <div class="h-full flex flex-col bg-neutral-100" v-if="site">
         <div class="bg-white border-b">
             <div class="px-6 py-4 flex items-center justify-between">
-                <div class="flex items-center space-x-4">
+                <div class="flex items-start space-x-2">
                     <Button variant="outline" @click="$router.go(-1)" class="h-9 w-9">
                         <ArrowLeft :size="20" />
                     </Button>
+                    <template v-if="isDirty">
+                        <Button @click="saveSite" variant="outline" :disabled="loading" class="w-9">
+                            <Save class="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" @click="handleCancel" :disabled="loading" class="w-9">
+                            <RotateCcw class="h-4 w-4" />
+                        </Button>
+                    </template>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                            <Button variant="outline" class="h-9 w-9">
+                                <MoreHorizontal :size="20" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem @click="handleDelete">
+                                <Trash class="h-4 w-4 text-destructive" />
+                                Supprimer
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
         </div>
@@ -18,12 +41,12 @@
                     <form @submit.prevent="saveSite" class="space-y-4">
                         <div>
                             <label class="text-sm font-medium text-neutral-700">Nom du site</label>
-                            <Input v-model="siteForm.name" class="mt-1" />
+                            <Input v-model="siteForm.name" class="mt-1" @input="checkDirty" />
                         </div>
 
                         <div>
                             <label class="text-sm font-medium text-neutral-700">Type de bâtiment</label>
-                            <Select v-model="siteForm.building_type" class="mt-1">
+                            <Select v-model="siteForm.building_type" class="mt-1" @update:model-value="checkDirty">
                                 <SelectTrigger class="w-full">
                                     <SelectValue placeholder="Sélectionner un type" />
                                 </SelectTrigger>
@@ -40,7 +63,7 @@
                             <label class="text-sm font-medium text-neutral-700">Entreprise associée</label>
                             <div class="mt-1">
                                 <CompanySelect v-model="siteForm.company" placeholder="Sélectionner une entreprise..."
-                                    clearable />
+                                    clearable @update:model-value="checkDirty" />
                             </div>
                         </div>
 
@@ -49,24 +72,24 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-sm font-medium text-neutral-700">Adresse</label>
-                                <Input v-model="siteForm.street" class="mt-1" />
+                                <Input v-model="siteForm.street" class="mt-1" @input="checkDirty" />
                             </div>
 
                             <div>
                                 <label class="text-sm font-medium text-neutral-700">Complément d'adresse</label>
-                                <Input v-model="siteForm.street_2" class="mt-1" />
+                                <Input v-model="siteForm.street_2" class="mt-1" @input="checkDirty" />
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-sm font-medium text-neutral-700">Code postal</label>
-                                <Input v-model="siteForm.zip" class="mt-1" />
+                                <Input v-model="siteForm.zip" class="mt-1" @input="checkDirty" />
                             </div>
 
                             <div>
                                 <label class="text-sm font-medium text-neutral-700">Ville</label>
-                                <Input v-model="siteForm.city" class="mt-1" />
+                                <Input v-model="siteForm.city" class="mt-1" @input="checkDirty" />
                             </div>
                         </div>
 
@@ -74,7 +97,7 @@
                             <label class="text-sm font-medium text-neutral-700">Pays</label>
                             <div class="mt-1">
                                 <CountrySelect v-model="siteForm.country" placeholder="Sélectionner un pays..."
-                                    clearable />
+                                    clearable @update:model-value="checkDirty" />
                             </div>
                         </div>
 
@@ -83,13 +106,7 @@
                         <div>
                             <label class="text-sm font-medium text-neutral-700">Informations d'accès</label>
                             <Textarea v-model="siteForm.access_info" class="mt-1" rows="3"
-                                placeholder="Code portail, interphone, instructions d'accès..." />
-                        </div>
-
-                        <div class="flex justify-end pt-4">
-                            <Button type="submit" :disabled="loading">
-                                {{ loading ? 'Enregistrement...' : 'Enregistrer' }}
-                            </Button>
+                                placeholder="Code portail, interphone, instructions d'accès..." @input="checkDirty" />
                         </div>
                     </form>
                 </div>
@@ -237,12 +254,16 @@
 import { CompanySelect } from '@/common/components/form/company-select'
 import { CountrySelect } from '@/common/components/form/country-select'
 import { Button } from '@/common/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu'
 import { Input } from '@/common/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select'
 import { Separator } from '@/common/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/common/components/ui/tabs'
 import { Textarea } from '@/common/components/ui/textarea'
 import { useFetcher } from '@/common/composables/fetcher'
+
+import Badge from '@/common/components/ui/badge/Badge.vue'
+import { bus, useBus } from '@/common/composables/bus'
 import { useSite } from '@/common/composables/useSite'
 import {
     ArrowLeft,
@@ -251,13 +272,16 @@ import {
     FileText,
     MapPin,
     MapPinIcon,
+    MoreHorizontal,
     Plus,
+    RotateCcw,
+    Save,
+    Trash,
     Wrench
 } from 'lucide-vue-next'
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
-import Badge from '../../../common/components/ui/badge/Badge.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -285,6 +309,13 @@ const kpis = reactive({
     totalDocuments: 0
 })
 
+const isDirty = ref(false)
+
+// Écoute la confirmation de suppression
+useBus(bus, 'confirm-delete-site:confirmed', () => {
+    deleteSite()
+})
+
 const fetchSite = async () => {
     if (!siteId) return
 
@@ -310,6 +341,8 @@ const fetchSite = async () => {
         kpis.totalInterventions = 0
         kpis.totalDocuments = 0
 
+        isDirty.value = false
+
     } catch (error) {
         console.error('Erreur lors du chargement du site:', error)
         toast.error('Erreur lors du chargement du site')
@@ -332,12 +365,85 @@ const saveSite = async () => {
         const response = await fetcher.patch(`/sites/${site.value.id}`, updateData)
         site.value = response.data
         toast.success('Site mis à jour avec succès')
+        isDirty.value = false
     } catch (error) {
         console.error('Erreur lors de la sauvegarde:', error)
         toast.error('Erreur lors de la sauvegarde')
     } finally {
         loading.value = false
     }
+}
+
+const handleCancel = () => {
+    if (site.value) {
+        Object.assign(siteForm, {
+            name: site.value.name || '',
+            building_type: site.value.building_type || '',
+            street: site.value.street || '',
+            street_2: site.value.street_2 || '',
+            zip: site.value.zip || '',
+            city: site.value.city || '',
+            access_info: site.value.access_info || '',
+            company: site.value.company || null,
+            country: site.value.country || null
+        })
+        isDirty.value = false
+    }
+}
+
+const handleDelete = () => {
+    if (!site.value) return
+
+    bus.trigger('confirm-delete', {
+        title: 'Supprimer le site',
+        message: 'Êtes-vous sûr de vouloir supprimer ce site ?',
+        itemName: site.value.name,
+        confirmationText: 'Cette action est irréversible.',
+        confirmEvent: 'confirm-delete-site:confirmed'
+    })
+}
+
+const deleteSite = async () => {
+    if (!site.value) return
+
+    try {
+        await fetcher.delete(`/sites/${site.value.id}`)
+        toast.success('Site supprimé avec succès')
+        bus.trigger('confirm-delete-dialog:close')
+        router.push('/sites')
+    } catch (error) {
+        console.error('Erreur lors de la suppression du site:', error)
+        toast.error('Erreur lors de la suppression du site')
+        bus.trigger('confirm-delete-dialog:close')
+    }
+}
+
+const checkDirty = () => {
+    const originalValues = {
+        name: site.value?.name || '',
+        building_type: site.value?.building_type || '',
+        street: site.value?.street || '',
+        street_2: site.value?.street_2 || '',
+        zip: site.value?.zip || '',
+        city: site.value?.city || '',
+        access_info: site.value?.access_info || '',
+        company: site.value?.company || null,
+        country: site.value?.country || null
+    }
+
+    const currentValues = {
+        name: siteForm.name,
+        building_type: siteForm.building_type,
+        street: siteForm.street,
+        street_2: siteForm.street_2,
+        zip: siteForm.zip,
+        city: siteForm.city,
+        access_info: siteForm.access_info,
+        company: siteForm.company,
+        country: siteForm.country
+    }
+
+    isDirty.value = JSON.stringify(originalValues) !== JSON.stringify(currentValues)
 }
 
 onMounted(() => {
