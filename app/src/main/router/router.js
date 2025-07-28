@@ -238,8 +238,8 @@ const router = createRouter({
       }
     },
     {
-      path: '/techniciens',
-      name: 'techniciens',
+      path: '/operateurs',
+      name: 'operateurs',
       component: () => import('@/main/views/rh/OperatorsView.vue'),
       meta: {
         requiresAuth: true,

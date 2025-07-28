@@ -90,8 +90,8 @@ const modules = [
         module: 'gestion'
     },
     {
-        title: 'Employés',
-        url: '/techniciens',
+        title: 'Opérateurs',
+        url: '/operateurs',
         icon: Users,
         module: 'employes'
     },

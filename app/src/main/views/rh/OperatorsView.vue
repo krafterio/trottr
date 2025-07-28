@@ -143,8 +143,19 @@
                                     <Checkbox />
                                 </td>
                                 <td class="px-6 py-2 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-neutral-900">{{ operator.name || operator.email
-                                    }}</div>
+                                    <div class="flex items-center space-x-3">
+                                        <Avatar class="w-5 h-5 rounded-full">
+                                            <AvatarImage v-if="operator.avatar"
+                                                :src="`/storage/download/${operator.avatar}`" v-fetcher-src.lazy
+                                                :alt="operator.name || operator.email" />
+                                            <AvatarFallback
+                                                class="bg-primary/10 text-primary text-xs font-medium rounded-md">
+                                                {{ operator.initials || getInitials(operator.name, operator.email) }}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div class="text-sm font-medium text-neutral-900">{{ operator.name ||
+                                            operator.email }}</div>
+                                    </div>
                                 </td>
                                 <td class="px-6 py-2 whitespace-nowrap">
                                     <div class="flex flex-wrap gap-1"
@@ -190,6 +201,7 @@
 </template>
 
 <script setup>
+import { Avatar, AvatarFallback, AvatarImage } from '@/common/components/ui/avatar'
 import { Badge } from '@/common/components/ui/badge'
 import { Button } from '@/common/components/ui/button'
 import { Checkbox } from '@/common/components/ui/checkbox'
@@ -228,6 +240,13 @@ const selectedFilters = reactive({
 })
 const showEditDialog = ref(false)
 const selectedUser = ref(null)
+
+const getInitials = (name, email) => {
+    if (name) {
+        return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+    }
+    return email ? email.substring(0, 2).toUpperCase() : '??'
+}
 
 const toggleFilters = () => {
     showFilters.value = !showFilters.value

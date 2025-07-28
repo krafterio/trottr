@@ -105,8 +105,7 @@ const moduleLinks = {
         { href: '/produits', label: 'Fiches produit' },
     ],
     rh: [
-        { href: '/techniciens', label: 'Techniciens' },
-        { href: '/flotte', label: 'Flotte' },
+        { href: '/operateurs', label: 'Opérateurs' },
         { href: '/absences', label: 'Absences / congés' }
     ]
 }
@@ -128,7 +127,7 @@ const currentModule = computed(() => {
         return 'documents'
     } else if (name === 'stock' || name === 'operations' || name === 'produits' || name === 'flotte' || name === 'gestion') {
         return 'gestion'
-    } else if (name === 'techniciens' || name === 'absences' || name === 'rh') {
+    } else if (name === 'operateurs' || name === 'absences' || name === 'rh') {
         return 'rh'
     }
 

@@ -9,6 +9,7 @@ from cli.commands.db.initdemodatas.initdemo_jobcategories import init_job_catego
 from cli.commands.db.initdemodatas.initdemo_companies import init_companies
 from cli.commands.db.initdemodatas.initdemo_sites import init_sites
 from cli.commands.db.initdemodatas.initdemo_jobspecialities import init_job_specialities
+from cli.commands.db.initdemodatas.initdemo_operators import init_operators
 
 console = Console()
 
@@ -32,5 +33,6 @@ async def init_demo(app: CliApp, workspace: int):
         await init_companies(workspace_obj)
         await init_sites(workspace_obj)
         await init_job_specialities(workspace_obj)
+        await init_operators(workspace_obj)
         
         console.print(f"[green]Données de démo initialisées avec succès pour le workspace {workspace}[/green]") 
