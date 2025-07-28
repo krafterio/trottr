@@ -571,4 +571,6 @@ async def _get_workspace_read(workspace: Workspace) -> WorkspaceRead:
         comply_with_local_privacy_laws=workspace.comply_with_local_privacy_laws,
         trial_end=workspace.trial_end,
         is_trial=workspace.is_trial,
+        default_job_duration=workspace.default_job_duration,
+        default_job_priority=workspace.default_job_priority,
     )

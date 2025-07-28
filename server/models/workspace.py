@@ -19,6 +19,22 @@ class Currency(str, Enum):
     EUR = "EUR"
     USD = "USD"
 
+class DefaultJobDuration(str, Enum):
+    minutes_60 = "60"
+    minutes_90 = "90"
+    minutes_120 = "120"
+    minutes_180 = "180"
+    minutes_240 = "240"
+    minutes_300 = "300"
+    minutes_360 = "360"
+    minutes_420 = "420"
+    minutes_480 = "480"
+
+class DefaultJobPriority(str, Enum):
+    low = "low"
+    normal = "normal"
+    high = "high"
+    urgent = "urgent"
 
 def generate_unique_id(length=8) -> str:
     characters = string.ascii_letters + string.digits
@@ -37,6 +53,9 @@ class Workspace(BaseModel):
     currency: str | None = fields.CharField(max_length=20, default="EUR", label="Devise")
     street: str | None = fields.CharField(max_length=255, null=True, label="Adresse")
     street2: str | None = fields.CharField(max_length=255, null=True, label="Complément d'adresse")
+    default_job_duration: str | None = fields.ChoiceField(DefaultJobDuration, default=DefaultJobDuration.minutes_60, label="Durée par défaut") # type: ignore
+    default_job_priority: str | None = fields.ChoiceField(DefaultJobPriority, default=DefaultJobPriority.normal, label="Priorité par défaut") # type: ignore
+    metadata = fields.JSONField(null=True, label="Métadonnées")
     zip: str | None = fields.CharField(max_length=20, null=True, label="Code postal")
     city: str | None = fields.CharField(max_length=255, null=True, label="Ville")
     country: Country | None = fields.ForeignKey(Country, null=True, on_delete="SET NULL", label="Pays")

@@ -41,6 +41,8 @@ class WorkspaceUpdate(BaseModel):
     siren: str | None = None
     vat: str | None = None
     comply_with_local_privacy_laws: bool | None = None
+    default_job_duration: int | None = None
+    default_job_priority: str | None = None
 
 
 class WorkspaceUserRead(UserRead):
@@ -73,6 +75,8 @@ class WorkspaceRead(BaseModel):
     comply_with_local_privacy_laws: bool
     trial_end: datetime | None = None
     is_trial: bool
+    default_job_duration: int | None = None
+    default_job_priority: str | None = None
 
     class Config:
         from_attributes = True

@@ -9,7 +9,7 @@
             <div class="space-y-6">
                 <div class="space-y-3">
                     <Label for="default-duration">Durée par défaut d'une intervention</Label>
-                    <Select>
+                    <Select v-model="defaultJobDuration">
                         <SelectTrigger class="w-full">
                             <SelectValue placeholder="Sélectionner une durée" />
                         </SelectTrigger>
@@ -29,7 +29,7 @@
 
                 <div class="space-y-3">
                     <Label for="default-priority">Priorité par défaut</Label>
-                    <Select>
+                    <Select v-model="defaultJobPriority">
                         <SelectTrigger class="w-full">
                             <SelectValue placeholder="Sélectionner une priorité" />
                         </SelectTrigger>
@@ -128,7 +128,8 @@
                                 <TableHead class="w-24">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
-                        <VueDraggable v-model="jobCategories" :animation="200" handle=".drag-handle-cat" tag="tbody">
+                        <VueDraggable v-model="jobCategories" :animation="200" handle=".drag-handle-cat" tag="tbody"
+                            @end="onCategoryReorder">
                             <TableRow v-for="category in jobCategories" :key="category.id">
                                 <TableCell>
                                     <div class="drag-handle-cat cursor-move text-neutral-400 hover:text-neutral-600">
@@ -262,6 +263,9 @@ import { toast } from 'vue-sonner'
 const fetcher = useFetcher()
 const loading = ref(false)
 
+const defaultJobDuration = ref(null)
+const defaultJobPriority = ref(null)
+
 const jobStatuses = ref([])
 
 const showDialog = ref(false)
@@ -272,47 +276,43 @@ const dialogStatus = ref({
     sequence: 1
 })
 
-const jobCategories = ref([
-    {
-        id: 1,
-        name: 'Dépannage simple',
-        color: '#3b82f6',
-        isUsed: true
-    },
-    {
-        id: 2,
-        name: 'Dépannage urgent',
-        color: '#ef4444',
-        isUsed: true
-    },
-    {
-        id: 3,
-        name: 'État des lieux',
-        color: '#f59e0b',
-        isUsed: false
-    },
-    {
-        id: 4,
-        name: 'Audit Gaz',
-        color: '#8b5cf6',
-        isUsed: true
-    },
-    {
-        id: 5,
-        name: 'Diagnostic Gaz',
-        color: '#10b981',
-        isUsed: false
-    }
-])
+const jobCategories = ref([])
 
 const showCategoryDialog = ref(false)
 const editingCategory = ref(null)
 const dialogCategory = ref({
     name: '',
-    color: '#1dbcad'
+    color: '#1dbcad',
+    sequence: 1
 })
 
-let nextCategoryId = 6
+const loadWorkspaceSettings = async () => {
+    try {
+        const response = await fetcher.get('/workspace')
+        const workspace = response.data
+
+        defaultJobDuration.value = workspace.default_job_duration ? String(workspace.default_job_duration) : null
+        defaultJobPriority.value = workspace.default_job_priority || null
+    } catch (error) {
+        console.error('Erreur lors du chargement des paramètres:', error)
+        toast.error('Impossible de charger les paramètres du workspace')
+    }
+}
+
+const saveWorkspaceSettings = async () => {
+    try {
+        const payload = {
+            default_job_duration: defaultJobDuration.value ? parseInt(defaultJobDuration.value) : null,
+            default_job_priority: defaultJobPriority.value || null
+        }
+
+        await fetcher.patch('/workspace', payload)
+        toast.success('Paramètres sauvegardés avec succès')
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde:', error)
+        toast.error('Erreur lors de la sauvegarde des paramètres')
+    }
+}
 
 const loadJobStatuses = async () => {
     try {
@@ -382,11 +382,23 @@ const removeStatus = async (statusId) => {
     }
 }
 
+const loadJobCategories = async () => {
+    try {
+        const response = await fetcher.get('/job-category')
+        jobCategories.value = response.data || []
+    } catch (error) {
+        console.error('Erreur lors du chargement des catégories:', error)
+        toast.error('Impossible de charger les catégories')
+    }
+}
+
 const openCreateCategoryDialog = () => {
     editingCategory.value = null
+    const maxSequence = Math.max(...jobCategories.value.map(c => c.sequence), 0)
     dialogCategory.value = {
         name: '',
-        color: '#1dbcad'
+        color: '#1dbcad',
+        sequence: maxSequence + 1
     }
     showCategoryDialog.value = true
 }
@@ -395,38 +407,51 @@ const editCategory = (category) => {
     editingCategory.value = category
     dialogCategory.value = {
         name: category.name,
-        color: category.color
+        color: category.color,
+        sequence: category.sequence
     }
     showCategoryDialog.value = true
 }
 
-const saveCategory = () => {
-    if (editingCategory.value) {
-        editingCategory.value.name = dialogCategory.value.name
-        editingCategory.value.color = dialogCategory.value.color
-    } else {
-        jobCategories.value.push({
-            id: nextCategoryId++,
-            name: dialogCategory.value.name,
-            color: dialogCategory.value.color,
-            isUsed: false
-        })
+const saveCategory = async () => {
+    if (!dialogCategory.value.name.trim()) {
+        toast.error('Le nom de la catégorie est requis')
+        return
     }
-    showCategoryDialog.value = false
+
+    loading.value = true
+    try {
+        if (editingCategory.value) {
+            const { sequence, ...updateData } = dialogCategory.value
+            await fetcher.patch(`/job-category/${editingCategory.value.id}`, updateData)
+        } else {
+            await fetcher.post('/job-category', dialogCategory.value)
+        }
+
+        await loadJobCategories()
+        showCategoryDialog.value = false
+        toast.success(`Catégorie ${editingCategory.value ? 'modifiée' : 'créée'} avec succès`)
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde:', error)
+        toast.error(error.message || 'Erreur lors de la sauvegarde')
+    } finally {
+        loading.value = false
+    }
 }
 
-const removeCategory = (categoryId) => {
-    const index = jobCategories.value.findIndex(category => category.id === categoryId)
-    if (index !== -1 && !jobCategories.value[index].isUsed) {
-        jobCategories.value.splice(index, 1)
+const removeCategory = async (categoryId) => {
+    try {
+        await fetcher.delete(`/job-category/${categoryId}`)
+        await loadJobCategories()
+        toast.success('Catégorie supprimée avec succès')
+    } catch (error) {
+        console.error('Erreur lors de la suppression:', error)
+        toast.error(error.message || 'Erreur lors de la suppression')
     }
 }
 
-const saveSettings = () => {
-    console.log('Paramètres sauvegardés', {
-        statuses: jobStatuses.value,
-        categories: jobCategories.value
-    })
+const saveSettings = async () => {
+    await saveWorkspaceSettings()
 }
 
 const onStatusReorder = async () => {
@@ -445,7 +470,25 @@ const onStatusReorder = async () => {
     }
 }
 
+const onCategoryReorder = async () => {
+    try {
+        const reorderedCategories = jobCategories.value.map((category, index) => ({
+            id: category.id,
+            sequence: index + 1
+        }))
+
+        await fetcher.put('/job-category/reorder', { categories: reorderedCategories })
+        toast.success('Catégories réorganisées avec succès')
+    } catch (error) {
+        console.error('Erreur lors de la réorganisation des catégories:', error)
+        toast.error(error.message || 'Erreur lors de la réorganisation des catégories')
+        await loadJobCategories()
+    }
+}
+
 onMounted(() => {
     loadJobStatuses()
+    loadJobCategories()
+    loadWorkspaceSettings()
 })
 </script>
