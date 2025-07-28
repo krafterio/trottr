@@ -179,50 +179,8 @@
             </DialogContent>
         </Dialog>
 
-        <!-- Dialog d'édition -->
-        <Dialog v-model:open="showEditDialog">
-            <DialogContent class="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>Modifier l'utilisateur</DialogTitle>
-                    <DialogDescription>
-                        Modifiez les informations de cet utilisateur dans votre workspace.
-                    </DialogDescription>
-                </DialogHeader>
-                <form @submit.prevent="updateUser" class="space-y-4">
-                    <div class="space-y-4">
-                        <div class="space-y-2">
-                            <Label for="edit-name">Nom</Label>
-                            <Input id="edit-name" v-model="editForm.name" disabled />
-                        </div>
-                        <div class="space-y-2">
-                            <Label for="edit-email">Email</Label>
-                            <Input id="edit-email" v-model="editForm.email" type="email" disabled />
-                        </div>
-                        <div class="space-y-2">
-                            <Label for="edit-role">Rôle</Label>
-                            <Select v-model="editForm.role" :disabled="editLoading">
-                                <SelectTrigger class="w-full">
-                                    <SelectValue placeholder="Sélectionner un rôle" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Owner">Propriétaire</SelectItem>
-                                    <SelectItem value="Member">Membre</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button type="button" variant="outline" @click="showEditDialog = false" :disabled="editLoading">
-                            Annuler
-                        </Button>
-                        <Button type="submit" :disabled="editLoading">
-                            <span v-if="editLoading">Mise à jour...</span>
-                            <span v-else>Mettre à jour</span>
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
+        <!-- Dialog d'édition utilisateur -->
+        <UserEditDialog :is-open="showEditDialog" :user="selectedUser" />
 
         <!-- Dialog de confirmation de suppression -->
         <ConfirmDeleteDialog :show="showDeleteDialog" :title="deleteDialogData.title"
@@ -244,13 +202,6 @@ import {
 import { Input } from '@/common/components/ui/input'
 import { Label } from '@/common/components/ui/label'
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/common/components/ui/select'
-import {
     Table,
     TableBody,
     TableCell,
@@ -261,6 +212,7 @@ import {
 import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import ConfirmDeleteDialog from '@/main/components/dialogs/ConfirmDeleteDialog.vue'
+import UserEditDialog from '@/main/components/dialogs/UserEditDialog.vue'
 import { useWorkspaceStore } from '@/main/stores/workspace'
 import { Edit, Mail, Plus, Trash, X } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
@@ -277,6 +229,7 @@ const workspaceStore = useWorkspaceStore()
 const showInviteDialog = ref(false)
 const showEditDialog = ref(false)
 const showDeleteDialog = ref(false)
+const selectedUser = ref(null)
 const inviteLoading = ref(false)
 const editLoading = ref(false)
 const deleteLoading = ref(false)
@@ -310,6 +263,14 @@ useBus(bus, 'confirm-delete-dialog:confirm', () => {
 
 useBus(bus, 'confirm-delete-dialog:cancel', () => {
     cancelDelete()
+})
+
+useBus(bus, 'user-edit-dialog:update-open', (event) => {
+    showEditDialog.value = event.detail
+})
+
+useBus(bus, 'user-edit-dialog:user-updated', () => {
+    fetchUsers()
 })
 
 const fetchUsers = async () => {
@@ -365,12 +326,7 @@ const sendInvitation = async () => {
 }
 
 const openEditDialog = (user) => {
-    editForm.value = {
-        id: user.id,
-        name: user.name || user.email,
-        email: user.email,
-        role: user.role
-    }
+    selectedUser.value = user
     showEditDialog.value = true
 }
 

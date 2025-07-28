@@ -26,7 +26,7 @@
                 </NavigationMenu>
             </div>
 
-            <div class="flex items-center space-x-1">
+            <div class="flex items-center space-x-2">
                 <div class="flex items-center space-x-2 text-sm text-gray-300 hover:text-white cursor-pointer">
                     <HelpCircle class="h-4 w-4" />
                     <span>Besoin d'aide ?</span>

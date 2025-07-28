@@ -1,6 +1,6 @@
 <template>
   <!-- Mode Avatar minimaliste -->
-  <div v-if="avatar" class="relative group">
+  <div v-if="avatar" class="relative group w-16">
     <Avatar :class="[avatarClass, 'h-16', 'w-16', 'cursor-pointer']" @click="triggerFileInput">
       <AvatarImage v-if="modelValue && !imageError" :src="imageUrl" :alt="alt" v-fetcher-src.lazy />
       <AvatarFallback :class="[avatarClass, 'bg-muted']">
@@ -9,43 +9,20 @@
         </slot>
       </AvatarFallback>
     </Avatar>
-    
-    <!-- Badge upload en bas à droite quand pas d'image -->
-    <Button 
-      v-if="!modelValue && !uploading" 
-      type="button"
-      variant="secondary" 
-      size="sm" 
-      class="absolute -bottom-1 -right-1 h-6 w-6 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-      @click.stop="triggerFileInput"
-    >
-      <Upload class="h-3 w-3" />
-    </Button>
-    
+
     <!-- Bouton supprimer en overlay quand image existe -->
-    <Button 
-      v-if="modelValue && !uploading" 
-      type="button"
-      variant="destructive" 
-      size="sm" 
+    <Button v-if="modelValue && !uploading" type="button" variant="destructive" size="sm"
       class="absolute -bottom-1 -right-1 h-6 w-6 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-      @click.stop="removeImage"
-    >
+      @click.stop="removeImage">
       <Trash2 class="h-3 w-3" />
     </Button>
-    
+
     <!-- Indicateur de chargement -->
     <div v-if="uploading" class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
       <Loader2 class="h-4 w-4 text-white animate-spin" />
     </div>
-    
-    <input 
-      ref="fileInput" 
-      type="file" 
-      accept="image/*" 
-      class="hidden" 
-      @change="handleFileChange" 
-    />
+
+    <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="handleFileChange" />
   </div>
 
   <!-- Mode classique -->
@@ -58,40 +35,21 @@
           <Upload class="w-6 h-6 text-muted-foreground" />
         </AvatarFallback>
       </Avatar>
-      <input 
-        ref="fileInput" 
-        type="file" 
-        accept="image/*" 
-        class="hidden" 
-        @change="handleFileChange" 
-      />
+      <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="handleFileChange" />
     </div>
 
     <!-- Contenu à droite -->
     <div class="flex-1 space-y-3">
       <div class="flex items-center gap-2">
         <!-- Bouton Téléverser -->
-        <Button 
-          type="button"
-          variant="outline" 
-          size="sm" 
-          @click="triggerFileInput"
-          :disabled="uploading"
-        >
+        <Button type="button" variant="outline" size="sm" @click="triggerFileInput" :disabled="uploading">
           <Upload v-if="!uploading" class="h-4 w-4 mr-2" />
           <Loader2 v-else class="h-4 w-4 mr-2 animate-spin" />
           {{ modelValue ? 'Modifier' : 'Téléverser' }}
         </Button>
 
         <!-- Bouton Retirer (si image existe) -->
-        <Button 
-          v-if="modelValue" 
-          type="button"
-          variant="outline" 
-          size="sm" 
-          @click="removeImage"
-          :disabled="uploading"
-        >
+        <Button v-if="modelValue" type="button" variant="outline" size="sm" @click="removeImage" :disabled="uploading">
           <Trash2 class="h-4 w-4 mr-2" />
           Retirer
         </Button>
@@ -111,10 +69,10 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { Upload, Trash2, Loader2, Image } from 'lucide-vue-next'
+import { Avatar, AvatarFallback, AvatarImage } from '@/common/components/ui/avatar'
 import { Button } from '@/common/components/ui/button'
-import { Avatar, AvatarImage, AvatarFallback } from '@/common/components/ui/avatar'
+import { Image, Loader2, Trash2, Upload } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -153,28 +111,16 @@ const fileInput = ref(null)
 const uploading = ref(false)
 const imageError = ref(false)
 const error = ref('')
-const previewUrl = ref(null)
 
 const imageUrl = computed(() => {
-  if (previewUrl.value) {
-    return previewUrl.value
-  }
-  
   if (!props.modelValue) return null
-  
+
   if (props.modelValue.startsWith('http') || props.modelValue.startsWith('data:')) {
     return props.modelValue
   }
 
   return `/storage/download/${props.modelValue}`
 })
-
-const clearPreview = () => {
-  if (previewUrl.value) {
-    URL.revokeObjectURL(previewUrl.value)
-    previewUrl.value = null
-  }
-}
 
 const triggerFileInput = () => {
   if (!uploading.value) {
@@ -203,16 +149,12 @@ const handleFileChange = async (event) => {
   }
 
   uploading.value = true
-  
+
   try {
-    clearPreview()
-    previewUrl.value = URL.createObjectURL(file)
-    
     emit('upload', file)
   } catch (err) {
     error.value = 'Erreur lors du téléversement'
     emit('error', error.value)
-    clearPreview()
   } finally {
     uploading.value = false
 
@@ -224,7 +166,6 @@ const handleFileChange = async (event) => {
 
 const removeImage = () => {
   if (!uploading.value) {
-    clearPreview()
     emit('remove')
     emit('update:modelValue', null)
     imageError.value = false
@@ -237,9 +178,4 @@ const handleImageError = () => {
   imageError.value = true
 }
 
-// Watcher pour réinitialiser l'erreur d'image quand modelValue change
-watch(() => props.modelValue, () => {
-  imageError.value = false
-  error.value = ''
-})
-</script> 
+</script>

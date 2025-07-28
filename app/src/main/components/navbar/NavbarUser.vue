@@ -1,11 +1,12 @@
 <template>
     <DropdownMenu>
         <DropdownMenuTrigger as-child>
-            <Button variant="ghost" class="relative h-8 w-8 rounded-full">
-                <Avatar class="h-6 w-6">
-                    <AvatarImage :src="user?.avatar" :alt="user?.name || 'Utilisateur'" />
-                    <AvatarFallback class="text-primary">
-                        {{ user?.name?.charAt(0)?.toUpperCase() || 'U' }}
+            <Button variant="ghost" class="relative h-8 w-8 rounded-sm hover:bg-neutral-80 cursor-pointer">
+                <Avatar class="h-8 w-8 rounded-sm">
+                    <AvatarImage v-if="authStore.user?.avatar" :src="`/storage/download/${authStore.user.avatar}`"
+                        v-fetcher-src.lazy :alt="authStore.user.name" />
+                    <AvatarFallback class="bg-neutral-800 text-neutral-300 rounded-sm">
+                        {{ authStore.user?.name?.[0]?.toUpperCase() || 'U' }}
                     </AvatarFallback>
                 </Avatar>
             </Button>
@@ -13,15 +14,16 @@
         <DropdownMenuContent class="w-56" align="end" :side-offset="4">
             <DropdownMenuLabel class="p-0 font-normal">
                 <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                    <Avatar class="h-8 w-8">
-                        <AvatarImage :src="user?.avatar" :alt="user?.name || 'Utilisateur'" />
-                        <AvatarFallback>
-                            {{ user?.name?.charAt(0)?.toUpperCase() || 'U' }}
+                    <Avatar class="h-8 w-8 rounded-sm">
+                        <AvatarImage v-if="authStore.user?.avatar" :src="`/storage/download/${authStore.user.avatar}`"
+                            v-fetcher-src.lazy :alt="authStore.user.name" />
+                        <AvatarFallback class="rounded-sm">
+                            {{ authStore.user?.name?.[0]?.toUpperCase() || 'U' }}
                         </AvatarFallback>
                     </Avatar>
                     <div class="grid flex-1 text-left text-sm leading-tight">
-                        <span class="truncate font-semibold">{{ user?.name || 'Utilisateur' }}</span>
-                        <span class="truncate text-xs">{{ user?.email || '' }}</span>
+                        <span class="truncate font-semibold">{{ authStore.user?.name || 'Utilisateur' }}</span>
+                        <span class="truncate text-xs">{{ authStore.user?.email || '' }}</span>
                     </div>
                 </div>
             </DropdownMenuLabel>
@@ -44,8 +46,7 @@
         </DropdownMenuContent>
     </DropdownMenu>
 
-    <UserEditDialog :is-open="isDialogOpen" :user="user" @update:open="isDialogOpen = $event"
-        @user-updated="onUserUpdated" />
+    <UserEditDialog :is-open="isDialogOpen" :user="authStore.user" />
 </template>
 
 <script setup>
@@ -54,7 +55,7 @@ import {
     Bell,
     LogOut
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 
 import {
     Avatar,
@@ -71,12 +72,11 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/common/components/ui/dropdown-menu';
+import { bus, useBus } from '@/common/composables/bus';
 import { useAuthStore } from '@/common/stores/auth';
 import UserEditDialog from '@/main/components/dialogs/UserEditDialog.vue';
 
 const authStore = useAuthStore()
-
-const user = computed(() => authStore.user)
 
 const isDialogOpen = ref(false)
 
@@ -88,7 +88,11 @@ const openEditDialog = () => {
     isDialogOpen.value = true
 }
 
-const onUserUpdated = () => {
+useBus(bus, 'user-edit-dialog:update-open', (event) => {
+    isDialogOpen.value = event.detail
+})
+
+useBus(bus, 'user-edit-dialog:user-updated', () => {
     // L'utilisateur a été mis à jour via authStore dans UserEditDialog
-}
+})
 </script>
