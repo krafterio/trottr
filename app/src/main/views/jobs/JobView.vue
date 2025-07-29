@@ -175,142 +175,6 @@
                                     <p>Fonctionnalité en cours de développement</p>
                                     <p class="text-sm mt-2">L'historique des interventions sera bientôt disponible</p>
                                 </div>
-
-
-                                <div class="space-y-6">
-                                    <div class="relative">
-                                        <div class="absolute left-4 top-8 -bottom-10 w-px bg-neutral-200"></div>
-
-                                        <div class="flex items-start space-x-4">
-                                            <div
-                                                class="w-8 h-8 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center flex-shrink-0">
-                                                <StickyNote class="h-4 w-4" />
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <div class="rounded-lg p-4 border">
-                                                    <div class="flex items-center justify-between mb-2">
-                                                        <div class="flex items-center space-x-2">
-                                                            <h3>Note interne de</h3>
-                                                            <span class="font-medium">Marc Dupont</span>
-                                                        </div>
-                                                        <span class="text-xs flex items-center text-neutral-500">
-                                                            <Calendar class="h-3 w-3 mr-2" />
-                                                            Lun, 27 Oct 2022 - 12:03
-                                                        </span>
-                                                    </div>
-
-                                                    <p class="text-sm text-neutral-600">La cliente sera présente chez
-                                                        elle
-                                                        entre 10h et 12h, attention à ne pas déranger les enfants</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="relative">
-                                        <div class="absolute left-4 top-8 -bottom-10 w-px bg-neutral-200"></div>
-
-                                        <div class="flex items-start space-x-4">
-                                            <div
-                                                class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                                                <CalendarCheck class="h-4 w-4 text-white" />
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <div class="rounded-lg p-4 border">
-                                                    <div class="flex items-center justify-between mb-2">
-                                                        <h3 class="font-medium text-neutral-900">Intervention planifiée
-                                                        </h3>
-                                                        <span class="text-xs flex items-center text-neutral-500">
-                                                            <Calendar class="h-3 w-3 mr-2" />
-                                                            Lun, 27 Oct 2022 - 12:03
-                                                        </span>
-                                                    </div>
-                                                    <p class="text-sm text-neutral-600 mb-3">{{ activityDescription }}
-                                                    </p>
-
-                                                    <div class="grid grid-cols-2 gap-4 text-sm">
-                                                        <div>
-                                                            <span class="text-neutral-500">Référence intervention</span>
-                                                            <p class="font-mono">{{ jobNumber }}</p>
-                                                        </div>
-                                                        <div>
-                                                            <span class="text-neutral-500">Quand</span>
-                                                            <p>{{ scheduleDate }} {{ scheduleTime }}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="relative">
-                                        <div class="flex items-start space-x-4">
-                                            <div
-                                                class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                                                <Mail class="h-4 w-4 text-white" />
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <div class="bg-white border rounded-lg p-4">
-                                                    <div class="flex items-center justify-between mb-2">
-                                                        <div class="flex items-center space-x-2">
-                                                            <h3>Email envoyé depuis</h3>
-                                                            <span class="font-medium">{{ senderName }}</span>
-                                                        </div>
-                                                        <span class="text-xs flex items-center text-neutral-500">
-                                                            <Calendar class="h-4 w-4 mr-1" />
-                                                            {{ emailDate }}
-                                                        </span>
-                                                    </div>
-
-                                                    <div class="mb-3">
-                                                        <p class="text-sm text-neutral-700"><strong>Pour :</strong> {{
-                                                            recipientName }}</p>
-                                                        <p class="text-sm text-neutral-700"><strong>Sujet :</strong> {{
-                                                            emailSubject }}</p>
-                                                    </div>
-
-                                                    <div class="text-sm text-neutral-600 mb-4">
-                                                        <p>{{ emailContent }}</p>
-                                                    </div>
-
-                                                    <div class="flex items-center space-x-4">
-                                                        <div class="flex items-center space-x-2">
-                                                            <FileText class="h-4 w-4 text-neutral-500" />
-                                                            <span class="text-sm text-neutral-700">{{ attachmentName
-                                                            }}</span>
-                                                            <span class="text-xs text-neutral-500">{{ attachmentSize
-                                                            }}</span>
-                                                        </div>
-                                                        <div class="flex items-center space-x-2">
-                                                            <Image class="h-4 w-4 text-neutral-500" />
-                                                            <span class="text-sm text-neutral-700">{{ imageName
-                                                            }}</span>
-                                                            <span class="text-xs text-neutral-500">{{ imageSize
-                                                            }}</span>
-                                                        </div>
-                                                        <div class="flex items-center space-x-2">
-                                                            <span
-                                                                class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                                                                <Check class="h-3 w-3 inline mr-1" />
-                                                                Ouvert
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="mt-3 text-xs text-neutral-500">
-                                                        <p><strong>De :</strong> {{ senderName }}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mt-6 text-center">
-                                    <Button variant="outline">
-                                        Lire plus
-                                    </Button>
-                                </div>
                             </div>
                         </TabsContent>
 
@@ -327,53 +191,6 @@
                                 <div class="text-center py-8 text-neutral-500">
                                     <p>Fonctionnalité en cours de développement</p>
                                     <p class="text-sm mt-2">La gestion des opérations sera bientôt disponible</p>
-                                </div>
-
-                                <div class="space-y-4">
-                                    <div class="border rounded-lg p-4">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <span class="font-medium">Diagnostic initial</span>
-                                            <span class="text-sm text-neutral-500">Fait le 20/10/2024 à 14:45</span>
-                                        </div>
-                                        <p class="text-sm text-neutral-600">Inspection du robinet défaillant et
-                                            identification de la cause</p>
-                                        <div class="mt-3 flex items-center gap-1 text-xs text-neutral-500">
-                                            <Badge class="bg-green-100 text-green-800">Effectué</Badge>
-                                            <User class="h-3 w-3" />Pierre Martin
-                                        </div>
-                                    </div>
-
-                                    <div class="border rounded-lg p-4">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <span class="font-medium">Démontage robinet</span>
-                                            <span class="text-sm text-neutral-500">Fait le 20/10/2024 à 14:45</span>
-                                        </div>
-                                        <p class="text-sm text-neutral-600 mb-2">Démontage complet du robinet défaillant
-                                        </p>
-                                        <div class="mt-3 flex items-center gap-1 text-xs text-neutral-500">
-                                            <Badge class="bg-green-100 text-green-800">Effectué</Badge>
-                                            <User class="h-3 w-3" />Pierre Martin
-                                        </div>
-                                    </div>
-
-                                    <div class="border rounded-lg p-4">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <span class="font-medium">Installation nouveau robinet</span>
-                                            <span class="text-sm text-neutral-500">À faire</span>
-                                        </div>
-                                        <p class="text-sm text-neutral-600 mb-2">Pose et fixation du nouveau robinet</p>
-                                        <div class="mt-3 flex items-center gap-1 text-xs text-neutral-500">
-                                            <Badge class="bg-blue-100 text-blue-800">À faire</Badge>
-                                        </div>
-                                    </div>
-
-                                    <div class="border-dashed border-2 rounded-lg p-4 text-center">
-                                        <p class="text-sm text-neutral-500 mb-2">Ajouter une nouvelle opération</p>
-                                        <Button variant="outline" size="sm">
-                                            <Plus class="h-4 w-4" />
-                                            Nouvelle opération
-                                        </Button>
-                                    </div>
                                 </div>
                             </div>
                         </TabsContent>
@@ -392,54 +209,6 @@
                                     <p>Fonctionnalité en cours de développement</p>
                                     <p class="text-sm mt-2">La gestion des pièces détachées sera bientôt disponible</p>
                                 </div>
-
-                                <div class="overflow-x-auto">
-                                    <table class="w-full">
-                                        <thead class="bg-neutral-50">
-                                            <tr>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
-                                                    Référence</th>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
-                                                    Désignation</th>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
-                                                    Origine</th>
-                                                <th
-                                                    class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
-                                                    Qté</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-neutral-200">
-                                            <tr>
-                                                <td class="px-4 py-3 text-sm font-mono">ROB-001</td>
-                                                <td class="px-4 py-3 text-sm">Robinet mitigeur standard</td>
-                                                <td class="px-4 py-3 text-sm flex items-center gap-2">
-                                                    <LogOut class="h-3 w-3" />Camion Pierre
-                                                </td>
-                                                <td class="px-4 py-3 text-sm">1</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="px-4 py-3 text-sm font-mono">JT-205</td>
-                                                <td class="px-4 py-3 text-sm">Joint téflon rouleau 10m</td>
-                                                <td class="px-4 py-3 text-sm flex items-center gap-2">
-                                                    <LogOut class="h-3 w-3" />Camion Pierre
-                                                </td>
-                                                <td class="px-4 py-3 text-sm">1</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="px-4 py-3 text-sm font-mono">VIS-12</td>
-                                                <td class="px-4 py-3 text-sm">Vis fixation x4</td>
-                                                <td class="px-4 py-3 text-sm flex items-center gap-2">
-                                                    <LogOut class="h-3 w-3" />Camion Pierre
-                                                </td>
-                                                <td class="px-4 py-3 text-sm">1</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-
                             </div>
                         </TabsContent>
 
@@ -447,80 +216,11 @@
                             <div class="p-4">
                                 <div class="flex items-center justify-between mb-4">
                                     <h2 class="text-lg font-semibold text-neutral-900">Rapports d'intervention</h2>
-                                    <Button>
-                                        <Plus class="h-4 w-4" />
-                                        Générer un rapport
-                                    </Button>
                                 </div>
 
                                 <div class="text-center py-8 text-neutral-500">
                                     <p>Fonctionnalité en cours de développement</p>
                                     <p class="text-sm mt-2">La génération de rapports sera bientôt disponible</p>
-                                </div>
-
-                                <div class="space-y-4">
-                                    <div class="border rounded-lg p-4">
-                                        <div class="flex items-center justify-between mb-3">
-                                            <div class="flex items-center space-x-3">
-                                                <FileText class="h-8 w-8" />
-                                                <div>
-                                                    <h3 class="font-medium">Rapport d'intervention</h3>
-                                                    <p class="text-sm text-neutral-500">Rapport technique détaillé</p>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center space-x-2">
-                                                <Badge class="bg-green-100 text-green-800">Généré</Badge>
-                                                <Button variant="outline" size="sm">
-                                                    Télécharger
-                                                </Button>
-                                            </div>
-                                        </div>
-                                        <div class="text-sm text-neutral-600">
-                                            <p>Généré le 20/10/2024 à 16:30 par Pierre Martin</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="border rounded-lg p-4">
-                                        <div class="flex items-center justify-between mb-3">
-                                            <div class="flex items-center space-x-3">
-                                                <FileText class="h-8 w-8" />
-                                                <div>
-                                                    <h3 class="font-medium">Certificat Qualigaz</h3>
-                                                    <p class="text-sm text-neutral-500">Certificat de conformité gaz</p>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center space-x-2">
-                                                <Badge variant="outline">En attente</Badge>
-                                                <Button variant="outline" size="sm" disabled>
-                                                    Non disponible
-                                                </Button>
-                                            </div>
-                                        </div>
-                                        <div class="text-sm text-neutral-600">
-                                            <p>Sera généré après validation du contrôle gaz</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="border rounded-lg p-4">
-                                        <div class="flex items-center justify-between mb-3">
-                                            <div class="flex items-center space-x-3">
-                                                <FileText class="h-8 w-8" />
-                                                <div>
-                                                    <h3 class="font-medium">Photos avant/après</h3>
-                                                    <p class="text-sm text-neutral-500">Documentation visuelle</p>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center space-x-2">
-                                                <Badge class="bg-green-100 text-green-800">4 photos</Badge>
-                                                <Button variant="outline" size="sm">
-                                                    Voir
-                                                </Button>
-                                            </div>
-                                        </div>
-                                        <div class="text-sm text-neutral-600">
-                                            <p>Photos prises le 20/10/2024 à 15:45</p>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </TabsContent>
@@ -537,50 +237,6 @@
                                     <p>Fonctionnalité en cours de développement</p>
                                     <p class="text-sm mt-2">Les questionnaires de satisfaction seront bientôt
                                         disponibles</p>
-                                </div>
-
-                                <div class="space-y-6">
-                                    <div class="border rounded-lg p-4">
-                                        <h3 class="font-medium mb-3">Êtes-vous satisfait de la qualité du travail
-                                            effectué ?</h3>
-                                        <div class="flex items-center space-x-2">
-                                            <Badge class="bg-green-100 text-green-800">Oui</Badge>
-                                        </div>
-                                    </div>
-
-                                    <div class="border rounded-lg p-4">
-                                        <h3 class="font-medium mb-3">Le plombier a-t-il laissé les lieux propres après
-                                            son intervention ?</h3>
-                                        <div class="flex items-center space-x-2">
-                                            <Badge class="bg-green-100 text-green-800">Oui</Badge>
-                                        </div>
-                                    </div>
-
-                                    <div class="border rounded-lg p-4">
-                                        <h3 class="font-medium mb-3">La prise de rendez-vous pour votre intervention
-                                            a-t-elle était simple ?</h3>
-                                        <div class="flex items-center space-x-2">
-                                            <Badge class="bg-green-100 text-green-800">Oui</Badge>
-                                        </div>
-                                    </div>
-
-                                    <div class="border rounded-lg p-4">
-                                        <h3 class="font-medium mb-3">Pourriez-vous noter l'intervention dans son global
-                                            ?</h3>
-                                        <div class="flex items-center space-x-2">
-                                            <Badge class="bg-green-100 text-green-800">10/10</Badge>
-                                        </div>
-                                    </div>
-
-                                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                                        <div class="flex items-center space-x-2 mb-2">
-                                            <Check class="h-5 w-5 text-green-600" />
-                                            <span class="font-medium text-green-800">Questionnaire complété</span>
-                                        </div>
-                                        <p class="text-sm text-green-700">Répondu par le client le 20/10/2024 à 17:15
-                                        </p>
-                                        <p class="text-sm text-green-700">Note globale: 10/10 - Très satisfait</p>
-                                    </div>
                                 </div>
                             </div>
                         </TabsContent>
@@ -627,17 +283,16 @@
 
                         <Card class="p-4 gap-0 items-start relative">
                             <div class="flex absolute top-3 right-3 gap-2">
-                                <Button variant="outline" class="h-8 w-8" size="icon">
+                                <Button variant="outline" class="h-8 w-8" size="icon" @click="openEditDialog">
                                     <Edit class="h-3 w-3" />
                                 </Button>
                             </div>
-
                             <div class="flex items-center gap-1 mb-2">
                                 <ScrollText class="h-4 w-4" />
                                 <h4 class="text-sm font-medium">Description de l'intervention</h4>
                             </div>
+                            <p class="text-sm font-medium">{{ job?.name || 'Aucun sujet' }}</p>
                             <p class="text-sm text-neutral-600">{{ job?.description || 'Aucune description' }}</p>
-
                         </Card>
 
                         <Card class="p-4 gap-0 items-start relative">
@@ -711,6 +366,32 @@
             </div>
         </div>
     </div>
+
+    <Dialog :open="editDialogOpen" @update:open="editDialogOpen = false">
+        <DialogContent class="sm:max-w-[625px]">
+            <DialogHeader>
+                <DialogTitle>Modifier l'intervention</DialogTitle>
+                <DialogDescription>
+                    Modifiez le nom et la description de l'intervention.
+                </DialogDescription>
+            </DialogHeader>
+            <div class="grid gap-4 py-4">
+                <div class="grid gap-2">
+                    <Label for="name">Nom de l'intervention</Label>
+                    <Input id="name" v-model="editForm.name" placeholder="Nom de l'intervention" />
+                </div>
+                <div class="grid gap-2">
+                    <Label for="description">Description</Label>
+                    <Textarea id="description" v-model="editForm.description"
+                        placeholder="Description de l'intervention" />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" @click="editDialogOpen = false">Annuler</Button>
+                <Button @click="saveEdit" :disabled="loading">Enregistrer</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
 </template>
 
 <script setup>
@@ -721,6 +402,7 @@ import PrioritySelect from '@/common/components/form/priority-select/PrioritySel
 import Badge from '@/common/components/ui/badge/Badge.vue'
 import { Button } from '@/common/components/ui/button'
 import Card from '@/common/components/ui/card/Card.vue'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu'
 import Input from '@/common/components/ui/input/Input.vue'
 import Label from '@/common/components/ui/label/Label.vue'
@@ -729,6 +411,7 @@ import Tabs from '@/common/components/ui/tabs/Tabs.vue'
 import TabsContent from '@/common/components/ui/tabs/TabsContent.vue'
 import TabsList from '@/common/components/ui/tabs/TabsList.vue'
 import TabsTrigger from '@/common/components/ui/tabs/TabsTrigger.vue'
+import { Textarea } from '@/common/components/ui/textarea'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useJob } from '@/common/composables/useJob'
 import {
@@ -736,18 +419,12 @@ import {
     ArrowLeft,
     Calendar,
     CalendarArrowUp,
-    CalendarCheck,
-    Check,
     ChevronDown,
     Circle,
     Clock,
     Edit,
     File,
-    FileText,
     Folder,
-    Image,
-    LogOut,
-    Mail,
     Map,
     MapPin,
     MapPinned,
@@ -756,7 +433,6 @@ import {
     ScanSearch,
     ScrollText,
     ShieldAlert,
-    StickyNote,
     User,
     UserPlus,
     UserRoundX
@@ -778,6 +454,12 @@ const { getPriorityConfig } = useJob()
 
 const job = ref(null)
 const loading = ref(false)
+
+const editDialogOpen = ref(false)
+const editForm = ref({
+    name: '',
+    description: ''
+})
 
 const fetchJob = async () => {
     loading.value = true
@@ -839,6 +521,30 @@ const getDuration = () => {
         return `${diffHours}h ${diffMinutes}min`
     }
     return 'Durée non définie'
+}
+
+const openEditDialog = () => {
+    editForm.value = {
+        name: job.value?.name || '',
+        description: job.value?.description || ''
+    }
+    editDialogOpen.value = true
+}
+
+const saveEdit = async () => {
+    loading.value = true
+    try {
+        const jobId = route.params.id
+        await fetcher.put(`/jobs/${jobId}`, editForm.value)
+        toast.success('Intervention modifiée avec succès')
+        fetchJob() // Refresh job data
+        editDialogOpen.value = false
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde de l\'intervention:', error)
+        toast.error('Erreur lors de la sauvegarde de l\'intervention')
+    } finally {
+        loading.value = false
+    }
 }
 
 onMounted(() => {

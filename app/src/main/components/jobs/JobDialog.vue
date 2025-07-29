@@ -319,6 +319,11 @@ useBus(bus, 'open-job-dialog', (data) => {
         isEdit.value = false
         currentJob.value = null
         resetForm()
+
+        if (data && data.detail && data.detail.company) {
+            form.customer_company = data.detail.company.id || data.detail.company
+        }
+
         loadDefaultStatus()
     }
 })

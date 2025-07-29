@@ -110,10 +110,6 @@
                                         <div class="flex flex-col gap-1 py-2">
                                             <div class="text-sm font-medium text-neutral-900 underline cursor-pointer hover:text-primary"
                                                 @click="handleRowClick(job)">{{ job.name }}</div>
-                                            <div v-if="job.description"
-                                                class="text-sm text-neutral-500 truncate max-w-xs">
-                                                {{ job.description }}
-                                            </div>
                                             <div v-if="job.category" class="text-xs text-neutral-500">
                                                 {{ job.category.name }}
                                             </div>

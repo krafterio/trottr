@@ -219,16 +219,7 @@
                     </TabsContent>
 
                     <TabsContent value="interventions" class="bg-white rounded-lg border">
-                        <div class="p-6">
-                            <div class="text-center py-8">
-                                <Wrench class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                                <h3 class="text-lg font-medium text-neutral-900 mb-2">Interventions</h3>
-                                <p class="text-neutral-600 mb-4">Cette section permettra de consulter les
-                                    interventions liées à cette entreprise.</p>
-                                <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des interventions
-                                </p>
-                            </div>
-                        </div>
+                        <JobTable :jobs="companyJobs" :company="company" />
                     </TabsContent>
                 </Tabs>
             </div>
@@ -247,6 +238,7 @@ import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useCompany } from '@/common/composables/useCompany'
 import CompanyContacts from '@/main/components/companies/CompanyContacts.vue'
+import JobTable from '@/main/components/jobs/JobTable.vue'
 import SitesTable from '@/main/components/sites/SitesTable.vue'
 import { useWorkspaceStore } from '@/main/stores/workspace'
 
@@ -262,8 +254,7 @@ import {
     RotateCcw,
     Save,
     Trash,
-    User,
-    Wrench
+    User
 } from 'lucide-vue-next'
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -277,6 +268,7 @@ const workspaceStore = useWorkspaceStore()
 
 const companyId = route.params.id
 const company = ref({})
+const companyJobs = ref([])
 const kpis = ref({})
 const loading = ref(false)
 const error = ref(null)
@@ -302,6 +294,10 @@ useBus(bus, 'contact-saved', () => {
 
 useBus(bus, 'contact-created-stay', () => {
     fetchKpis()
+})
+
+useBus(bus, 'job-created-stay', () => {
+    fetchCompanyJobs()
 })
 
 const companyTypeOptions = getCompanyTypeOptions()
@@ -413,13 +409,20 @@ const saveCompany = async () => {
 }
 
 const fetchKpis = async () => {
-    if (!companyId) return
-
     try {
         const response = await fetcher.get(`/companies/${companyId}/kpis`)
         kpis.value = response.data
-    } catch (err) {
-        console.error('Erreur lors du chargement des KPIs:', err)
+    } catch (error) {
+        console.error('Erreur lors du chargement des KPIs:', error)
+    }
+}
+
+const fetchCompanyJobs = async () => {
+    try {
+        const response = await fetcher.get(`/jobs?customer_company=${companyId}`)
+        companyJobs.value = response.data
+    } catch (error) {
+        console.error('Erreur lors du chargement des jobs:', error)
     }
 }
 
@@ -437,7 +440,9 @@ const contactCompany = () => {
     }
 }
 
-onMounted(() => {
-    fetchCompany()
+onMounted(async () => {
+    await fetchCompany()
+    await fetchKpis()
+    await fetchCompanyJobs()
 })
 </script>

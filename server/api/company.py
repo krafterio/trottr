@@ -181,6 +181,7 @@ async def get_company_kpis(
 ):
     from models.site import Site
     from models.contact import Contact
+    from models.job import Job
     
     company = await Company.query.get(id=company_id)
     if not company:
@@ -188,10 +189,11 @@ async def get_company_kpis(
     
     sites_count = await Site.query.filter(company=company).count()
     contacts_count = await Contact.query.filter(company=company).count()
+    interventions_count = await Job.query.filter(customer_company=company).count()
     
     return CompanyKPIsResponse(
         sites_count=sites_count,
         contacts_count=contacts_count,
-        interventions_count=0,
+        interventions_count=interventions_count,
         lots_count=0
     ) 

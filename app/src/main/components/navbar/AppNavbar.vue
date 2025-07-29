@@ -68,6 +68,7 @@ import {
     NavigationMenuLink,
     NavigationMenuList,
 } from '@/common/components/ui/navigation-menu'
+import { bus } from '@/common/composables/bus'
 import { useWorkspaceStore } from '@/main/stores/workspace'
 import { Bell, HelpCircle, Plus, Search } from 'lucide-vue-next'
 import { computed } from 'vue'
@@ -155,10 +156,7 @@ const currentModuleLinks = computed(() => {
 })
 
 const isActiveLink = (href) => {
-    if (href === '/') {
-        return route.path === '/'
-    }
-    return route.path.startsWith(href)
+    return route.path === href || route.path.startsWith(href + '/')
 }
 
 const handleCreateJob = () => {
