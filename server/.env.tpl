@@ -1,5 +1,5 @@
 # Database
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/smashr
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/trottr
 
 # JWT
 SECRET_KEY=your-secret-key-here
