@@ -20,7 +20,7 @@ export const useAdminStore = defineStore('admin', () => {
         try {
             await fetcher.get(`/admin/info`);
         } catch (err) {
-            if (err.status === 403) {
+            if (err.response.status === 403) {
                 await authStore.logout();
             }
 
@@ -30,7 +30,7 @@ export const useAdminStore = defineStore('admin', () => {
         }
     }
 
-    watch(() => authStore.currentUser, async (user) => {
+    watch(() => authStore.user, async (user) => {
         if (user) {
             await fetchAdmin();
         }
