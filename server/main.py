@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api import auth, account
 from api.auth import get_current_user
 from api.workspace import router as workspace_router
+from api.workspace_billing import router as workspace_billing_router
 from api.subscriptions import router as subscriptions_router
 from api.health import router as health_router
 from api.users import router as users_router
@@ -164,6 +165,7 @@ def app(app_class: type[App] = App) -> App:
     # API routers
     api_router.include_router(account.router, prefix="/account", tags=["account"])
     api_router.include_router(workspace_router, prefix="/workspace", tags=["workspace"])
+    api_router.include_router(workspace_billing_router, tags=["workspace-billing"])
     api_router.include_router(subscriptions_router, tags=["subscriptions"])
     api_router.include_router(users_router, prefix="/users", tags=["users"])
     api_router.include_router(storage_router, tags=["storage"])

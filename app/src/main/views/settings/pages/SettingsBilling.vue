@@ -5,24 +5,50 @@
             <p class="text-neutral-600">Gérez votre abonnement et vos informations de facturation.</p>
         </div>
 
-        <div class="space-y-6">
+        <div v-if="loading" class="text-center py-8">
+            <p class="text-neutral-600">Chargement...</p>
+        </div>
+
+        <div v-else-if="error" class="text-center py-8">
+            <p class="text-red-600">Erreur lors du chargement des données de facturation</p>
+        </div>
+
+        <div v-else-if="billingInfo" class="space-y-6">
             <!-- Plan actuel -->
             <div class="border rounded-lg p-6 bg-accent">
                 <div class=" flex items-center justify-between mb-4">
                     <div>
-                        <h3 class="text-lg font-semibold text-neutral-900">Plan Professionnel</h3>
-                        <p class="text-neutral-600">Jusqu'à 10 utilisateurs</p>
+                        <h3 class="text-lg font-semibold text-neutral-900">
+                            {{ billingInfo.plan_name || 'Aucun plan' }}
+                        </h3>
+                        <p class="text-neutral-600">
+                            {{ billingInfo.subscription_available_users_count ? 
+                                `Jusqu'à ${billingInfo.subscription_available_users_count} utilisateurs` : 
+                                'Plan gratuit' 
+                            }}
+                        </p>
                     </div>
-                    <Badge class="bg-primary text-primary-foreground">Actuel</Badge>
+                    <Badge class="bg-primary text-primary-foreground">
+                        {{ getStatusLabel(billingInfo.subscription_status) }}
+                    </Badge>
                 </div>
 
                 <div class="flex items-baseline space-x-2 mb-4">
-                    <span class="text-3xl font-bold text-neutral-900">49€</span>
-                    <span class="text-neutral-600">/mois</span>
+                    <span class="text-3xl font-bold text-neutral-900">
+                        {{ billingInfo.plan_price ? 
+                            formatPrice(billingInfo.plan_price, billingInfo.plan_currency) : 
+                            'Gratuit' 
+                        }}
+                    </span>
+                    <span v-if="billingInfo.plan_period" class="text-neutral-600">
+                        /{{ billingInfo.plan_period.toLowerCase() }}
+                    </span>
                 </div>
 
                 <div class="flex items-center justify-between">
-                    <span class="text-sm text-neutral-600">Prochaine facturation le 15 janvier 2025</span>
+                    <span class="text-sm text-neutral-600">
+                        {{ getNextBillingText() }}
+                    </span>
                     <Button variant="outline" size="sm">
                         Changer de plan
                     </Button>
@@ -40,11 +66,16 @@
                             <Users class="h-4 w-4 text-neutral-500" />
                         </div>
                         <div class="flex items-baseline space-x-2">
-                            <span class="text-sm font-semibold text-neutral-900">4</span>
-                            <span class="text-sm text-neutral-500">/ 10</span>
+                            <span class="text-sm font-semibold text-neutral-900">{{ billingInfo.active_users_count }}</span>
+                            <span class="text-sm text-neutral-500">
+                                / {{ billingInfo.subscription_available_users_count || 'illimité' }}
+                            </span>
                         </div>
                         <div class="w-full bg-neutral-200 rounded-full h-2 mt-2">
-                            <div class="bg-primary h-2 rounded-full" style="width: 40%"></div>
+                            <div 
+                                class="bg-primary h-2 rounded-full" 
+                                :style="`width: ${getUsersPercentage()}%`"
+                            ></div>
                         </div>
                     </div>
 
@@ -54,11 +85,14 @@
                             <Calendar class="h-4 w-4 text-neutral-500" />
                         </div>
                         <div class="flex items-baseline space-x-2">
-                            <span class="text-sm font-semibold text-neutral-900">127</span>
+                            <span class="text-sm font-semibold text-neutral-900">{{ billingInfo.current_month_jobs_count }}</span>
                             <span class="text-sm text-neutral-500">/ illimité</span>
                         </div>
                         <div class="w-full bg-neutral-200 rounded-full h-2 mt-2">
-                            <div class="bg-primary h-2 rounded-full" style="width: 25%"></div>
+                            <div 
+                                class="bg-primary h-2 rounded-full" 
+                                :style="`width: ${getJobsPercentage()}%`"
+                            ></div>
                         </div>
                     </div>
                 </div>
@@ -156,19 +190,27 @@
                     <div class="space-y-3">
                         <div>
                             <Label class="text-sm font-medium text-neutral-700">Nom de facturation</Label>
-                            <p class="text-sm text-neutral-900">SARL Tech Solutions</p>
+                            <p class="text-sm text-neutral-900">{{ billingInfo.invoice_name || 'Non renseigné' }}</p>
                         </div>
                         <div>
                             <Label class="text-sm font-medium text-neutral-700">Adresse de facturation</Label>
-                            <p class="text-sm text-neutral-900">123 rue de la République<br />75001 Paris, France</p>
+                            <p class="text-sm text-neutral-900" v-html="getInvoiceAddress()"></p>
                         </div>
                         <div>
-                            <Label class="text-sm font-medium text-neutral-700">Email de facturation</Label>
-                            <p class="text-sm text-neutral-900">billing@techsolutions.com</p>
+                            <Label class="text-sm font-medium text-neutral-700">SIREN</Label>
+                            <p class="text-sm text-neutral-900">{{ billingInfo.invoice_siren || 'Non renseigné' }}</p>
+                        </div>
+                        <div>
+                            <Label class="text-sm font-medium text-neutral-700">Numéro TVA</Label>
+                            <p class="text-sm text-neutral-900">{{ billingInfo.invoice_vat || 'Non renseigné' }}</p>
                         </div>
                     </div>
                     <div class="mt-4">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                            variant="outline" 
+                            size="sm"
+                            @click="openBillingDialog"
+                        >
                             <Edit class="h-4 w-4 mr-2" />
                             Modifier
                         </Button>
@@ -176,6 +218,10 @@
                 </div>
             </div>
         </div>
+        
+        <BillingInfoDialog 
+            v-model:open="showBillingDialog"
+        />
     </div>
 </template>
 
@@ -185,7 +231,59 @@ import { Button } from '@/common/components/ui/button'
 import { Label } from '@/common/components/ui/label'
 import { Separator } from '@/common/components/ui/separator'
 import { Calendar, CreditCard, Download, Edit, Plus, Users } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useFetcher } from '@/common/composables/fetcher'
+import BillingInfoDialog from '@/main/components/dialogs/BillingInfoDialog.vue'
+
+const fetcher = useFetcher()
+
+const billingInfo = ref(null)
+const loading = ref(false)
+const error = ref(null)
+const showBillingDialog = ref(false)
+
+const fetchBillingInfo = async () => {
+    try {
+        loading.value = true
+        error.value = null
+        
+        const response = await fetcher.get('/workspace/billing')
+        billingInfo.value = response.data
+    } catch (err) {
+        error.value = err
+    } finally {
+        loading.value = false
+    }
+}
+
+const formatPrice = (amount, currency = 'EUR') => {
+    return new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: currency
+    }).format(amount)
+}
+
+const formatDate = (date) => {
+    if (!date) return null
+    return new Intl.DateTimeFormat('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    }).format(new Date(date))
+}
+
+const openBillingDialog = () => {
+    showBillingDialog.value = true
+}
+
+const getUsagePercentage = (current, max) => {
+    if (!max || max === 0) return 0
+    return Math.min((current / max) * 100, 100)
+}
+
+onMounted(() => {
+    fetchBillingInfo()
+})
 
 const invoices = ref([
     {
@@ -221,5 +319,70 @@ const getInvoiceStatusClass = (status) => {
         case 'Échouée': return 'bg-red-100 text-red-800'
         default: return 'bg-neutral-100 text-neutral-800'
     }
+}
+
+const getStatusLabel = (status) => {
+    switch (status) {
+        case 'active': return 'Actif'
+        case 'trialing': return 'Essai'
+        case 'canceled': return 'Annulé'
+        case 'past_due': return 'En retard'
+        case 'unpaid': return 'Impayé'
+        default: return 'Inconnu'
+    }
+}
+
+const getNextBillingText = () => {
+    if (!billingInfo.value?.subscription_status) return 'Aucun abonnement'
+    
+    if (billingInfo.value.subscription_trial_end && new Date(billingInfo.value.subscription_trial_end) > new Date()) {
+        return `Essai gratuit jusqu'au ${formatDate(billingInfo.value.subscription_trial_end)}`
+    }
+    
+    if (billingInfo.value.subscription_next_billing_date) {
+        return `Prochaine facturation le ${formatDate(billingInfo.value.subscription_next_billing_date)}`
+    }
+    
+    if (billingInfo.value.subscription_cancel_at_period_end) {
+        return 'Abonnement annulé en fin de période'
+    }
+    
+    return 'Informations de facturation non disponibles'
+}
+
+const getUsersPercentage = () => {
+    if (!billingInfo.value?.subscription_available_users_count) return 0
+    return getUsagePercentage(
+        billingInfo.value.active_users_count, 
+        billingInfo.value.subscription_available_users_count
+    )
+}
+
+const getJobsPercentage = () => {
+    if (!billingInfo.value?.current_month_jobs_count) return 0
+    const maxJobs = 10000
+    return getUsagePercentage(
+        billingInfo.value.current_month_jobs_count,
+        maxJobs
+    )
+}
+
+const getInvoiceAddress = () => {
+    if (!billingInfo.value) return 'Non renseigné'
+    
+    const parts = []
+    if (billingInfo.value.invoice_street) parts.push(billingInfo.value.invoice_street)
+    if (billingInfo.value.invoice_street2) parts.push(billingInfo.value.invoice_street2)
+    
+    const cityLine = []
+    if (billingInfo.value.invoice_zip) cityLine.push(billingInfo.value.invoice_zip)
+    if (billingInfo.value.invoice_city) cityLine.push(billingInfo.value.invoice_city)
+    if (cityLine.length > 0) parts.push(cityLine.join(' '))
+    
+    if (billingInfo.value.invoice_country?.name) {
+        parts.push(billingInfo.value.invoice_country.name)
+    }
+    
+    return parts.length > 0 ? parts.join('<br />') : 'Non renseigné'
 }
 </script>

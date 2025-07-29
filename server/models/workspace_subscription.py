@@ -1,5 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Union
+from zoneinfo import ZoneInfo
 
 from edgy import fields
 from enum import Enum
@@ -62,7 +63,24 @@ class WorkspaceSubscription(BaseModel):
 
     @property
     def is_subscription_active(self) -> bool:
-        return self.status in [SubscriptionStatus.active, SubscriptionStatus.trialing] 
+        return self.status in [SubscriptionStatus.active, SubscriptionStatus.trialing]
+
+    @property
+    def next_billing_date(self) -> datetime | None:
+        current_date = datetime.now(ZoneInfo("UTC"))
+        next_billing_date = None
+
+        if self.trial_end and self.trial_end > current_date:
+            next_billing_date = self.trial_end
+        elif self.end_date:
+            next_billing_date = self.end_date
+        elif self.start_date and self.service_plan:
+            if self.service_plan.period.value == "Mensuel":
+                next_billing_date = self.start_date + timedelta(days=30)
+            else:
+                next_billing_date = self.start_date + timedelta(days=365)
+
+        return next_billing_date
 
 
 @pre_save.connect_via(WorkspaceSubscription)
