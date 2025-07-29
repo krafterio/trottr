@@ -3,6 +3,8 @@ from rich.console import Console
 from cli.commands.db import db
 from core.app import CliApp
 from models.country import Country
+from models.service_plan import ServicePlan, ServicePlanPeriod, ServicePlanType
+from models.service_tax import ServiceTax
 
 console = Console()
 
@@ -12,8 +14,126 @@ console = Console()
 async def init_data(app: CliApp):
     """Init the database"""
     async with app.lifespan():
+        await initialize_subscription_plans()
+        await initialize_subscription_taxes()
         await initialize_countries()
         console.print(f"[green]Database is initialized with successfully[/green]")
+
+
+async def initialize_subscription_plans():
+    """Initialize the subscription plans"""
+    plan_definitions = [
+        # Pro
+        {
+            "name": "Trottr Essential Mensuel",
+            "type": ServicePlanType.essential,
+            "period": ServicePlanPeriod.monthly,
+            "price": 59.00,
+            "currency": "EUR",
+            "description": None,
+        },
+        {
+            "name": "Trottr Essential Annuel",
+            "type": ServicePlanType.essential,
+            "period": ServicePlanPeriod.yearly,
+            "price": 12 * 49.00,
+            "currency": "EUR",
+            "description": None,
+        },
+        # Team
+        {
+            "name": "Trottr Advanced Mensuel",
+            "type": ServicePlanType.advanced,
+            "period": ServicePlanPeriod.monthly,
+            "price": 89.00,
+            "currency": "EUR",
+            "description": None,
+        },
+        {
+            "name": "Trottr Advanced Annuel",
+            "type": ServicePlanType.advanced,
+            "period": ServicePlanPeriod.yearly,
+            "price": 12 * 79.00,
+            "currency": "EUR",
+            "description": None,
+        },
+        # Enterprise
+        {
+            "name": "Trottr Business Mensuel",
+            "type": ServicePlanType.business,
+            "period": ServicePlanPeriod.monthly,
+            "price": 119.00,
+            "currency": "EUR",
+            "description": None,
+        },
+        {
+            "name": "Trottr Business Annuel",
+            "type": ServicePlanType.business,
+            "period": ServicePlanPeriod.yearly,
+            "price": 12 * 99.00,
+            "currency": "EUR",
+            "description": None,
+        },
+    ]
+
+    console.print("[bold]Initializing subscription plans...[/bold]")
+
+    for definition in plan_definitions:
+        existing_plan = await ServicePlan.query.filter(
+            type=definition["type"],
+            period=definition["period"]
+        ).first()
+
+        if existing_plan:
+            console.print(f"  [yellow]Existing plan '{definition['name']}' - ignored[/yellow]")
+            continue
+
+        plan = await ServicePlan.query.create(
+            name=definition["name"],
+            type=definition["type"],
+            period=definition["period"],
+            price=definition["price"],
+            currency=definition["currency"],
+            description=definition["description"],
+            is_active=True,
+        )
+
+        console.print(f"  [green]Plan '{plan.name}' created with successfully[/green]")
+
+
+async def initialize_subscription_taxes():
+    """Initialize the subscription taxes"""
+    tax_definitions = [
+        # France
+        {
+            "name": "TVA 20%",
+            "rate": 20.0,
+            "country_code": "FR",
+            "description": None,
+        },
+    ]
+
+    console.print("[bold]Initializing subscription taxes...[/bold]")
+
+    for definition in tax_definitions:
+        existing_tax = await ServiceTax.query.filter(
+            rate=definition["rate"],
+            country_code=definition["country_code"],
+        ).first()
+
+        if existing_tax:
+            console.print(f"  [yellow]Existing tax '{definition['name']}' - ignored[/yellow]")
+            continue
+
+        tax = await ServiceTax.query.create(
+            name=definition["name"],
+            rate=definition["rate"],
+            country_code=definition["country_code"],
+            description=definition["description"],
+            is_active=True,
+        )
+
+        console.print(f"  [green]Tax '{tax.name}' created with successfully[/green]")
 
 
 async def initialize_countries():
