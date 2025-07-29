@@ -5,6 +5,7 @@ from starlette.responses import Response
 import mimetypes
 
 from api.auth import get_current_user
+from core.metadata_model import metadata_model_registry
 from models.base import BaseModel
 from models.user import User
 from models.workspace import Workspace
