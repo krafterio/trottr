@@ -28,7 +28,7 @@
                                 <Building2 :size="16" class="mr-2" />
                                 Espaces de travail
                             </MenubarItem>
-                            <MenubarItem @click="$router.push({ name: 'user-invitations' })">
+                            <MenubarItem @click="$router.push({ name: 'user-invitations' })" v-if="isPreviewMode">
                                 <UserCheck :size="16" class="mr-2" />
                                 Demande d'accès
                             </MenubarItem>
@@ -48,10 +48,6 @@
                             <MenubarItem @click="$router.push({ name: 'countries' })">
                                 <Globe :size="16" class="mr-2" />
                                 Pays
-                            </MenubarItem>
-                            <MenubarItem @click="$router.push({ name: 'interaction-types' })">
-                                <MessageCircle :size="16" class="mr-2" />
-                                Types d'interactions
                             </MenubarItem>
                             <MenubarItem @click="$router.push({ name: 'service-taxes' })">
                                 <Percent weight="light" :size="16" class="mr-2" />
@@ -78,23 +74,6 @@
                             <MenubarItem>
                                 <Lightbulb weight="light" :size="16" class="mr-2" />
                                 Idées
-                            </MenubarItem>
-                        </MenubarContent>
-                    </MenubarMenu>
-
-                    <MenubarMenu>
-                        <MenubarTrigger>
-                            <Megaphone weight="light" :size="16" class="mr-2" />
-                            Marketing
-                        </MenubarTrigger>
-                        <MenubarContent>
-                            <MenubarItem @click="$router.push({ name: 'service-credit-coupons' })">
-                                <Ticket weight="light" :size="16" class="mr-2" />
-                                Coupons
-                            </MenubarItem>
-                            <MenubarItem @click="$router.push({ name: 'service-credit-packs' })">
-                                <Coins weight="light" :size="16" class="mr-2" />
-                                Packs enrichissement
                             </MenubarItem>
                         </MenubarContent>
                     </MenubarMenu>
@@ -136,6 +115,8 @@ import {
     Coins,
     Building2,
 } from 'lucide-vue-next'
+import {usePreview} from '@/common/composables/preview';
 
 const authStore = useAuthStore()
+const { isPreviewMode } = usePreview()
 </script>

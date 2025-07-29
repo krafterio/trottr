@@ -70,24 +70,6 @@ const router = createRouter({
             }
         },
         {
-            path: '/service-credit-packs',
-            name: 'service-credit-packs',
-            component: () => import('@/admin/views/ServiceCreditPacksView.vue'),
-            meta: {
-                metaTitle: 'Packs d\'enrichissement - Admin - Trottr',
-                title: 'Packs d\'enrichissement',
-            }
-        },
-        {
-            path: '/service-credit-coupons',
-            name: 'service-credit-coupons',
-            component: () => import('@/admin/views/ServiceCreditCouponsView.vue'),
-            meta: {
-                metaTitle: 'Coupons - Admin - Trottr',
-                title: 'Coupons',
-            }
-        },
-        {
             path: '/service-taxes',
             name: 'service-taxes',
             component: () => import('@/admin/views/ServiceTaxesView.vue'),
@@ -103,15 +85,6 @@ const router = createRouter({
             meta: {
                 metaTitle: 'Pays - Admin - Trottr',
                 title: 'Pays',
-            }
-        },
-        {
-            path: '/interaction-types',
-            name: 'interaction-types',
-            component: () => import('@/admin/views/InteractionTypesView.vue'),
-            meta: {
-                metaTitle: 'Types d\'interactions - Admin - Trottr',
-                title: 'Types d\'interactions',
             }
         },
         ...(isPreviewMode ? [
