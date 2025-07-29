@@ -52,15 +52,6 @@ const router = createRouter({
             }
         },
         {
-            path: '/workspaces/:id',
-            name: 'workspace',
-            component: () => import('@/admin/views/WorkspaceView.vue'),
-            meta: {
-                metaTitle: 'Détails de l\'espace de travail - Admin - Trottr',
-                title: 'Détails de l\'espace de travail',
-            }
-        },
-        {
             path: '/service-plans',
             name: 'service-plans',
             component: () => import('@/admin/views/ServicePlansView.vue'),

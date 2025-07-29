@@ -15,8 +15,6 @@
                                     <TableHead>Nom</TableHead>
                                     <TableHead>ID Unique</TableHead>
                                     <TableHead>Devise</TableHead>
-                                    <TableHead class="text-right">Crédits disponibles</TableHead>
-                                    <TableHead class="text-right">Crédits utilisés</TableHead>
                                     <TableHead>Plan</TableHead>
                                     <TableHead>Fin d'essai</TableHead>
                                     <TableHead class="w-20"></TableHead>
@@ -50,12 +48,11 @@
                                                     {{ workspace.name.charAt(0).toUpperCase() }}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <router-link 
-                                                :to="{name: 'workspace', params: { id: workspace.id }}" 
+                                            <span
                                                 class="font-medium text-blue-600 hover:text-blue-800 hover:underline"
                                             >
-                                                {{ workspace.name }}
-                                            </router-link>
+                                                {{ workspace.name || 'N/A' }}
+                                            </span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -63,12 +60,6 @@
                                     </TableCell>
                                     <TableCell>
                                         {{ workspace.currency }}
-                                    </TableCell>
-                                    <TableCell class="text-right">
-                                        {{ formatNumber(workspace.available_usage_credits) }} jetons
-                                    </TableCell>
-                                    <TableCell class="text-right">
-                                        {{ formatNumber(workspace.current_usage_credits) }} jetons
                                     </TableCell>
                                     <TableCell>
                                         <Badge :variant="getPlanVariant(workspace.plan)" class="capitalize">
@@ -87,11 +78,6 @@
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                <DropdownMenuItem @click="editWorkspace(workspace)">
-                                                    <Pencil class="mr-2 h-4 w-4" />
-                                                    Modifier
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
                                                 <DropdownMenuItem 
                                                     @click="confirmDelete(workspace)" 
                                                     class="text-red-600 focus:text-red-600"
@@ -259,10 +245,6 @@ const getPlanVariant = (plan) => {
         default:
             return 'outline'
     }
-}
-
-const editWorkspace = (workspace) => {
-    router.push({ name: 'workspace', params: { id: workspace.id } })
 }
 
 const confirmDelete = (workspace) => {
