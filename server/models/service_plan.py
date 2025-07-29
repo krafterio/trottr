@@ -24,6 +24,10 @@ class ServicePlan(BaseModel):
         tablename = "service_plans"
         label = "Plan"
         label_plural = "Plans"
+        unique_together = [
+            ("type", "period"),
+            ("stripe_product_id", "stripe_price_id"),
+        ]
 
     is_active: bool = fields.BooleanField(default=True, label="Actif")  # type: ignore
     name: str | None = fields.CharField(max_length=255, label="Nom")  # type: ignore
@@ -32,8 +36,8 @@ class ServicePlan(BaseModel):
     price: float | None = fields.FloatField(label="Prix")  # type: ignore
     currency: str | None = fields.CharField(max_length=3, default="EUR", label="Devise")  # type: ignore
     description: str | None = fields.TextField(null=True, label="Description")  # type: ignore
-    stripe_product_id: str | None = fields.CharField(max_length=255, null=True, unique=True, label="ID Produit Stripe")  # type: ignore
-    stripe_price_id: str | None = fields.CharField(max_length=255, null=True, unique=True, label="ID Prix Stripe")  # type: ignore
+    stripe_product_id: str | None = fields.CharField(max_length=255, null=True, label="ID Produit Stripe")  # type: ignore
+    stripe_price_id: str | None = fields.CharField(max_length=255, null=True, label="ID Prix Stripe")  # type: ignore
 
     def __str__(self) -> str:
         return f"{self.name} ({self.type})" 
