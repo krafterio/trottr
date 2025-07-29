@@ -2,7 +2,8 @@
     <nav class="w-full bg-primary text-white px-6 py-3">
         <div class="flex items-center justify-between h-full">
             <div class="flex items-center space-x-3">
-                <img src="/trottr-favicon-white.svg" alt="Trottr" class="h-6" />
+                <img src="/trottr-favicon-white.svg" alt="Trottr"
+                    class="h-6 transition-all duration-500 [transform-style:preserve-3d] hover:[transform:rotateY(180deg)]" />
 
                 <div class="w-px ms-2 h-6 bg-neutral-700"></div>
 
@@ -111,11 +112,19 @@ const moduleLinks = {
     documents: [
         { href: '#', label: 'Bientôt disponible', disabled: true }
     ],
-    gestion: [
-        { href: '/stock', label: 'Stock' },
-        { href: '/operations', label: 'Opérations' },
-        { href: '/produits', label: 'Fiches produit' },
-    ],
+    gestion: computed(() => {
+        const baseLinks = [
+            { href: '/operations', label: 'Opérations' },
+            { href: '/stock', label: 'Stock' },
+            { href: '/produits', label: 'Fiches produit' },
+        ]
+
+        if (workspaceStore.workspace?.use_diagnostics) {
+            baseLinks.splice(1, 0, { href: '/diagnostics', label: 'Diagnostics' })
+        }
+
+        return baseLinks
+    }),
     rh: [
         { href: '/operateurs', label: 'Opérateurs' },
         { href: '/absences', label: 'Absences / congés' }
@@ -137,7 +146,7 @@ const currentModule = computed(() => {
         return 'dashboard'
     } else if (name === 'documents') {
         return 'documents'
-    } else if (name === 'stock' || name === 'operations' || name === 'produits' || name === 'flotte' || name === 'gestion') {
+    } else if (name === 'stock' || name === 'operations' || name === 'produits' || name === 'flotte' || name === 'gestion' || name === 'diagnostics') {
         return 'gestion'
     } else if (name === 'operateurs' || name === 'absences' || name === 'rh') {
         return 'rh'

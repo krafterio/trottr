@@ -85,7 +85,7 @@ const modules = [
     },
     {
         title: 'Gestion',
-        url: '/stock',
+        url: '/operations',
         icon: Blocks,
         module: 'gestion'
     },

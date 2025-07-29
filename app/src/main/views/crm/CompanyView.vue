@@ -219,7 +219,7 @@
                     </TabsContent>
 
                     <TabsContent value="interventions" class="bg-white rounded-lg border">
-                        <JobTable :jobs="companyJobs" :company="company" />
+                        <JobTable :jobs="companyJobs" :company="company" :loading="loading" />
                     </TabsContent>
                 </Tabs>
             </div>

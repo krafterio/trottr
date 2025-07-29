@@ -410,7 +410,13 @@
                 </div>
 
                 <div v-if="selectedSite" class="border rounded-lg p-4 bg-neutral-50">
-                    <h4 class="text-sm font-medium text-neutral-900 mb-2">Aperçu du site</h4>
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-sm font-medium text-neutral-900">Aperçu du site</h4>
+                        <Button variant="outline" size="sm" @click="openSiteEditDialog">
+                            <Edit class="h-3 w-3" />
+                            Éditer
+                        </Button>
+                    </div>
                     <div class="text-sm text-neutral-600 space-y-1">
                         <p v-if="selectedSite.name" class="font-medium">{{ selectedSite.name }}</p>
                         <p v-if="selectedSite.street">{{ selectedSite.street }}</p>
@@ -448,6 +454,7 @@ import TabsContent from '@/common/components/ui/tabs/TabsContent.vue'
 import TabsList from '@/common/components/ui/tabs/TabsList.vue'
 import TabsTrigger from '@/common/components/ui/tabs/TabsTrigger.vue'
 import { Textarea } from '@/common/components/ui/textarea'
+import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useJob } from '@/common/composables/useJob'
 import {
@@ -502,7 +509,6 @@ const siteDialogOpen = ref(false)
 const siteForm = ref({
     site: null
 })
-
 const selectedSite = ref(null)
 
 const fetchJob = async () => {
@@ -597,6 +603,32 @@ const openSiteDialog = () => {
     siteDialogOpen.value = true
 }
 
+const openSiteEditDialog = async () => {
+    if (selectedSite.value) {
+        try {
+            const response = await fetcher.get(`/sites/${selectedSite.value.id}`)
+            const siteData = response.data
+
+            bus.trigger('open-site-dialog', {
+                id: siteData.id,
+                name: siteData.name,
+                building_type: siteData.building_type,
+                street: siteData.street,
+                street_2: siteData.street_2,
+                zip: siteData.zip,
+                city: siteData.city,
+                country: siteData.country,
+                company: siteData.company,
+                contact: siteData.contact
+            })
+            siteDialogOpen.value = false
+        } catch (error) {
+            console.error('Erreur lors du chargement du site:', error)
+            toast.error('Erreur lors du chargement du site')
+        }
+    }
+}
+
 const saveSite = async () => {
     loading.value = true
     try {
@@ -634,7 +666,15 @@ watch(() => siteForm.value.site, async (newSite) => {
     }
 })
 
-onMounted(() => {
+onMounted(async () => {
+    await fetchJob()
+})
+
+useBus(bus, 'site-saved', () => {
+    fetchJob()
+})
+
+useBus(bus, 'site-created-stay', () => {
     fetchJob()
 })
 </script>

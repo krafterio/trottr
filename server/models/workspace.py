@@ -65,7 +65,8 @@ class Workspace(BaseModel):
     stripe_customer_id: str | None = fields.CharField(max_length=255, null=True, unique=True, label="ID Client Stripe")
     trial_end: datetime | None = fields.DateTimeField(null=True, label="Fin essai")
     comply_with_local_privacy_laws: bool = fields.BooleanField(default=True, label="Je respecte les lois locales sur la confidentialité lors de la gestion des données de mes prospects")
-    use_subsites: bool = fields.BooleanField(default=False, label="Utiliser la gstion des lots")
+    use_subsites: bool = fields.BooleanField(default=False, label="Utiliser la gestion des lots")
+    use_diagnostics: bool = fields.BooleanField(default=False, label="Utiliser la gestion des diagnostics")
 
     @property
     def is_trial(self) -> bool:

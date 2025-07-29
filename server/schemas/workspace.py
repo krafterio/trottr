@@ -44,6 +44,7 @@ class WorkspaceUpdate(BaseModel):
     default_job_duration: DefaultJobDuration | None = None
     default_job_priority: DefaultJobPriority | None = None
     use_subsites: bool | None = None
+    use_diagnostics: bool | None = None
 
 class WorkspaceUserRead(UserRead):
     role: WorkspaceUserRole
@@ -78,6 +79,7 @@ class WorkspaceRead(BaseModel):
     default_job_duration: DefaultJobDuration | None = None
     default_job_priority: DefaultJobPriority | None = None
     use_subsites: bool
+    use_diagnostics: bool
     
     class Config:
         from_attributes = True

@@ -64,6 +64,23 @@
             <Separator />
 
             <div class="space-y-4">
+                <h3 class="text-base font-medium text-neutral-900">Gestion des diagnostics</h3>
+                <div class="flex items-center justify-between">
+                    <div class="space-y-1">
+                        <Label for="use-diagnostics">Utiliser la gestion des diagnostics</Label>
+                        <p class="text-sm text-neutral-500">
+                            Active la gestion des diagnostics pour catégoriser les problèmes rencontrés lors des
+                            interventions.
+                        </p>
+                    </div>
+                    <Switch id="use-diagnostics" :model-value="useDiagnostics"
+                        @update:model-value="useDiagnostics = $event" />
+                </div>
+            </div>
+
+            <Separator />
+
+            <div class="space-y-4">
                 <h3 class="text-base font-medium text-neutral-900">Statuts d'intervention</h3>
                 <p class="text-sm text-neutral-500">
                     Configurez les statuts disponibles pour vos interventions. Glissez-déposez pour réorganiser l'ordre.
@@ -285,6 +302,7 @@ const loading = ref(false)
 const defaultJobDuration = ref(null)
 const defaultJobPriority = ref(null)
 const useSubsites = ref(false)
+const useDiagnostics = ref(false)
 
 const jobStatuses = ref([])
 
@@ -314,6 +332,7 @@ const loadWorkspaceSettings = async () => {
         defaultJobDuration.value = workspace.default_job_duration ? String(workspace.default_job_duration) : null
         defaultJobPriority.value = workspace.default_job_priority || null
         useSubsites.value = workspace.use_subsites || false
+        useDiagnostics.value = workspace.use_diagnostics || false
     } catch (error) {
         console.error('Erreur lors du chargement des paramètres:', error)
         toast.error('Impossible de charger les paramètres du workspace')
@@ -325,7 +344,8 @@ const saveWorkspaceSettings = async () => {
         const payload = {
             default_job_duration: defaultJobDuration.value || null,
             default_job_priority: defaultJobPriority.value || null,
-            use_subsites: useSubsites.value
+            use_subsites: useSubsites.value,
+            use_diagnostics: useDiagnostics.value
         }
 
         await fetcher.patch('/workspace', payload)

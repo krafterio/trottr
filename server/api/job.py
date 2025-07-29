@@ -18,9 +18,19 @@ router = APIRouter()
 async def list_jobs(
     skip: int = 0,
     limit: int = 50,
+    customer_company: int = None,
+    customer_contact: int = None,
     current_user: CurrentUser = Depends(get_current_user)
 ):
-    jobs = await Job.query.select_related("customer_company", "customer_contact", "site", "operator", "category", "status").order_by("-created_at").offset(skip).limit(limit).all()
+    query = Job.query.select_related("customer_company", "customer_contact", "site", "operator", "category", "status")
+    
+    if customer_company is not None:
+        query = query.filter(customer_company=customer_company)
+    
+    if customer_contact is not None:
+        query = query.filter(customer_contact=customer_contact)
+    
+    jobs = await query.order_by("-created_at").offset(skip).limit(limit).all()
     return jobs
 
 @router.get("/{job_id}", response_model=JobRead)

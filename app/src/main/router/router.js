@@ -283,6 +283,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/diagnostics',
+      name: 'diagnostics',
+      component: () => import('@/main/views/gestion/JobsDiagnosticsView.vue'),
+      meta: {
+        requiresAuth: true,
+        metaTitle: 'Diagnostics'
+      }
+    },
+    {
       path: '/produits',
       name: 'produits',
       component: () => import('@/main/views/gestion/ProductsView.vue'),
