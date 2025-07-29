@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from copy import copy
-from typing import Type
+from typing import Type, get_origin, Union, get_args
 
 from fastapi import APIRouter
 from pydantic import create_model
@@ -37,9 +37,22 @@ def generate_input_patch_model[M = TypeModel](model_cls: M) -> type[M]:
             py_field.required = False
             py_field.null = True
             py_field.default = None
-            fields[field_name] = (field.field_type, py_field)
+            py_field.field_type = optional_field_type(field.field_type)
+            fields[field_name] = (py_field.field_type, py_field)
 
     return create_model(f'{model_cls.__name__}-InputUpdate', **fields)
+
+
+def optional_field_type(field_type):
+    if get_origin(field_type) is Union:
+        args = get_args(field_type)
+
+        if type(None) in args:
+            return field_type
+
+        return Union[*args, None]
+    else:
+        return Union[field_type, None]
 
 
 class BaseApiRouteAction(ABC):
