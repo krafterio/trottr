@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Union
 from edgy import fields
 
 from core.config import get_settings
+from core.metadata_model import metadata_model
 from models.base import BaseModel
 from enum import Enum
 
@@ -19,6 +20,8 @@ class WorkspaceUserRole(str, Enum):
     MEMBER = "Member"
     OPERATOR = "Operator"
 
+
+@metadata_model()
 class WorkspaceUser(BaseModel):
     """Model for managing workspace users and their roles"""
     class Meta:

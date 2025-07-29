@@ -2,9 +2,11 @@ from edgy import fields
 from typing import List
 import edgy
 
+from core.api_route_model.decorators import admin_api_route_model
 from models.base import BaseModel
 from datetime import datetime
 
+@admin_api_route_model()
 class User(BaseModel):
     class Meta:
         label = "Utilisateur"

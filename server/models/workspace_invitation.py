@@ -4,6 +4,7 @@ from edgy import fields
 from datetime import datetime, timedelta, timezone
 import secrets
 
+from core.metadata_model import metadata_model
 from models.base import BaseModel
 from models.mixins import WorkspaceableMixin
 
@@ -12,6 +13,7 @@ if TYPE_CHECKING:
     from models.workspace import Workspace
 
 
+@metadata_model()
 class WorkspaceInvitation(BaseModel, WorkspaceableMixin):
     class Meta:
         tablename = "workspace_invitations"
