@@ -6,25 +6,25 @@ export const useJob = () => {
             icon: SignalLow,
             color: 'text-gray-500',
             label: 'Faible',
-            bgColor: 'bg-gray-500'
+            bgColor: 'bg-gray-100'
         },
         normal: {
             icon: SignalMedium,
             color: 'text-blue-500',
             label: 'Normale',
-            bgColor: 'bg-blue-500'
+            bgColor: 'bg-blue-100'
         },
         high: {
             icon: SignalHigh,
             color: 'text-orange-500',
             label: 'Élevée',
-            bgColor: 'bg-orange-500'
+            bgColor: 'bg-orange-100'
         },
         urgent: {
             icon: Signal,
             color: 'text-red-500',
             label: 'Urgente',
-            bgColor: 'bg-red-500'
+            bgColor: 'bg-red-100'
         }
     }
 

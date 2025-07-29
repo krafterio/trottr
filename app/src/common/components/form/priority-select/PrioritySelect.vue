@@ -3,7 +3,7 @@
         <SelectTrigger class="w-full">
             <SelectValue :placeholder="placeholder">
                 <div v-if="selectedPriority" class="flex items-center gap-2">
-                    <component :is="getPriorityConfig(selectedPriority).icon" class="w-5 h-4"
+                    <component :is="getPriorityConfig(selectedPriority).icon" class="w-3 h-3"
                         :class="getPriorityConfig(selectedPriority).color" />
                     <span>{{ getPriorityConfig(selectedPriority).label }}</span>
                 </div>
@@ -12,7 +12,7 @@
         <SelectContent>
             <SelectItem v-for="option in priorityOptions" :key="option.value" :value="option.value">
                 <div class="flex items-center gap-2">
-                    <component :is="option.icon" class="w-5 h-4" :class="option.color" />
+                    <component :is="option.icon" class="w-3 h-3" :class="option.color" />
                     <span>{{ option.label }}</span>
                 </div>
             </SelectItem>

@@ -93,22 +93,23 @@
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow v-for="job in jobs" :key="job.id" class="hover:bg-neutral-50 cursor-pointer"
-                                    @click="handleRowClick(job)">
+                                <TableRow v-for="job in jobs" :key="job.id" class="hover:bg-neutral-50">
                                     <TableCell @click.stop>
                                         <Checkbox :checked="selectedJobs.includes(job.id)"
                                             @update:checked="toggleJobSelection(job.id)" />
                                     </TableCell>
                                     <TableCell>
                                         <div class="flex flex-col gap-1 py-2">
-                                            <div class="text-sm font-medium font-mono text-neutral-900">{{ job.reference
+                                            <div class="text-sm font-medium font-mono underline text-neutral-900 cursor-pointer hover:text-primary"
+                                                @click.stop="handleRowClick(job)">{{ job.reference
                                                 }}</div>
                                             <div class="text-xs text-neutral-500">{{ formatDate(job.created_at) }}</div>
                                         </div>
                                     </TableCell>
                                     <TableCell>
                                         <div class="flex flex-col gap-1 py-2">
-                                            <div class="text-sm font-medium text-neutral-900">{{ job.name }}</div>
+                                            <div class="text-sm font-medium text-neutral-900 underline cursor-pointer hover:text-primary"
+                                                @click="handleRowClick(job)">{{ job.name }}</div>
                                             <div v-if="job.description"
                                                 class="text-sm text-neutral-500 truncate max-w-xs">
                                                 {{ job.description }}
@@ -120,7 +121,9 @@
                                     </TableCell>
                                     <TableCell>
                                         <div class="flex flex-col gap-1">
-                                            <div v-if="job.customer_company" class="text-sm text-neutral-900">
+                                            <div v-if="job.customer_company"
+                                                class="text-sm text-neutral-900 cursor-pointer hover:text-primary underline"
+                                                @click.stop="handleCompanyClick(job.customer_company)">
                                                 {{ job.customer_company.name }}
                                             </div>
                                             <div v-else-if="job.customer_contact" class="text-sm text-neutral-900">
@@ -217,11 +220,13 @@ import TablePagination from '@/main/components/TablePagination.vue'
 import { usePreferencesStore } from '@/main/stores/preferences'
 import { ChevronDown, Columns, Download, Eye, MoreVertical, PanelLeftClose, PanelLeftOpen, Plus, Search, Trash } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 
 const fetcher = useFetcher()
 const preferencesStore = usePreferencesStore()
 const { getPriorityConfig } = useJob()
+const router = useRouter()
 
 const jobs = ref([])
 const loading = ref(false)
@@ -279,8 +284,12 @@ const handleDelete = (job) => {
 }
 
 const handleRowClick = (job) => {
-    // Navigation vers la vue détaillée du job
-    // router.push(`/jobs/${job.id}`)
+    console.log('Clicking on job:', job.id)
+    router.push(`/job/${job.id}`)
+}
+
+const handleCompanyClick = (company) => {
+    router.push(`/company/${company.id}`)
 }
 
 const handlePageChange = (page) => {

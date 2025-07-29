@@ -5,7 +5,7 @@
         <!-- Slot pour customiser l'affichage de l'item sélectionné -->
         <template #selected-item="{ item }">
             <slot name="selected-item" :item="item">
-                <span class="truncate font-medium">{{ item.name }}</span>
+                <span class="truncate font-normal">{{ item.name }}</span>
             </slot>
         </template>
 
@@ -13,7 +13,7 @@
             <slot name="list-item" :item="item">
                 <div class="flex items-center gap-2 w-full">
                     <div class="flex flex-col items-start min-w-0 flex-1">
-                        <span class="font-medium text-sm truncate">{{ item.name }}</span>
+                        <span class="text-sm truncate">{{ item.name }}</span>
                     </div>
                 </div>
             </slot>

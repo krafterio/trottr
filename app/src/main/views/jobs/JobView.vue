@@ -1,5 +1,12 @@
 <template>
-    <div class="h-full flex flex-col bg-neutral-100">
+    <div v-if="loading" class="h-full flex items-center justify-center">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p class="text-neutral-600">Chargement de l'intervention...</p>
+        </div>
+    </div>
+
+    <div v-else class="h-full flex flex-col bg-neutral-100">
         <div class="bg-white border-b">
             <div class="px-6 py-4 flex items-center justify-between">
                 <div class="flex items-center space-x-4">
@@ -8,24 +15,24 @@
                     </Button>
                     <div class="flex flex-col gap-1">
                         <div class="flex items-center space-x-3">
-                            <h1 class="text-xl text-neutral-900 font-mono">#TR42K8</h1>
+                            <h1 class="text-xl text-neutral-900 font-mono">{{ job?.reference || 'Chargement...' }}</h1>
                         </div>
                         <div class="flex gap-2">
-                            <Badge class="bg-green-100 text-green-800">
+                            <Badge v-if="job?.status" class="bg-green-100 text-green-800">
                                 <Circle class="fill-current" style="height: 6px; width: 6px;" />
-                                Planifié
+                                {{ job.status.name }}
                             </Badge>
-                            <Badge class="bg-yellow-50 text-yellow-700">
+                            <Badge v-if="!job?.operator" class="bg-yellow-50 text-yellow-700">
                                 <User class="h-4 w-4" />
                                 À assigner
                             </Badge>
-                            <Badge variant="outline">
+                            <Badge v-if="job?.category" variant="outline">
                                 <Folder class="h-4 w-4" />
-                                Intervention simple
+                                {{ job.category.name }}
                             </Badge>
-                            <Badge variant="outline">
+                            <Badge v-if="job?.scheduled_start" variant="outline">
                                 <Calendar class="h-4 w-4" />
-                                20 Oct 2024 - 10:00
+                                {{ formatDate(job.scheduled_start) }}
                             </Badge>
                         </div>
                     </div>
@@ -56,14 +63,15 @@
                             <div class="flex items-start space-x-2">
                                 <ScanSearch class="h-8 w-8 text-neutral-400 mt-2 me-3" :stroke-width="1.2" />
                                 <div class="flex flex-col">
-                                    <h1 class="text-2xl font-semibold">{{ jobDescription }}</h1>
-                                    <p class="text-neutral-600">{{ clientName }} • {{ clientAddress.split(',')[0] }}
+                                    <h1 class="text-2xl font-semibold">{{ job?.name || 'Chargement...' }}</h1>
+                                    <p class="text-neutral-600">{{ getClientName() }} • {{
+                                        getClientAddress().split(',')[0] }}
                                     </p>
                                 </div>
                             </div>
-                            <Badge class="bg-green-100 text-green-800">
+                            <Badge v-if="job?.status" class="bg-green-100 text-green-800">
                                 <Circle class="fill-current" style="height: 6px; width: 6px;" />
-                                Planifié
+                                {{ job.status.name }}
                             </Badge>
                         </div>
 
@@ -71,14 +79,15 @@
                             <div class="flex items-start space-x-3">
                                 <Calendar class="h-7 w-7 text-neutral-400" :stroke-width="1.1" />
                                 <div>
-                                    <p class="text-sm font-medium text-neutral-900">{{ startDate }}</p>
+                                    <p class="text-sm font-medium text-neutral-900">{{ job?.scheduled_start ?
+                                        formatDate(job.scheduled_start) : 'Non planifié' }}</p>
                                     <p class="text-xs text-neutral-500">Début prévu</p>
                                 </div>
                             </div>
                             <div class="flex items-start space-x-3">
                                 <Clock class="h-7 w-7 text-neutral-400" :stroke-width="1.1" />
                                 <div>
-                                    <p class="text-sm font-medium text-neutral-900">{{ duration }}</p>
+                                    <p class="text-sm font-medium text-neutral-900">{{ getDuration() }}</p>
                                     <p class="text-xs text-neutral-500">Durée prévue</p>
                                 </div>
                             </div>
@@ -87,15 +96,21 @@
                         <div class="mt-4 pt-4 border-t border-dashed ps-11">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-4">
-                                    <div class="flex items-center space-x-2">
+                                    <div class="flex items-center space-x-2" v-if="job?.site">
                                         <MapPin class="h-4 w-4 text-neutral-500" />
-                                        <span class="text-sm text-neutral-600">{{ clientAddress.split(',')[1] }}, {{
-                                            clientAddress.split(',')[2] }}</span>
+                                        <span class="text-sm text-neutral-600">{{ getClientAddress().split(',')[1] }},
+                                            {{
+                                                getClientAddress().split(',')[2] }}</span>
                                     </div>
+                                    <Badge class="flex items-center bg-yellow-100 text-yellow-900" v-else>
+                                        <MapPin class="h-4 w-4" />
+                                        <span class="text-sm">Adresse non définie</span>
+                                    </Badge>
 
-                                    <Badge class="flex items-center space-x-1 bg-orange-50 text-orange-800">
-                                        <AlertTriangle class="h-4 w-4 text-orange-500" />
-                                        <span class="text-sm">Priorité élevée</span>
+                                    <Badge v-if="job?.priority" class="flex items-center space-x-1"
+                                        :class="getPriorityConfig(job.priority).bgColor + ' ' + getPriorityConfig(job.priority).color">
+                                        <AlertTriangle class="h-4 w-4" />
+                                        <span class="text-sm">{{ getPriorityConfig(job.priority).label }}</span>
                                     </Badge>
                                 </div>
                                 <div class="flex gap-2">
@@ -154,6 +169,11 @@
                                             Ajouter une note
                                         </Button>
                                     </div>
+                                </div>
+
+                                <div class="text-center py-8 text-neutral-500">
+                                    <p>Fonctionnalité en cours de développement</p>
+                                    <p class="text-sm mt-2">L'historique des interventions sera bientôt disponible</p>
                                 </div>
 
 
@@ -304,6 +324,11 @@
                                     </Button>
                                 </div>
 
+                                <div class="text-center py-8 text-neutral-500">
+                                    <p>Fonctionnalité en cours de développement</p>
+                                    <p class="text-sm mt-2">La gestion des opérations sera bientôt disponible</p>
+                                </div>
+
                                 <div class="space-y-4">
                                     <div class="border rounded-lg p-4">
                                         <div class="flex items-center justify-between mb-2">
@@ -361,6 +386,11 @@
                                         <Plus class="h-4 w-4" />
                                         Ajouter une pièce
                                     </Button>
+                                </div>
+
+                                <div class="text-center py-8 text-neutral-500">
+                                    <p>Fonctionnalité en cours de développement</p>
+                                    <p class="text-sm mt-2">La gestion des pièces détachées sera bientôt disponible</p>
                                 </div>
 
                                 <div class="overflow-x-auto">
@@ -421,6 +451,11 @@
                                         <Plus class="h-4 w-4" />
                                         Générer un rapport
                                     </Button>
+                                </div>
+
+                                <div class="text-center py-8 text-neutral-500">
+                                    <p>Fonctionnalité en cours de développement</p>
+                                    <p class="text-sm mt-2">La génération de rapports sera bientôt disponible</p>
                                 </div>
 
                                 <div class="space-y-4">
@@ -498,6 +533,12 @@
                                     <Badge class="bg-green-100 text-green-800">Complété</Badge>
                                 </div>
 
+                                <div class="text-center py-8 text-neutral-500">
+                                    <p>Fonctionnalité en cours de développement</p>
+                                    <p class="text-sm mt-2">Les questionnaires de satisfaction seront bientôt
+                                        disponibles</p>
+                                </div>
+
                                 <div class="space-y-6">
                                     <div class="border rounded-lg p-4">
                                         <h3 class="font-medium mb-3">Êtes-vous satisfait de la qualité du travail
@@ -562,20 +603,23 @@
                     <div class="space-y-4">
                         <div>
                             <h4 class="text-sm font-medium text-neutral-700">Référence intervention</h4>
-                            <p class="text-xl font-mono text-neutral-900">{{ jobNumber }}</p>
-                            <p class="text-xs text-neutral-400">Créé le 26/07/2025 à 10:00</p>
+                            <p class="text-xl font-mono text-neutral-900">{{ job?.reference || 'Chargement...' }}</p>
+                            <p class="text-xs text-neutral-400">Créé le {{ job?.created_at ? formatDate(job.created_at)
+                                : 'Chargement...' }}</p>
                         </div>
 
                         <div class="bg-neutral-100 border rounded-lg p-3">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-sm font-medium text-neutral-700">Démarrage prévu</span>
-                                <span class="text-sm text-neutral-900">{{ startDate }}</span>
+                                <span class="text-sm text-neutral-900">{{ job?.scheduled_start ?
+                                    formatDate(job.scheduled_start) : 'Non planifié' }}</span>
                             </div>
                             <div class="flex items-center justify-between">
                                 <span class="text-sm font-medium text-neutral-700">À terminer</span>
                                 <div class="text-sm">
-                                    <span class="text-neutral-900">{{ endDate }}</span>
-                                    <span class="text-neutral-600 ml-2">{{ duration }}</span>
+                                    <span class="text-neutral-900">{{ job?.scheduled_end ? formatDate(job.scheduled_end)
+                                        : 'Non planifié' }}</span>
+                                    <span class="text-neutral-600 ml-2">{{ getDuration() }}</span>
                                 </div>
                             </div>
                         </div>
@@ -592,7 +636,7 @@
                                 <ScrollText class="h-4 w-4" />
                                 <h4 class="text-sm font-medium">Description de l'intervention</h4>
                             </div>
-                            <p class="text-sm text-neutral-600">{{ jobDescription }}</p>
+                            <p class="text-sm text-neutral-600">{{ job?.description || 'Aucune description' }}</p>
 
                         </Card>
 
@@ -611,8 +655,10 @@
                                 <h4 class="text-sm font-medium">Site d'intervention</h4>
                             </div>
                             <div class="text-sm text-neutral-600">
-                                <p>123 Rue de la Paix</p>
-                                <p>75000 Paris</p>
+                                <p v-if="job?.site?.name">{{ job.site.name }}</p>
+                                <p v-if="job?.site?.street">{{ job.site.street }}</p>
+                                <p v-if="job?.site?.zip && job?.site?.city">{{ job.site.zip }} {{ job.site.city }}</p>
+                                <p v-if="!job?.site">Aucun site défini</p>
                             </div>
                         </Card>
 
@@ -626,49 +672,38 @@
 
                         <div class="grid grid-cols-3 gap-4 items-center">
                             <Label class="text-sm font-medium text-neutral-700 !mb-0">Client commanditaire</Label>
-                            <Select>
-                                <SelectTrigger class="w-full col-span-2">
-                                    <SelectValue placeholder="Sélectionner un client" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="team1">Client 1</SelectItem>
-                                    <SelectItem value="team2">Client 2</SelectItem>
-                                    <SelectItem value="team3">Client 3</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <div class="col-span-2">
+                                <CompanySelect v-if="job?.customer_company" v-model="job.customer_company.id"
+                                    class="w-full" />
+                                <ContactSelect v-else-if="job?.customer_contact" v-model="job.customer_contact.id"
+                                    class="w-full" />
+                                <div v-else class="text-sm text-neutral-500">Aucun client défini</div>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-3 gap-4 items-center">
                             <Label class="text-sm font-medium text-neutral-700 !mb-0">Priorité</Label>
-                            <Select>
-                                <SelectTrigger class="w-full col-span-2">
-                                    <SelectValue placeholder="Sélectionner une priorité" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="team1">Faible</SelectItem>
-                                    <SelectItem value="team2">Moyenne</SelectItem>
-                                    <SelectItem value="team3">Élevée</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <div class="col-span-2">
+                                <PrioritySelect v-if="job?.priority" v-model="job.priority" class="w-full" />
+                                <div v-else class="text-sm text-neutral-500">Priorité non définie</div>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-3 gap-4 items-center">
                             <Label class="text-sm font-medium text-neutral-700 !mb-0">Type d'intervention</Label>
-                            <Select>
-                                <SelectTrigger class="w-full col-span-2">
-                                    <SelectValue placeholder="Sélectionner un type d'intervention" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="team1">Dépannage simple</SelectItem>
-                                    <SelectItem value="team2">Dépannage urgent</SelectItem>
-                                    <SelectItem value="team3">États des lieux</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <div class="col-span-2">
+                                <CategorySelect v-if="job?.category" v-model="job.category.id" class="w-full" />
+                                <div v-else class="text-sm text-neutral-500">Catégorie non définie</div>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-3 gap-4 items-center">
                             <Label class="text-sm font-medium text-neutral-700 !mb-0">Référence client</Label>
-                            <Input class="col-span-2" placeholder="Précisez la référence client" />
+                            <div class="col-span-2">
+                                <Input v-if="job?.customer_reference !== undefined" v-model="job.customer_reference"
+                                    class="w-full" placeholder="Référence client" />
+                                <div v-else class="text-sm text-neutral-500">Aucune référence client</div>
+                            </div>
                         </div>
 
                     </div>
@@ -679,29 +714,23 @@
 </template>
 
 <script setup>
-const props = defineProps({
-    inDialog: {
-        type: Boolean,
-        default: false
-    }
-})
-
+import CategorySelect from '@/common/components/form/category-select/CategorySelect.vue'
+import CompanySelect from '@/common/components/form/company-select/CompanySelect.vue'
+import ContactSelect from '@/common/components/form/contact-select/ContactSelect.vue'
+import PrioritySelect from '@/common/components/form/priority-select/PrioritySelect.vue'
 import Badge from '@/common/components/ui/badge/Badge.vue'
 import { Button } from '@/common/components/ui/button'
 import Card from '@/common/components/ui/card/Card.vue'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu'
 import Input from '@/common/components/ui/input/Input.vue'
 import Label from '@/common/components/ui/label/Label.vue'
-import Select from '@/common/components/ui/select/Select.vue'
-import SelectContent from '@/common/components/ui/select/SelectContent.vue'
-import SelectItem from '@/common/components/ui/select/SelectItem.vue'
-import SelectTrigger from '@/common/components/ui/select/SelectTrigger.vue'
-import SelectValue from '@/common/components/ui/select/SelectValue.vue'
 import Separator from '@/common/components/ui/separator/Separator.vue'
 import Tabs from '@/common/components/ui/tabs/Tabs.vue'
 import TabsContent from '@/common/components/ui/tabs/TabsContent.vue'
 import TabsList from '@/common/components/ui/tabs/TabsList.vue'
 import TabsTrigger from '@/common/components/ui/tabs/TabsTrigger.vue'
+import { useFetcher } from '@/common/composables/fetcher'
+import { useJob } from '@/common/composables/useJob'
 import {
     AlertTriangle,
     ArrowLeft,
@@ -732,31 +761,87 @@ import {
     UserPlus,
     UserRoundX
 } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { toast } from 'vue-sonner'
+
+const props = defineProps({
+    inDialog: {
+        type: Boolean,
+        default: false
+    }
+})
 
 const route = useRoute()
+const fetcher = useFetcher()
+const { getPriorityConfig } = useJob()
 
-const clientName = ref('SARL Martin')
-const clientAddress = ref('15 rue de la République, 75001 Paris, France')
+const job = ref(null)
+const loading = ref(false)
 
-const activityDescription = ref('L\'intervention a été planifiée par Marc Dupont')
-const jobNumber = ref('#TR42K8')
-const scheduleDate = ref('Mar 22 Oct 2024')
-const scheduleTime = ref('7:15pm - 7:45pm')
+const fetchJob = async () => {
+    loading.value = true
+    try {
+        const jobId = route.params.id
+        const response = await fetcher.get(`/jobs/${jobId}`)
+        job.value = response.data
+        console.log('Job loaded:', job.value)
+    } catch (error) {
+        console.error('Erreur lors du chargement du job:', error)
+        toast.error('Erreur lors du chargement du job')
+    } finally {
+        loading.value = false
+    }
+}
 
-const senderName = ref('Intervention Service Plus')
-const emailDate = ref('Lun, 27 Oct 2022 - 12:03 - par John Doe')
-const recipientName = ref('John Smith')
-const emailSubject = ref('Suivi des documents joints')
-const emailContent = ref('Salut John, Veuillez consulter les documents mis à jour associés à l\'estimation. Veuillez nous faire savoir si ceux-ci sont acceptables et nous obtiendrons un devis envoyé. Veuillez également noter que ces matériaux ne seront pas disponibles pendant longtemps car il faut du temps pour les approvisionner.')
-const attachmentName = ref('Estimation v1-1.doc')
-const attachmentSize = ref('2.3 MB')
-const imageName = ref('localisation.jpg')
-const imageSize = ref('2.3 MB')
+const formatDate = (dateString) => {
+    if (!dateString) return '-'
+    const date = new Date(dateString)
+    return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    })
+}
 
-const startDate = ref('20 Oct 2024 - 10:00')
-const endDate = ref('25 Oct 2024 - 10:00')
-const duration = ref('2h 30min')
-const jobDescription = ref('Remettre en place le robinet qui n\'a pas tenu')
+const getClientName = () => {
+    if (job.value?.customer_company) {
+        return job.value.customer_company.name
+    }
+    if (job.value?.customer_contact) {
+        return job.value.customer_contact.full_name
+    }
+    return 'Client non défini'
+}
+
+const getClientAddress = () => {
+    if (job.value?.site) {
+        const parts = [
+            job.value.site.name,
+            job.value.site.street,
+            job.value.site.zip,
+            job.value.site.city
+        ].filter(Boolean)
+        return parts.join(', ')
+    }
+    return 'Adresse non définie'
+}
+
+const getDuration = () => {
+    if (job.value?.scheduled_start && job.value?.scheduled_end) {
+        const start = new Date(job.value.scheduled_start)
+        const end = new Date(job.value.scheduled_end)
+        const diffMs = end - start
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+        const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+        return `${diffHours}h ${diffMinutes}min`
+    }
+    return 'Durée non définie'
+}
+
+onMounted(() => {
+    fetchJob()
+})
 </script>

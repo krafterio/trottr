@@ -7,7 +7,7 @@
             <slot name="selected-item" :item="item">
                 <div class="flex items-center gap-2">
                     <div class="w-3 h-3 rounded-full" :style="{ backgroundColor: item.color }"></div>
-                    <span class="truncate font-medium">{{ item.name }}</span>
+                    <span class="truncate font-normal">{{ item.name }}</span>
                 </div>
             </slot>
         </template>
@@ -17,7 +17,7 @@
                 <div class="flex items-center gap-2 w-full">
                     <div class="w-3 h-3 rounded-full" :style="{ backgroundColor: item.color }"></div>
                     <div class="flex flex-col items-start min-w-0 flex-1">
-                        <span class="font-medium text-sm truncate">{{ item.name }}</span>
+                        <span class="text-sm truncate">{{ item.name }}</span>
                     </div>
                 </div>
             </slot>
