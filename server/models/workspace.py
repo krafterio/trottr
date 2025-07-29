@@ -4,8 +4,11 @@ from typing import TYPE_CHECKING, Union
 from edgy import fields
 from edgy.core.signals import pre_save
 
+from core.api_route_model.decorators import admin_api_route_model
+from core.metadata_model import metadata_model
 from models.base import BaseModel
 from models.country import Country
+from models.service_plan import ServicePlan, ServicePlanType, ServicePlanPeriod
 import string
 import random
 from enum import Enum
@@ -41,6 +44,8 @@ def generate_unique_id(length=8) -> str:
     return ''.join(random.choice(characters) for _ in range(length))
 
 
+@metadata_model()
+@admin_api_route_model()
 class Workspace(BaseModel):
     class Meta:
         tablename = "workspaces"
@@ -62,6 +67,8 @@ class Workspace(BaseModel):
     siren: str | None = fields.CharField(max_length=20, null=True, label="SIREN")
     vat: str | None = fields.CharField(max_length=30, null=True, label="Numéro TVA")
     dashboard_config: dict | None = fields.JSONField(null=True, exclude=True)
+    plan: ServicePlanType | None = fields.ChoiceField(ServicePlanType, default=ServicePlanType.essential, label="Plan", read_only=True)
+    service_plan: Union["ServicePlan", None] = fields.ForeignKey("ServicePlan", null=True, label="Plan")
     stripe_customer_id: str | None = fields.CharField(max_length=255, null=True, unique=True, label="ID Client Stripe")
     trial_end: datetime | None = fields.DateTimeField(null=True, label="Fin essai")
     comply_with_local_privacy_laws: bool = fields.BooleanField(default=True, label="Je respecte les lois locales sur la confidentialité lors de la gestion des données de mes prospects")
@@ -71,6 +78,28 @@ class Workspace(BaseModel):
     @property
     def is_trial(self) -> bool:
         return bool(self.trial_end and self.trial_end > datetime.now(UTC))
+
+    @property
+    def selected_plan(self) -> str:
+        return self.plan.name if self.plan else ServicePlanType.essential.name
+
+    @property
+    def available_plans(self) -> list[str]:
+        plans = [ServicePlanType.essential.name]
+
+        if self.plan in [ServicePlanType.advanced, ServicePlanType.business]:
+            plans.append(ServicePlanType.advanced.name)
+
+        if self.plan in [ServicePlanType.business]:
+            plans.append(ServicePlanType.business.name)
+
+        return plans
+
+    def has_plan(self, required_plan: ServicePlanType | str) -> bool:
+        if isinstance(required_plan, ServicePlanType):
+            required_plan = required_plan.name
+
+        return required_plan in self.available_plans
 
     @classmethod
     async def create_default(cls, owner: "User") -> "Workspace":
@@ -83,6 +112,20 @@ class Workspace(BaseModel):
 
         from models.workspace_user import WorkspaceUser
         await WorkspaceUser.create_owner(workspace, owner)
+
+        plan = await ServicePlan.query.filter(type=ServicePlanType.advanced, period=ServicePlanPeriod.monthly).first()
+        if not plan:
+            plan = await ServicePlan.query.get_queryset().first()
+
+        if not plan:
+            return workspace
+
+        from services.subscription_service import subscription_service
+        await subscription_service.create_subscription(
+            workspace=workspace,
+            service_plan=plan,
+            quantity=await workspace.workspace_users.count(),
+        )
 
         return workspace
 
@@ -111,3 +154,10 @@ class Workspace(BaseModel):
             })
         return members_with_roles
 
+
+@pre_save.connect_via(Workspace)
+async def update_plan_from_workspace_plan(_, instance, values, column_values, **kwargs) -> None:
+    plan_type = instance.service_plan.type if hasattr(instance, "service_plan") and instance.service_plan else ServicePlanType.essential
+    values["plan"] = plan_type
+    column_values["plan"] = plan_type
+    instance.plan = plan_type
