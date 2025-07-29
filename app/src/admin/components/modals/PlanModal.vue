@@ -208,9 +208,9 @@ const saving = ref(false)
 const deleting = ref(false)
 
 const planTypes = [
-    { title: 'Pro', value: 'Pro' },
-    { title: 'Team', value: 'Team' },
-    { title: 'Entreprise', value: 'Enterprise' },
+    { title: 'Essential', value: 'Essential' },
+    { title: 'Advanced', value: 'Advanced' },
+    { title: 'Business', value: 'Business' },
 ]
 
 const planPeriods = [
