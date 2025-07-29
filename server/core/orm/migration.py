@@ -326,6 +326,11 @@ def replace_enum(operations, operation: ReplaceEnumOperation) -> None:
 
 @Operations.implementation_for(CreateEnumOperation)
 def create_enum(operations, operation: CreateEnumOperation) -> None:
+    result = operations.get_bind().execute(sa.text("SELECT 1 FROM pg_type WHERE typname = :enum_name"), {"enum_name": operation.enum_name}).fetchone()
+
+    if result:
+        return
+
     enum = sa.Enum(*operation.values, name=operation.enum_name)
     enum.create(operations.get_bind())
 
