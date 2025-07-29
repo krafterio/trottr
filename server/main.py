@@ -35,11 +35,14 @@ from api.site import router as site_router
 from api.job import router as job_router
 from api.job_diagnostic import router as job_diagnostic_router
 from api.job_job_diagnostic import router as job_job_diagnostic_router
+from core.api_route_model.router import register_api_route_models, register_admin_api_route_models
+from core.api_route_model.standard_actions import register_standard_api_route_model_actions
 from core.app import App
 from core.config import get_settings
 from core.database import database, registry
 from core.http import ContextRequestMiddleware
 from core.logger import setup_logging
+from core.metadata_model import register_metadata_models
 from services.presence import presence_service
 from services.user import is_superuser
 from services.workspace import get_user_workspace
@@ -178,8 +181,16 @@ def app(app_class: type[App] = App) -> App:
     api_router.include_router(search_router, prefix="/search", tags=["search"])
     api_router.include_router(import_router, prefix="/import", tags=["import"])
 
+    # Api Route Models
+    register_standard_api_route_model_actions()
+    register_api_route_models(api_router)
+    register_admin_api_route_models(admin_router)
+
     # Admin API routers
     admin_api_router.include_router(admin_router, prefix="/admin", tags=["admin"], include_in_schema=settings.debug_admin)
+
+    # Metadata Models
+    register_metadata_models()
 
     # Main routers
     application.include_router(public_api_router, prefix="/api")
