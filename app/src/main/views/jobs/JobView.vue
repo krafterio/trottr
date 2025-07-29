@@ -297,7 +297,7 @@
 
                         <Card class="p-4 gap-0 items-start relative">
                             <div class="flex absolute top-3 right-3 gap-2">
-                                <Button variant="outline" class="h-8 w-8" size="icon">
+                                <Button variant="outline" class="h-8 w-8" size="icon" @click="openSiteDialog">
                                     <Edit class="h-3 w-3" />
                                 </Button>
 
@@ -310,7 +310,8 @@
                                 <h4 class="text-sm font-medium">Site d'intervention</h4>
                             </div>
                             <div class="text-sm text-neutral-600">
-                                <p v-if="job?.site?.name">{{ job.site.name }}</p>
+                                <p v-if="job?.site?.name" class="cursor-pointer hover:text-primary underline"
+                                    @click="viewSite(job.site)">{{ job.site.name }}</p>
                                 <p v-if="job?.site?.street">{{ job.site.street }}</p>
                                 <p v-if="job?.site?.zip && job?.site?.city">{{ job.site.zip }} {{ job.site.city }}</p>
                                 <p v-if="!job?.site">Aucun site défini</p>
@@ -392,6 +393,40 @@
             </DialogFooter>
         </DialogContent>
     </Dialog>
+
+    <Dialog :open="siteDialogOpen" @update:open="siteDialogOpen = false">
+        <DialogContent class="sm:max-w-[625px]">
+            <DialogHeader>
+                <DialogTitle>Modifier le site d'intervention</DialogTitle>
+                <DialogDescription>
+                    Sélectionnez un nouveau site pour cette intervention.
+                </DialogDescription>
+            </DialogHeader>
+            <div class="grid gap-4 py-4">
+                <div class="grid gap-2">
+                    <Label for="site">Site d'intervention</Label>
+                    <SiteSelect v-model="siteForm.site" class="w-full" placeholder="Sélectionner un site"
+                        :company-id="job?.customer_company?.id" :contact-id="job?.customer_contact?.id" />
+                </div>
+
+                <div v-if="selectedSite" class="border rounded-lg p-4 bg-neutral-50">
+                    <h4 class="text-sm font-medium text-neutral-900 mb-2">Aperçu du site</h4>
+                    <div class="text-sm text-neutral-600 space-y-1">
+                        <p v-if="selectedSite.name" class="font-medium">{{ selectedSite.name }}</p>
+                        <p v-if="selectedSite.street">{{ selectedSite.street }}</p>
+                        <p v-if="selectedSite.street_2">{{ selectedSite.street_2 }}</p>
+                        <p v-if="selectedSite.zip && selectedSite.city">{{ selectedSite.zip }} {{ selectedSite.city }}
+                        </p>
+                        <p v-if="selectedSite.country">{{ selectedSite.country.name }}</p>
+                    </div>
+                </div>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" @click="siteDialogOpen = false">Annuler</Button>
+                <Button @click="saveSite" :disabled="loading">Enregistrer</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
 </template>
 
 <script setup>
@@ -399,6 +434,7 @@ import CategorySelect from '@/common/components/form/category-select/CategorySel
 import CompanySelect from '@/common/components/form/company-select/CompanySelect.vue'
 import ContactSelect from '@/common/components/form/contact-select/ContactSelect.vue'
 import PrioritySelect from '@/common/components/form/priority-select/PrioritySelect.vue'
+import SiteSelect from '@/common/components/form/site-select/SiteSelect.vue'
 import Badge from '@/common/components/ui/badge/Badge.vue'
 import { Button } from '@/common/components/ui/button'
 import Card from '@/common/components/ui/card/Card.vue'
@@ -437,8 +473,8 @@ import {
     UserPlus,
     UserRoundX
 } from 'lucide-vue-next'
-import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 
 const props = defineProps({
@@ -449,6 +485,7 @@ const props = defineProps({
 })
 
 const route = useRoute()
+const router = useRouter()
 const fetcher = useFetcher()
 const { getPriorityConfig } = useJob()
 
@@ -460,6 +497,13 @@ const editForm = ref({
     name: '',
     description: ''
 })
+
+const siteDialogOpen = ref(false)
+const siteForm = ref({
+    site: null
+})
+
+const selectedSite = ref(null)
 
 const fetchJob = async () => {
     loading.value = true
@@ -546,6 +590,49 @@ const saveEdit = async () => {
         loading.value = false
     }
 }
+
+const openSiteDialog = () => {
+    siteForm.value.site = job.value?.site || null
+    selectedSite.value = job.value?.site || null
+    siteDialogOpen.value = true
+}
+
+const saveSite = async () => {
+    loading.value = true
+    try {
+        const jobId = route.params.id
+        const siteId = siteForm.value.site?.id || siteForm.value.site
+        await fetcher.put(`/jobs/${jobId}`, { site: siteId })
+        toast.success('Site d\'intervention modifié avec succès')
+        fetchJob() // Refresh job data
+        siteDialogOpen.value = false
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde du site:', error)
+        toast.error('Erreur lors de la sauvegarde du site')
+    } finally {
+        loading.value = false
+    }
+}
+
+const viewSite = (site) => {
+    if (site?.id) {
+        router.push({ name: 'site', params: { id: site.id } })
+    }
+}
+
+watch(() => siteForm.value.site, async (newSite) => {
+    if (newSite && newSite.id) {
+        try {
+            const response = await fetcher.get(`/sites/${newSite.id}`)
+            selectedSite.value = response.data
+        } catch (error) {
+            console.error('Erreur lors du chargement du site:', error)
+            selectedSite.value = null
+        }
+    } else {
+        selectedSite.value = null
+    }
+})
 
 onMounted(() => {
     fetchJob()

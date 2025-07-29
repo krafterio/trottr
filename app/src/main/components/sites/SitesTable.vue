@@ -54,7 +54,8 @@
                     <tbody class="bg-white divide-y divide-neutral-200">
                         <tr v-for="site in sites" :key="site.id" class="hover:bg-neutral-50">
                             <td class="px-4 py-3">
-                                <div class="text-sm font-medium text-neutral-900">{{ site.name }}</div>
+                                <div class="text-sm font-medium text-neutral-900 cursor-pointer hover:text-primary underline"
+                                    @click="viewSite(site)">{{ site.name }}</div>
                             </td>
                             <td class="px-4 py-3">
                                 <Badge variant="outline">{{ getSiteBuildingTypeLabel(site.building_type) }}</Badge>
@@ -96,6 +97,7 @@ import { useFetcher } from '@/common/composables/fetcher'
 import { useSite } from '@/common/composables/useSite'
 import { Edit, Eye, MapPin, Plus, Trash } from 'lucide-vue-next'
 import { onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 
 const props = defineProps({
@@ -115,6 +117,7 @@ const props = defineProps({
 })
 
 const fetcher = useFetcher()
+const router = useRouter()
 const { getSiteBuildingTypeLabel } = useSite()
 
 const sites = ref([])
@@ -154,7 +157,7 @@ const handleCreateSite = () => {
 }
 
 const viewSite = (site) => {
-    console.log('View site:', site)
+    router.push({ name: 'site', params: { id: site.id } })
 }
 
 const editSite = (site) => {

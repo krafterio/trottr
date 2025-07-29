@@ -281,11 +281,11 @@ const handleDelete = (job) => {
 
 const handleRowClick = (job) => {
     console.log('Clicking on job:', job.id)
-    router.push(`/job/${job.id}`)
+    router.push({ name: 'job', params: { id: job.id } })
 }
 
 const handleCompanyClick = (company) => {
-    router.push(`/company/${company.id}`)
+    router.push({ name: 'company', params: { id: company.id } })
 }
 
 const handlePageChange = (page) => {
