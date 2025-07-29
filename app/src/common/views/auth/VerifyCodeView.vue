@@ -12,7 +12,7 @@
           <CardHeader class="text-center">
             <div
               class="flex justify-center mb-4 -mt-8 transition-all duration-500 [transform-style:preserve-3d] hover:[transform:rotateY(180deg)]">
-              <img src="/favicon.svg" alt="Smashr" class="rounded-full w-16 h-16" />
+              <img src="@/common/assets/img/icon.svg" alt="Trottr" class="rounded-full w-16 h-16" />
             </div>
             <CardTitle class="text-2xl">
               Code de vérification

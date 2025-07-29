@@ -2,7 +2,7 @@
     <div class="border-b bg-white px-6 py-4" v-if="authStore.isAuthenticated">
         <div class="container px-5 mx-auto flex items-center justify-between">
             <div class="flex items-center space-x-6">
-                <img src="@/common/assets/img/logo.svg" alt="Smashr" width="80" height="auto" />
+                <img src="@/common/assets/img/logo.svg" alt="Trottr" width="80" height="auto" />
 
                 <Menubar>
                     <MenubarMenu>

@@ -15,7 +15,7 @@ const router = createRouter({
             name: 'login',
             component: () => import('@/common/views/auth/LoginView.vue'),
             meta: {
-                metaTitle: 'Connexion - Smashr',
+                metaTitle: 'Connexion - Trottr',
                 title: 'Connexion',
             },
         },
@@ -24,7 +24,7 @@ const router = createRouter({
             name: 'register',
             component: () => import('@/common/views/auth/RegisterView.vue'),
             meta: {
-                metaTitle: 'Inscription - Smashr',
+                metaTitle: 'Inscription - Trottr',
                 title: 'Inscription'
             }
         },
@@ -33,7 +33,7 @@ const router = createRouter({
             name: 'verify-code',
             component: () => import('@/common/views/auth/VerifyCodeView.vue'),
             meta: {
-                metaTitle: 'Vérification - Smashr',
+                metaTitle: 'Vérification - Trottr',
                 title: 'Vérification'
             }
         },
@@ -47,7 +47,7 @@ const router = createRouter({
             name: 'workspaces',
             component: () => import('@/admin/views/WorkspacesView.vue'),
             meta: {
-                metaTitle: 'Espaces de travail - Admin - Smashr',
+                metaTitle: 'Espaces de travail - Admin - Trottr',
                 title: 'Espaces de travail',
             }
         },
@@ -56,7 +56,7 @@ const router = createRouter({
             name: 'workspace',
             component: () => import('@/admin/views/WorkspaceView.vue'),
             meta: {
-                metaTitle: 'Détails de l\'espace de travail - Admin - Smashr',
+                metaTitle: 'Détails de l\'espace de travail - Admin - Trottr',
                 title: 'Détails de l\'espace de travail',
             }
         },
@@ -65,7 +65,7 @@ const router = createRouter({
             name: 'service-plans',
             component: () => import('@/admin/views/ServicePlansView.vue'),
             meta: {
-                metaTitle: 'Plans - Admin - Smashr',
+                metaTitle: 'Plans - Admin - Trottr',
                 title: 'Plans',
             }
         },
@@ -74,7 +74,7 @@ const router = createRouter({
             name: 'service-credit-packs',
             component: () => import('@/admin/views/ServiceCreditPacksView.vue'),
             meta: {
-                metaTitle: 'Packs d\'enrichissement - Admin - Smashr',
+                metaTitle: 'Packs d\'enrichissement - Admin - Trottr',
                 title: 'Packs d\'enrichissement',
             }
         },
@@ -83,7 +83,7 @@ const router = createRouter({
             name: 'service-credit-coupons',
             component: () => import('@/admin/views/ServiceCreditCouponsView.vue'),
             meta: {
-                metaTitle: 'Coupons - Admin - Smashr',
+                metaTitle: 'Coupons - Admin - Trottr',
                 title: 'Coupons',
             }
         },
@@ -92,7 +92,7 @@ const router = createRouter({
             name: 'service-taxes',
             component: () => import('@/admin/views/ServiceTaxesView.vue'),
             meta: {
-                metaTitle: 'Taxes des services - Admin - Smashr',
+                metaTitle: 'Taxes des services - Admin - Trottr',
                 title: 'Taxes des services',
             }
         },
@@ -101,7 +101,7 @@ const router = createRouter({
             name: 'countries',
             component: () => import('@/admin/views/CountriesView.vue'),
             meta: {
-                metaTitle: 'Pays - Admin - Smashr',
+                metaTitle: 'Pays - Admin - Trottr',
                 title: 'Pays',
             }
         },
@@ -110,7 +110,7 @@ const router = createRouter({
             name: 'interaction-types',
             component: () => import('@/admin/views/InteractionTypesView.vue'),
             meta: {
-                metaTitle: 'Types d\'interactions - Admin - Smashr',
+                metaTitle: 'Types d\'interactions - Admin - Trottr',
                 title: 'Types d\'interactions',
             }
         },
@@ -120,7 +120,7 @@ const router = createRouter({
                 name: 'user-invitations',
                 component: () => import('@/admin/views/UserInvitationsView.vue'),
                 meta: {
-                    metaTitle: 'Invitations utilisateur - Admin - Smashr',
+                    metaTitle: 'Invitations utilisateur - Admin - Trottr',
                     title: 'Invitations utilisateur',
                 }
             }

@@ -6,10 +6,10 @@
 					<CardHeader class="text-center">
 						<div
 							class="flex justify-center mb-4 -mt-8 transition-all duration-500 [transform-style:preserve-3d] hover:[transform:rotateY(180deg)]">
-							<img src="/favicon.svg" alt="Smashr" class="rounded-full w-16 h-16" />
+							<img src="@/common/assets/img/icon.svg" alt="Trottr" class="rounded-full w-16 h-16" />
 						</div>
 						<CardTitle class="text-2xl">
-							{{ isPreviewMode && !showRegisterForm ? 'Rejoindre Smashr' : 'Créer un compte' }}
+							{{ isPreviewMode && !showRegisterForm ? 'Rejoindre Trottr' : 'Créer un compte' }}
 						</CardTitle>
 						<CardDescription>
 							{{ isPreviewMode && !showRegisterForm ? 'Choisissez votre méthode d\'inscription' :
@@ -122,7 +122,7 @@
 				<div
 					class="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary">
 					En continuant, vous acceptez les
-					<a href="https://smashr.ai/conditions-utilisation" target="_blank">
+					<a href="https://trottr.io/conditions-utilisation" target="_blank">
 						conditions générales d'utilisation
 					</a>.
 				</div>

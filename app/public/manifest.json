@@ -1,7 +1,7 @@
 {
-    "name": "Smashr",
-    "short_name": "Smashr",
-    "description": "CRM intelligent pour PME et startups",
+    "name": "Trottr",
+    "short_name": "Trottr",
+    "description": "SaaS platform made for Field Services Management",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",

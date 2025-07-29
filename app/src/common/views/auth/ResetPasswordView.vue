@@ -17,7 +17,7 @@
         <Card>
           <CardHeader class="text-center">
             <div class="flex justify-center mb-4">
-              <img src="@/common/assets/img/logo.svg" alt="Smashr" class="w-24 h-8" />
+              <img src="@/common/assets/img/logo.svg" alt="Trottr" class="w-24 h-8" />
             </div>
             <CardTitle class="text-2xl">
               Nouveau mot de passe

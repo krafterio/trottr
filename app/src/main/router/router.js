@@ -15,7 +15,7 @@ const router = createRouter({
       component: () => import('@/common/views/auth/LoginView.vue'),
       meta: {
         requiresGuest: true,
-        metaTitle: 'Connexion - Smashr',
+        metaTitle: 'Connexion - Trottr',
         title: 'Connexion'
       }
     },
@@ -25,7 +25,7 @@ const router = createRouter({
       component: () => import('@/common/views/auth/RegisterView.vue'),
       meta: {
         requiresGuest: true,
-        metaTitle: 'Inscription - Smashr',
+        metaTitle: 'Inscription - Trottr',
         title: 'Inscription'
       }
     },
@@ -35,7 +35,7 @@ const router = createRouter({
       component: () => import('@/common/views/auth/ForgotPasswordView.vue'),
       meta: {
         requiresGuest: true,
-        metaTitle: 'Mot de passe oublié - Smashr',
+        metaTitle: 'Mot de passe oublié - Trottr',
         title: 'Mot de passe oublié'
       }
     },
@@ -45,7 +45,7 @@ const router = createRouter({
       component: () => import('@/common/views/auth/ResetPasswordView.vue'),
       meta: {
         requiresGuest: true,
-        metaTitle: 'Réinitialiser le mot de passe - Smashr',
+        metaTitle: 'Réinitialiser le mot de passe - Trottr',
         title: 'Réinitialiser le mot de passe'
       }
     },
@@ -55,7 +55,7 @@ const router = createRouter({
       component: () => import('@/common/views/auth/VerifyCodeView.vue'),
       meta: {
         requiresGuest: true,
-        metaTitle: 'Vérification - Smashr',
+        metaTitle: 'Vérification - Trottr',
         title: 'Vérification'
       }
     },
@@ -328,14 +328,14 @@ const router = createRouter({
       path: '/:pathMatch(.*)*',
       redirect: '/',
       meta: {
-        metaTitle: 'Page non trouvée - Smashr'
+        metaTitle: 'Page non trouvée - Trottr'
       }
     }
   ]
 })
 
 router.afterEach((to) => {
-  const defaultTitle = 'Smashr'
+  const defaultTitle = 'Trottr'
   document.title = to.meta.metaTitle || defaultTitle
   bus.trigger('record-context', { type: null, id: null })
 })

@@ -17,7 +17,7 @@
         <Card class="pt-0">
           <CardHeader class="text-center">
             <div class="flex justify-center mb-4 -mt-8">
-              <img src="/favicon.svg" alt="Smashr" class="rounded-full w-16 h-16" />
+              <img src="@/common/assets/img/icon.svg" alt="Trottr" class="rounded-full w-16 h-16" />
             </div>
             <CardTitle class="text-2xl">
               Mot de passe oublié

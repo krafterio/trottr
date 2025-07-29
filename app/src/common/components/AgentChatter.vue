@@ -97,7 +97,7 @@ import {
 const props = defineProps({
     agentName: {
         type: String,
-        default: 'Smashr',
+        default: 'Trottr',
     },
 });
 
