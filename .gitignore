@@ -128,4 +128,6 @@ yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
-server/data
+server/data/
+server/.data/
+.data/
