@@ -29,6 +29,7 @@
 import { Toaster } from '@/common/components/ui/sonner'
 import { websocketService } from '@/common/services/websocket'
 import { useAuthStore } from '@/common/stores/auth'
+import { usePreferencesStore } from '@/main/stores/preferences'
 import AppSidebar from '@/main/components/AppSidebar.vue'
 import CompanyDialog from '@/main/components/companies/CompanyDialog.vue'
 import ContactDialog from '@/main/components/contacts/ContactDialog.vue'
@@ -44,6 +45,7 @@ import 'vue-sonner/style.css'
 const route = useRoute()
 
 const authStore = useAuthStore()
+const preferencesStore = usePreferencesStore()
 
 watch(() => authStore.isAuthenticated, (isAuthenticated) => {
 	if (isAuthenticated) {
@@ -57,6 +59,7 @@ onMounted(async () => {
 	if (authStore.isAuthenticated) {
 		try {
 			await authStore.fetchUser()
+            await preferencesStore.loadPreferences()
 		} catch (error) {
 			console.error('Erreur lors du chargement des données utilisateur:', error)
 		}
