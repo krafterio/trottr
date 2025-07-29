@@ -1,25 +1,36 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Union
 
 
 class JobDiagnosticRead(BaseModel):
     id: int
     name: str
     description: Optional[str] = None
-    
-    class Config:
-        from_attributes = True
+
+
+class UserRead(BaseModel):
+    id: int
+    email: str
+
+
+class JobRead(BaseModel):
+    id: int
 
 
 class JobJobDiagnosticBase(BaseModel):
     sequence: int
+    job: Union[int, JobRead]
+    job_diagnostic: Union[int, JobDiagnosticRead]
+    description: Optional[str] = None
+    created_by: Optional[Union[int, UserRead]] = None
+
+
+class JobJobDiagnosticCreate(BaseModel):
+    sequence: int
     job: int
     job_diagnostic: int
     description: Optional[str] = None
-
-
-class JobJobDiagnosticCreate(JobJobDiagnosticBase):
-    pass
+    created_by: Optional[int] = None
 
 
 class JobJobDiagnosticUpdate(BaseModel):
@@ -27,13 +38,13 @@ class JobJobDiagnosticUpdate(BaseModel):
     job: Optional[int] = None
     job_diagnostic: Optional[int] = None
     description: Optional[str] = None
+    created_by: Optional[int] = None
 
 
-class JobJobDiagnosticRead(JobJobDiagnosticBase):
+class JobJobDiagnosticRead(BaseModel):
     id: int
-    created_at: str
-    updated_at: str
+    sequence: int
+    job: Union[int, JobRead]
     job_diagnostic: JobDiagnosticRead
-    
-    class Config:
-        from_attributes = True 
+    description: Optional[str] = None
+    created_by: Optional[UserRead] = None 

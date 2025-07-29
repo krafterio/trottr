@@ -149,6 +149,8 @@
                         <TabsList>
                             <TabsTrigger value="historique">Historique</TabsTrigger>
                             <TabsTrigger value="operations">Opérations</TabsTrigger>
+                            <TabsTrigger v-if="workspaceStore.workspace?.use_diagnostics" value="diagnostics">
+                                Diagnostics</TabsTrigger>
                             <TabsTrigger value="pieces">Pièces détachées</TabsTrigger>
                             <TabsTrigger value="rapports">Rapports</TabsTrigger>
                             <TabsTrigger value="questionnaire">Questionnaire satisfaction</TabsTrigger>
@@ -191,6 +193,66 @@
                                 <div class="text-center py-8 text-neutral-500">
                                     <p>Fonctionnalité en cours de développement</p>
                                     <p class="text-sm mt-2">La gestion des opérations sera bientôt disponible</p>
+                                </div>
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="diagnostics">
+                            <div class="p-4">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h2 class="text-lg font-semibold text-neutral-900">Diagnostics</h2>
+                                    <Button @click="openDiagnosticDialog">
+                                        <Plus class="h-4 w-4" />
+                                        Ajouter un diagnostic
+                                    </Button>
+                                </div>
+
+                                <div v-if="diagnostics.length === 0" class="text-center py-8 text-neutral-500">
+                                    <p>Aucun diagnostic ajouté</p>
+                                    <p class="text-sm mt-2">Ajoutez des diagnostics pour documenter les problèmes
+                                        rencontrés</p>
+                                </div>
+
+                                <div v-else>
+                                    <VueDraggable v-model="diagnostics" :animation="200" handle=".drag-handle"
+                                        @end="onDiagnosticReorder" class="grid grid-cols-1 gap-4">
+                                        <div v-for="diagnostic in diagnostics" :key="diagnostic.id"
+                                            class="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow">
+                                            <div class="flex items-start justify-between mb-3">
+                                                <div class="flex items-center space-x-2">
+                                                    <div
+                                                        class="drag-handle cursor-move text-neutral-400 hover:text-neutral-600">
+                                                        <GripVertical class="h-4 w-4" />
+                                                    </div>
+                                                    <h3 class="font-medium text-neutral-900">{{
+                                                        diagnostic.job_diagnostic.name }}</h3>
+                                                </div>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="sm" class="h-6 w-6 p-0">
+                                                            <MoreVertical class="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem @click="handleEditDiagnostic(diagnostic)">
+                                                            <Pen class="h-4 w-4" />
+                                                            Modifier
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem @click="handleDeleteDiagnostic(diagnostic)">
+                                                            <Trash class="text-destructive h-4 w-4" />
+                                                            Supprimer
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+                                            <p class="text-sm text-neutral-600 mb-3">{{ diagnostic.description }}</p>
+                                            <div class="flex items-center justify-between text-xs text-neutral-500">
+                                                <span>{{ formatDate(diagnostic.created_at) }}</span>
+                                                <span v-if="diagnostic.created_by">{{ diagnostic.created_by.email
+                                                    }}</span>
+                                            </div>
+                                        </div>
+                                    </VueDraggable>
                                 </div>
                             </div>
                         </TabsContent>
@@ -433,6 +495,44 @@
             </DialogFooter>
         </DialogContent>
     </Dialog>
+
+    <!-- Dialog pour ajouter un diagnostic -->
+    <Dialog :open="diagnosticDialogOpen" @update:open="diagnosticDialogOpen = false">
+        <DialogContent class="sm:max-w-[500px]">
+            <DialogHeader>
+                <DialogTitle>{{ isEditDiagnostic ? 'Modifier le diagnostic' : 'Ajouter un diagnostic' }}</DialogTitle>
+                <DialogDescription>Modifiez le diagnostic et sa description</DialogDescription>
+            </DialogHeader>
+            <form @submit.prevent="handleDiagnosticSubmit" class="space-y-4">
+                <div class="grid gap-2">
+                    <Label for="diagnostic">Diagnostic *</Label>
+                    <Select v-model="diagnosticForm.job_diagnostic" @update:model-value="handleDiagnosticChange">
+                        <SelectTrigger class="w-full">
+                            <SelectValue placeholder="Sélectionnez un diagnostic" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem v-for="diagnostic in availableDiagnostics" :key="diagnostic.id"
+                                :value="diagnostic.id">
+                                {{ diagnostic.name }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="description">Description</Label>
+                    <Textarea v-model="diagnosticForm.description" placeholder="Description détaillée du diagnostic..."
+                        rows="4" />
+                </div>
+            </form>
+            <DialogFooter>
+                <Button variant="outline" @click="diagnosticDialogOpen = false">Annuler</Button>
+                <Button @click="handleDiagnosticSubmit" :disabled="loading">
+                    {{ loading ? 'Enregistrement...' : (isEditDiagnostic ? 'Modifier' : 'Ajouter') }}
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
 </template>
 
 <script setup>
@@ -448,6 +548,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu'
 import Input from '@/common/components/ui/input/Input.vue'
 import Label from '@/common/components/ui/label/Label.vue'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select'
 import Separator from '@/common/components/ui/separator/Separator.vue'
 import Tabs from '@/common/components/ui/tabs/Tabs.vue'
 import TabsContent from '@/common/components/ui/tabs/TabsContent.vue'
@@ -457,6 +558,7 @@ import { Textarea } from '@/common/components/ui/textarea'
 import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useJob } from '@/common/composables/useJob'
+import { useWorkspaceStore } from '@/main/stores/workspace'
 import {
     AlertTriangle,
     ArrowLeft,
@@ -468,19 +570,24 @@ import {
     Edit,
     File,
     Folder,
+    GripVertical,
     Map,
     MapPin,
     MapPinned,
+    MoreVertical,
+    Pen,
     Play,
     Plus,
     ScanSearch,
     ScrollText,
     ShieldAlert,
+    Trash,
     User,
     UserPlus,
     UserRoundX
 } from 'lucide-vue-next'
 import { onMounted, ref, watch } from 'vue'
+import { VueDraggable } from 'vue-draggable-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 
@@ -495,9 +602,22 @@ const route = useRoute()
 const router = useRouter()
 const fetcher = useFetcher()
 const { getPriorityConfig } = useJob()
+const workspaceStore = useWorkspaceStore()
 
 const job = ref(null)
 const loading = ref(false)
+
+// Variables pour les diagnostics
+const diagnostics = ref([])
+const diagnosticDialogOpen = ref(false)
+const isEditDiagnostic = ref(false)
+const editingDiagnosticId = ref(null)
+const selectedDiagnosticForDelete = ref(null)
+const diagnosticForm = ref({
+    job_diagnostic: null,
+    description: ''
+})
+const availableDiagnostics = ref([])
 
 const editDialogOpen = ref(false)
 const editForm = ref({
@@ -518,11 +638,100 @@ const fetchJob = async () => {
         const response = await fetcher.get(`/jobs/${jobId}`)
         job.value = response.data
         console.log('Job loaded:', job.value)
+
+        // Charger les diagnostics si use_diagnostics est activé
+        if (workspaceStore.workspace?.use_diagnostics) {
+            await fetchDiagnostics()
+            await fetchAvailableDiagnostics()
+        }
     } catch (error) {
         console.error('Erreur lors du chargement du job:', error)
         toast.error('Erreur lors du chargement du job')
     } finally {
         loading.value = false
+    }
+}
+
+const fetchDiagnostics = async () => {
+    try {
+        const jobId = route.params.id
+        const response = await fetcher.get('/job-job-diagnostic', { params: { job_id: jobId } })
+        diagnostics.value = response.data || []
+    } catch (error) {
+        console.error('Erreur lors du chargement des diagnostics:', error)
+    }
+}
+
+const fetchAvailableDiagnostics = async () => {
+    try {
+        const response = await fetcher.get('/job-diagnostics')
+        availableDiagnostics.value = response.data || []
+    } catch (error) {
+        console.error('Erreur lors du chargement des diagnostics disponibles:', error)
+    }
+}
+
+const openDiagnosticDialog = () => {
+    isEditDiagnostic.value = false
+    diagnosticForm.value = {
+        job_diagnostic: null,
+        description: ''
+    }
+    diagnosticDialogOpen.value = true
+}
+
+const handleDiagnosticSubmit = async () => {
+    if (!diagnosticForm.value.job_diagnostic) {
+        toast.error('Veuillez sélectionner un diagnostic')
+        return
+    }
+
+    try {
+        const jobId = route.params.id
+        const payload = {
+            job: jobId,
+            job_diagnostic: diagnosticForm.value.job_diagnostic,
+            description: diagnosticForm.value.description
+        }
+
+        if (isEditDiagnostic.value && editingDiagnosticId.value) {
+            await fetcher.put(`/job-job-diagnostic/${editingDiagnosticId.value}`, payload)
+            toast.success('Diagnostic modifié avec succès')
+        } else {
+            payload.sequence = diagnostics.value.length + 1
+            await fetcher.post('/job-job-diagnostic', payload)
+            toast.success('Diagnostic ajouté avec succès')
+        }
+        diagnosticDialogOpen.value = false
+        await fetchDiagnostics()
+    } catch (error) {
+        console.error('Erreur lors de l\'ajout/modification du diagnostic:', error)
+        toast.error('Erreur lors de l\'ajout/modification du diagnostic')
+    }
+}
+
+const handleDiagnosticChange = () => {
+    if (diagnosticForm.value.job_diagnostic) {
+        const selectedDiagnostic = availableDiagnostics.value.find(d => d.id === diagnosticForm.value.job_diagnostic)
+        if (selectedDiagnostic) {
+            diagnosticForm.value.description = selectedDiagnostic.description || ''
+        }
+    }
+}
+
+const onDiagnosticReorder = async () => {
+    try {
+        const reorderData = diagnostics.value.map((diagnostic, index) => ({
+            id: diagnostic.id,
+            sequence: index + 1
+        }))
+
+        await fetcher.put('/job-job-diagnostic/reorder', { diagnostics: reorderData })
+        toast.success('Diagnostics réorganisés avec succès')
+    } catch (error) {
+        console.error('Erreur lors du réordonnancement:', error)
+        toast.error('Erreur lors du réordonnancement')
+        await fetchDiagnostics() // Recharger l'ordre original
     }
 }
 
@@ -652,6 +861,43 @@ const viewSite = (site) => {
     }
 }
 
+const handleEditDiagnostic = (diagnostic) => {
+    isEditDiagnostic.value = true
+    editingDiagnosticId.value = diagnostic.id
+    diagnosticForm.value = {
+        job_diagnostic: diagnostic.job_diagnostic.id,
+        description: diagnostic.description
+    }
+    diagnosticDialogOpen.value = true
+}
+
+const handleDeleteDiagnostic = (diagnostic) => {
+    selectedDiagnosticForDelete.value = diagnostic
+    bus.trigger('confirm-delete', {
+        title: 'Supprimer le diagnostic',
+        message: 'Êtes-vous sûr de vouloir supprimer ce diagnostic ?',
+        itemName: diagnostic.job_diagnostic.name,
+        confirmationText: 'Cette action est irréversible.',
+        confirmEvent: 'confirm-delete-job-diagnostic:confirmed'
+    })
+}
+
+const deleteDiagnostic = async () => {
+    if (!selectedDiagnosticForDelete.value) return
+
+    try {
+        await fetcher.delete(`/job-job-diagnostic/${selectedDiagnosticForDelete.value.id}`)
+        toast.success('Diagnostic supprimé avec succès')
+        bus.trigger('confirm-delete-dialog:close')
+        await fetchDiagnostics()
+        selectedDiagnosticForDelete.value = null
+    } catch (error) {
+        console.error('Erreur lors de la suppression du diagnostic:', error)
+        toast.error('Erreur lors de la suppression du diagnostic')
+        bus.trigger('confirm-delete-dialog:close')
+    }
+}
+
 watch(() => siteForm.value.site, async (newSite) => {
     if (newSite && newSite.id) {
         try {
@@ -676,5 +922,9 @@ useBus(bus, 'site-saved', () => {
 
 useBus(bus, 'site-created-stay', () => {
     fetchJob()
+})
+
+useBus(bus, 'confirm-delete-job-diagnostic:confirmed', () => {
+    deleteDiagnostic()
 })
 </script>
