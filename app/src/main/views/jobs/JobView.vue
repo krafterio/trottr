@@ -18,7 +18,8 @@
                             <h1 class="text-xl text-neutral-900 font-mono">{{ job?.reference || 'Chargement...' }}</h1>
                         </div>
                         <div class="flex gap-2">
-                            <Badge v-if="job?.status" class="bg-green-100 text-green-800">
+                            <Badge v-if="job?.status"
+                                :style="{ backgroundColor: job.status.color + '20', color: job.status.color }">
                                 <Circle class="fill-current" style="height: 6px; width: 6px;" />
                                 {{ job.status.name }}
                             </Badge>
@@ -69,7 +70,8 @@
                                     </p>
                                 </div>
                             </div>
-                            <Badge v-if="job?.status" class="bg-green-100 text-green-800">
+                            <Badge v-if="job?.status"
+                                :style="{ backgroundColor: job.status.color + '20', color: job.status.color }">
                                 <Circle class="fill-current" style="height: 6px; width: 6px;" />
                                 {{ job.status.name }}
                             </Badge>
@@ -310,12 +312,24 @@
                 <div>
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-semibold text-neutral-900">Détails de l'intervention</h3>
-                        <Button
-                            class="bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900 cursor-pointer">
-                            <Circle class="fill-current" style="height: 6px; width: 6px;" />
-                            Planifié
-                            <ChevronDown class="h-4 w-4" />
-                        </Button>
+                        <DropdownMenu v-if="job?.status">
+                            <DropdownMenuTrigger as-child>
+                                <Button :style="{ backgroundColor: job.status.color + '20', color: job.status.color }"
+                                    class="hover:opacity-80 cursor-pointer">
+                                    <Circle class="fill-current" style="height: 6px; width: 6px;" />
+                                    {{ job.status.name }}
+                                    <ChevronDown class="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent class="w-56" align="end">
+                                <DropdownMenuItem v-for="status in jobStatuses" :key="status.id"
+                                    @click="updateJobStatus(status.id)" class="flex items-center gap-2 cursor-pointer">
+                                    <Circle class="fill-current" style="height: 8px; width: 8px;"
+                                        :style="{ color: status.color }" />
+                                    <span>{{ status.name }}</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
 
                     <div class="space-y-4">
@@ -342,6 +356,68 @@
                             </div>
                         </div>
 
+                        <Separator />
+
+                        <h3 class="font-medium flex items-center justify-between">
+                            Informations générales
+                            <Button variant="outline" size="sm" @click="openJobDialog">
+                                <Edit class="h-3 w-3 mr-1" />
+                                Éditer
+                            </Button>
+                        </h3>
+
+                        <div class="grid grid-cols-2 gap-5 items-center">
+                            <div class="flex gap-2 items-center">
+                                <Building2 class="h-7 w-7 flex-shrink-0" :stroke-width="1.2" />
+                                <div class="flex flex-col gap-0 min-w-0 flex-1">
+                                    <p class="text-xs font-medium text-neutral-700 !mb-0">
+                                        Client commanditaire
+                                    </p>
+                                    <p class="font-mono uppercase truncate">{{ job?.customer_company?.name }}</p>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2 items-center">
+                                <component :is="getPriorityConfig(job?.priority).icon" class="h-8 w-8 p-2 rounded-md"
+                                    :class="getPriorityConfig(job?.priority).bgColor + ' ' + getPriorityConfig(job?.priority).color" />
+                                <div class="flex flex-col gap-0 min-w-0 flex-1">
+                                    <p class="text-xs font-medium text-neutral-700 !mb-0">
+                                        Priorité
+                                    </p>
+                                    <p class="font-mono uppercase truncate">
+                                        {{ getPriorityConfig(job?.priority).label }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2 items-center">
+                                <CircleDot class="h-7 w-7 flex-shrink-0" :stroke-width="3"
+                                    :stroke="job?.category?.color" v-if="job?.category?.name" />
+                                <CircleDot class="h-7 w-7 stroke-neutral-400 flex-shrink-0" :stroke-width="1.5"
+                                    v-else />
+                                <div class="flex flex-col gap-0 min-w-0 flex-1">
+                                    <p class="text-xs font-medium text-neutral-700 !mb-0">
+                                        Catégorie d'intervention
+                                    </p>
+                                    <p class="font-mono uppercase truncate" v-if="job?.category?.name">{{
+                                        job?.category?.name }}
+                                    </p>
+                                    <p class="font-mono uppercase truncate" v-else>-</p>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2 items-center">
+                                <Asterisk class="h-7 w-7 flex-shrink-0" :stroke-width="1.2" />
+                                <div class="flex flex-col gap-0 min-w-0 flex-1">
+                                    <p class="text-xs font-medium text-neutral-700 !mb-0">
+                                        Référence client
+                                    </p>
+                                    <p class="font-mono uppercase truncate" v-if="job?.customer_reference">{{
+                                        job?.customer_reference }}</p>
+                                    <p class="font-mono uppercase" v-else>-</p>
+                                </div>
+                            </div>
+                        </div>
 
                         <Card class="p-4 gap-0 items-start relative">
                             <div class="flex absolute top-3 right-3 gap-2">
@@ -354,17 +430,13 @@
                                 <h4 class="text-sm font-medium">Description de l'intervention</h4>
                             </div>
                             <p class="text-sm font-medium">{{ job?.name || 'Aucun sujet' }}</p>
-                            <p class="text-sm text-neutral-600">{{ job?.description || 'Aucune description' }}</p>
+                            <p class="text-sm text-neutral-400 mt-1">{{ job?.description || 'Aucune description' }}</p>
                         </Card>
 
                         <Card class="p-4 gap-0 items-start relative">
                             <div class="flex absolute top-3 right-3 gap-2">
                                 <Button variant="outline" class="h-8 w-8" size="icon" @click="openSiteDialog">
                                     <Edit class="h-3 w-3" />
-                                </Button>
-
-                                <Button variant="outline" class=" h-8 w-8" size="icon">
-                                    <Map />
                                 </Button>
                             </div>
                             <div class="flex items-center gap-1 mb-2">
@@ -385,45 +457,6 @@
                             <UserPlus class="h-10 w-10 mb-3 text-neutral-500" :stroke-width="1.2" />
                             <p class="text-sm text-neutral-500">Assigner un technicien</p>
                         </Card>
-
-                        <Separator />
-
-                        <div class="grid grid-cols-3 gap-4 items-center">
-                            <Label class="text-sm font-medium text-neutral-700 !mb-0">Client commanditaire</Label>
-                            <div class="col-span-2">
-                                <CompanySelect v-if="job?.customer_company" v-model="job.customer_company.id"
-                                    class="w-full" />
-                                <ContactSelect v-else-if="job?.customer_contact" v-model="job.customer_contact.id"
-                                    class="w-full" />
-                                <div v-else class="text-sm text-neutral-500">Aucun client défini</div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-4 items-center">
-                            <Label class="text-sm font-medium text-neutral-700 !mb-0">Priorité</Label>
-                            <div class="col-span-2">
-                                <PrioritySelect v-if="job?.priority" v-model="job.priority" class="w-full" />
-                                <div v-else class="text-sm text-neutral-500">Priorité non définie</div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-4 items-center">
-                            <Label class="text-sm font-medium text-neutral-700 !mb-0">Type d'intervention</Label>
-                            <div class="col-span-2">
-                                <CategorySelect v-if="job?.category" v-model="job.category.id" class="w-full" />
-                                <div v-else class="text-sm text-neutral-500">Catégorie non définie</div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-4 items-center">
-                            <Label class="text-sm font-medium text-neutral-700 !mb-0">Référence client</Label>
-                            <div class="col-span-2">
-                                <Input v-if="job?.customer_reference !== undefined" v-model="job.customer_reference"
-                                    class="w-full" placeholder="Référence client" />
-                                <div v-else class="text-sm text-neutral-500">Aucune référence client</div>
-                            </div>
-                        </div>
-
                     </div>
                 </div>
             </div>
@@ -536,10 +569,6 @@
 </template>
 
 <script setup>
-import CategorySelect from '@/common/components/form/category-select/CategorySelect.vue'
-import CompanySelect from '@/common/components/form/company-select/CompanySelect.vue'
-import ContactSelect from '@/common/components/form/contact-select/ContactSelect.vue'
-import PrioritySelect from '@/common/components/form/priority-select/PrioritySelect.vue'
 import SiteSelect from '@/common/components/form/site-select/SiteSelect.vue'
 import Badge from '@/common/components/ui/badge/Badge.vue'
 import { Button } from '@/common/components/ui/button'
@@ -562,16 +591,18 @@ import { useWorkspaceStore } from '@/main/stores/workspace'
 import {
     AlertTriangle,
     ArrowLeft,
+    Asterisk,
+    Building2,
     Calendar,
     CalendarArrowUp,
     ChevronDown,
     Circle,
+    CircleDot,
     Clock,
     Edit,
     File,
     Folder,
     GripVertical,
-    Map,
     MapPin,
     MapPinned,
     MoreVertical,
@@ -605,7 +636,34 @@ const { getPriorityConfig } = useJob()
 const workspaceStore = useWorkspaceStore()
 
 const job = ref(null)
-const loading = ref(false)
+const loading = ref(true)
+const inDialog = ref(false)
+const jobStatuses = ref([])
+
+const fetchJobStatuses = async () => {
+    try {
+        const response = await fetcher.get('/job-status')
+        jobStatuses.value = response.data
+    } catch (error) {
+        console.error('Erreur lors du chargement des statuts:', error)
+    }
+}
+
+const updateJobStatus = async (statusId) => {
+    try {
+        await fetcher.patch(`/jobs/${job.value.id}`, { status: statusId })
+        toast.success('Statut modifié avec succès')
+
+        // Mettre à jour uniquement le statut localement
+        const newStatus = jobStatuses.value.find(status => status.id === statusId)
+        if (newStatus && job.value) {
+            job.value.status = newStatus
+        }
+    } catch (error) {
+        console.error('Erreur lors de la modification du statut:', error)
+        toast.error('Erreur lors de la modification du statut')
+    }
+}
 
 // Variables pour les diagnostics
 const diagnostics = ref([])
@@ -637,7 +695,6 @@ const fetchJob = async () => {
         const jobId = route.params.id
         const response = await fetcher.get(`/jobs/${jobId}`)
         job.value = response.data
-        console.log('Job loaded:', job.value)
 
         // Charger les diagnostics si use_diagnostics est activé
         if (workspaceStore.workspace?.use_diagnostics) {
@@ -782,6 +839,10 @@ const getDuration = () => {
     return 'Durée non définie'
 }
 
+const openJobDialog = () => {
+    bus.trigger('open-job-dialog', job.value)
+}
+
 const openEditDialog = () => {
     editForm.value = {
         name: job.value?.name || '',
@@ -912,8 +973,12 @@ watch(() => siteForm.value.site, async (newSite) => {
     }
 })
 
-onMounted(async () => {
-    await fetchJob()
+useBus(bus, 'job-saved', () => {
+    fetchJob()
+})
+
+useBus(bus, 'job-created-stay', () => {
+    fetchJob()
 })
 
 useBus(bus, 'site-saved', () => {
@@ -926,5 +991,10 @@ useBus(bus, 'site-created-stay', () => {
 
 useBus(bus, 'confirm-delete-job-diagnostic:confirmed', () => {
     deleteDiagnostic()
+})
+
+onMounted(() => {
+    fetchJob()
+    fetchJobStatuses()
 })
 </script>

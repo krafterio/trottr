@@ -84,7 +84,7 @@ async def create_job(job: JobCreate, workspace=Depends(get_user_workspace)):
     
     return await Job.query.select_related("customer_company", "customer_contact", "site", "operator", "category", "status").get(id=obj.id)
 
-@router.put("/{job_id}", response_model=JobRead)
+@router.patch("/{job_id}", response_model=JobRead)
 async def update_job(
     job_id: int,
     job_update: JobUpdate,

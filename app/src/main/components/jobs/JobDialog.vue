@@ -13,13 +13,13 @@
                 </div>
                 <div class="flex-1 col-span-4">
                     <form @submit.prevent="handleSubmit" class="space-y-4">
-                        <div>
+                        <div v-if="!isEdit">
                             <label class="text-sm font-medium text-neutral-700">Nom de l'intervention *</label>
                             <Input v-model="form.name" class="mt-1" placeholder="Ex: Réparation panne électrique"
                                 required />
                         </div>
 
-                        <div>
+                        <div v-if="!isEdit">
                             <label class="text-sm font-medium text-neutral-700">Description</label>
                             <Textarea v-model="form.description" class="mt-1"
                                 placeholder="Détails de l'intervention..." />
@@ -70,36 +70,12 @@
                             </div>
                         </div>
 
-                        <div>
+                        <div v-if="!isEdit">
                             <label class="text-sm font-medium text-neutral-700">Site</label>
                             <SiteSelect v-model="form.site" class="mt-1" placeholder="Sélectionner un site"
                                 :disabled="!canSelectSite"
                                 :company-id="form.customer_company?.id || form.customer_company"
                                 :contact-id="form.customer_contact?.id || form.customer_contact" />
-                        </div>
-
-                        <Separator v-if="isEdit" />
-
-                        <div v-if="isEdit">
-                            <h3 class="font-medium text-neutral-700 mb-2">Planification</h3>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="text-sm font-medium text-neutral-700">Début prévu</label>
-                                    <Input v-model="form.scheduled_start" type="datetime-local" class="mt-1" />
-                                </div>
-
-                                <div>
-                                    <label class="text-sm font-medium text-neutral-700">Fin prévue</label>
-                                    <Input v-model="form.scheduled_end" type="datetime-local" class="mt-1" />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="text-sm font-medium text-neutral-700">Opérateur assigné</label>
-                                <UserSelect v-model="form.operator" class="mt-1"
-                                    placeholder="Sélectionner un opérateur" />
-                            </div>
                         </div>
                     </form>
                 </div>
@@ -127,7 +103,6 @@ import ContactSelect from '@/common/components/form/contact-select/ContactSelect
 import PrioritySelect from '@/common/components/form/priority-select/PrioritySelect.vue'
 import SiteSelect from '@/common/components/form/site-select/SiteSelect.vue'
 import StatusSelect from '@/common/components/form/status-select/StatusSelect.vue'
-import UserSelect from '@/common/components/form/user-select/UserSelect.vue'
 import { Button } from '@/common/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog'
 import { Input } from '@/common/components/ui/input'
@@ -252,8 +227,8 @@ const handleSubmit = async (saveAndView = false) => {
             customer_company: form.customer_company,
             customer_contact: form.customer_contact,
             priority: form.priority,
-            category: form.category,
-            status: form.status,
+            category: form.category?.id || form.category,
+            status: form.status?.id || form.status,
             site: form.site,
             operator: form.operator,
             scheduled_start: form.scheduled_start ? new Date(form.scheduled_start).toISOString() : null,
@@ -261,20 +236,20 @@ const handleSubmit = async (saveAndView = false) => {
         }
 
         if (isEdit.value) {
-            await fetcher.put(`/jobs/${currentJob.value.id}`, jobData)
+            await fetcher.patch(`/jobs/${currentJob.value.id}`, jobData)
             toast.success('Intervention modifiée')
+            bus.trigger('job-saved')
         } else {
             const response = await fetcher.post('/jobs', jobData)
             toast.success('Intervention créée')
+            console.log('Triggering job-created-stay event')
             bus.trigger('job-created-stay')
             if (saveAndView) {
                 handleClose()
-                // Rediriger vers la vue détaillée
                 window.location.href = `/job/${response.data.id}`
             }
         }
 
-        bus.trigger('job-saved')
         if (!saveAndView) {
             handleClose()
         }
@@ -294,7 +269,8 @@ const handleSaveAndView = () => {
     handleSubmit(true)
 }
 
-useBus(bus, 'open-job-dialog', (data) => {
+useBus(bus, 'open-job-dialog', (event) => {
+    const data = event.detail || {}
     isOpen.value = true
 
     if (data && data.id) {
@@ -308,8 +284,8 @@ useBus(bus, 'open-job-dialog', (data) => {
             customer_company: data.customer_company?.id || null,
             customer_contact: data.customer_contact?.id || null,
             priority: data.priority || 'normal',
-            category: data.category?.id || null,
-            status: data.status?.id || null,
+            category: data.category || null,
+            status: data.status || null,
             site: data.site?.id || null,
             operator: data.operator?.id || null,
             scheduled_start: data.scheduled_start ? new Date(data.scheduled_start).toISOString().slice(0, 16) : '',

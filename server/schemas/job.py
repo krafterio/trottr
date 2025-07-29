@@ -54,6 +54,8 @@ class JobUpdate(BaseModel):
     operator: Optional[int] = None
     scheduled_start: Optional[datetime] = None
     scheduled_end: Optional[datetime] = None
+    category: Optional[int] = None
+    status: Optional[int] = None
 
 class JobRead(JobBase):
     id: int
