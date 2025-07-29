@@ -19,7 +19,7 @@ SMTP_PORT=587
 SMTP_USE_TLS=True
 SMTP_USERNAME=your-smtp-username
 SMTP_PASSWORD=your-smtp-password
-SMTP_DEFAULT_FROM=Smashr <noreply@smashr.tech>
+SMTP_DEFAULT_FROM=Trottr <noreply@trottr.io>
 
 # BASE URL
 BASE_URL=https://domain.tld/api
@@ -33,18 +33,10 @@ MODE_PREVIEW=False
 MODE_PREVIEW_NOTIF_EMAIL=
 
 # Data
-DATA_PATH=
-
-# PILOTERR
-PILOTERR_API_KEY=ta_cle_api_piloterr_ici
-
-# DROPCONTACT
-DROPCONTACT_API_KEY=votre_clé_api_dropcontact
+DATA_PATH=../.data
 
 # DEBUG
 DEBUG_ADMIN=False
-DEBUG_SIMULATE_CONTACT_ENRICHMENT=False
-DEBUG_SIMULATE_COMPANY_ENRICHMENT=False
 
 # Recaptcha
 RECAPTCHA_ENABLED=False
