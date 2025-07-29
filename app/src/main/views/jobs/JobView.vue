@@ -23,7 +23,8 @@
                                 <Circle class="fill-current" style="height: 6px; width: 6px;" />
                                 {{ job.status.name }}
                             </Badge>
-                            <Badge v-if="!job?.operator" class="bg-yellow-50 text-yellow-700">
+                            <Badge v-if="!job?.operator" class="bg-yellow-50 text-yellow-700 cursor-pointer"
+                                @click="openPlannerDialog">
                                 <User class="h-4 w-4" />
                                 À assigner
                             </Badge>
@@ -43,7 +44,7 @@
                         <CalendarArrowUp class="h-4 w-4" />
                         Replanifier
                     </Button>
-                    <Button variant="outline">
+                    <Button variant="outline" @click="openPlannerDialog">
                         <UserPlus class="h-4 w-4" />
                         Assigner technicien
                     </Button>
@@ -453,7 +454,8 @@
                         </Card>
 
                         <Card
-                            class="p-4 gap-0 border-dashed flex items-center justify-center cursor-pointer hover:bg-neutral-50">
+                            class="p-4 gap-0 border-dashed flex items-center justify-center cursor-pointer hover:bg-neutral-50"
+                            @click="openPlannerDialog">
                             <UserPlus class="h-10 w-10 mb-3 text-neutral-500" :stroke-width="1.2" />
                             <p class="text-sm text-neutral-500">Assigner un technicien</p>
                         </Card>
@@ -566,6 +568,9 @@
             </DialogFooter>
         </DialogContent>
     </Dialog>
+
+    <PlannerDialog :open="plannerDialogOpen" :job="job" @update:open="plannerDialogOpen = $event"
+        @assigned="handleJobAssigned" />
 </template>
 
 <script setup>
@@ -621,6 +626,7 @@ import { onMounted, ref, watch } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
+import PlannerDialog from './PlannerDialog.vue'
 
 const props = defineProps({
     inDialog: {
@@ -688,6 +694,7 @@ const siteForm = ref({
     site: null
 })
 const selectedSite = ref(null)
+const plannerDialogOpen = ref(false)
 
 const fetchJob = async () => {
     loading.value = true
@@ -919,6 +926,24 @@ const saveSite = async () => {
 const viewSite = (site) => {
     if (site?.id) {
         router.push({ name: 'site', params: { id: site.id } })
+    }
+}
+
+const openPlannerDialog = () => {
+    plannerDialogOpen.value = true
+}
+
+const handleJobAssigned = (data) => {
+    console.log('Job assigned:', data)
+
+    if (data.updatedJob) {
+        // Mettre à jour le job local avec les données de l'API
+        job.value = data.updatedJob
+        toast.success(`Intervention assignée à ${data.operator.name}`)
+    } else {
+        // Fallback si pas de données mises à jour
+        toast.success(`Intervention assignée à ${data.operator.name}`)
+        fetchJob() // Recharger le job
     }
 }
 

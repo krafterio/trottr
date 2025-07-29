@@ -144,3 +144,35 @@ async def delete_job(
     
     await job.delete()
     return None 
+
+@router.get("/by-operator/{operator_id}", response_model=List[JobRead])
+async def get_jobs_by_operator(
+    operator_id: int,
+    start_date: str = None,
+    end_date: str = None,
+    current_user: CurrentUser = Depends(get_current_user)
+):
+    """
+    Récupère les jobs d'un opérateur avec filtres de date optionnels
+    start_date et end_date au format ISO (ex: 2025-07-30T00:00:00)
+    """
+    from datetime import datetime
+    
+    query = Job.query.select_related("customer_company", "customer_contact", "site", "operator", "category", "status").filter(operator=operator_id)
+    
+    if start_date:
+        try:
+            start_dt = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+            query = query.filter(scheduled_start__gte=start_dt)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid start_date format")
+    
+    if end_date:
+        try:
+            end_dt = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+            query = query.filter(scheduled_end__lte=end_dt)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid end_date format")
+    
+    jobs = await query.order_by("scheduled_start").all()
+    return jobs 

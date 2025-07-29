@@ -35,18 +35,24 @@ async def check_user_email(
 @router.get("", response_model=Dict[str, Any])
 async def list_workspace_users(
     current_user: User = Depends(get_current_user),
-    workspace = Depends(get_user_workspace)
+    workspace = Depends(get_user_workspace),
+    role: str = Query(None, description="Filter users by role")
 ):
     workspace_users = await WorkspaceUser.query.select_related('user').filter(workspace=workspace).all()
     users = []
     for wu in workspace_users:
         if wu.user:
+            # Filtrer par rôle si spécifié
+            if role and wu.role != role:
+                continue
+                
             users.append({
                 "id": wu.user.id,
                 "name": wu.user.name,
                 "email": wu.user.email,
                 "avatar": wu.user.avatar,
                 "initials": wu.user.initials,
+                "role": wu.role,
                 "google_connected": bool(wu.user.google_access_token),
                 "google_email": wu.user.google_email,
                 "google_connected_at": wu.user.google_connected_at

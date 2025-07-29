@@ -1,0 +1,99 @@
+.vuecal {
+    --vuecal-primary-color: #000 !important;
+    --vuecal-secondary-color: #ffffff;
+    --vuecal-base-color: #000000;
+    --vuecal-contrast-color: #ffffff;
+    --vuecal-border-color: color-mix(in srgb, var(--vuecal-base-color) 8%, transparent);
+    --vuecal-header-color: var(--vuecal-secondary-color);
+    --vuecal-event-color: var(--vuecal-contrast-color);
+    --vuecal-event-border-color: currentColor;
+    --vuecal-border-radius: 0px !important;
+    --vuecal-height: 600px !important;
+    --vuecal-min-schedule-width: 0 px;
+    --vuecal-min-cell-width: 0 px;
+    --vuecal-transition-duration: 0, 25 s;
+
+
+    height: 100% !important;
+
+    .vuecal__views-bar {
+        display: none !important;
+    }
+
+    .vuecal__title-bar {
+        background-color: #fff !important;
+        @apply text-neutral-800;
+    }
+
+    .vuecal__cell {
+        position: relative;
+    }
+
+    .vuecal__cell.vuecal__cell--hovered {
+        background-color: rgba(59, 130, 246, 0.2) !important;
+        border: 2px dashed rgba(59, 130, 246, 0.5) !important;
+    }
+
+    .vuecal__cell.vuecal__cell--hovered::after {
+        content: attr(data-job-title);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(59, 130, 246, 0.9);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+        z-index: 10;
+        pointer-events: none;
+    }
+}
+
+.vuecal--default-theme {
+    .vuecal__event {
+        background-color: #fff !important;
+        border: 1px solid #E5E5E5 !important;
+        cursor: pointer !important;
+
+        &.creation-slot-calendar {
+            background-color: #111 !important;
+            border: 1px solid #111 !important;
+
+
+            &:hover {
+                background-color: #000 !important;
+            }
+        }
+
+        &:hover {
+            background-color: #f0f0f0 !important;
+        }
+
+        &:not(.creation-slot-calendar) {
+            .vuecal__event-details {
+                padding: 5px !important;
+
+                .vuecal__event-title {
+                    @apply text-neutral-800 font-semibold mb-0.5;
+                }
+
+                .vuecal__event-time {
+                    @apply text-neutral-400;
+                }
+
+                .vuecal__event-content {
+                    @apply text-neutral-800;
+                }
+            }
+        }
+
+
+    }
+}
+
+.vuecal--default-theme.vuecal--light .vuecal__cell--selected:before {
+    background-color: #fff !important;
+}

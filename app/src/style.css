@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "./main/assets/styles/components/_gantt.scss";
 @import "./main/assets/styles/components/_planner.scss";
+@import "./main/assets/styles/components/_calendar.scss";
 
 @custom-variant dark (&:is(.dark *));
 
