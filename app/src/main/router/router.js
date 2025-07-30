@@ -390,10 +390,9 @@ router.beforeEach(async (to, from, next) => {
     const isAuthRoute = to.meta.requiresGuest || !to.meta.requiresAuth
 
     if (!workspaceStore.isValid && !isAuthRoute) {
-      // Rediriger vers jobs et ouvrir la modal des licences
-      if (to.name !== 'jobs') {
-        bus.trigger('open-workspace-manager-modal', { tab: 'licenses' })
-        next({ name: 'jobs' })
+      // Rediriger vers settings billing
+      if (to.name !== 'settings-billing' && to.name !== 'settings-users') {
+        next({ name: 'settings-billing' })
         return
       }
     }

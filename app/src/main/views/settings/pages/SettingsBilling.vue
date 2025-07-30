@@ -49,7 +49,11 @@
                     <span class="text-sm text-neutral-600">
                         {{ getNextBillingText() }}
                     </span>
-                    <Button variant="outline" size="sm">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        @click="openStripePortal"
+                    >
                         Changer de plan
                     </Button>
                 </div>
@@ -104,7 +108,11 @@
             <div class="space-y-4">
                 <div class="flex items-center justify-between">
                     <h3 class="text-base font-medium text-neutral-900">Méthodes de paiement</h3>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                        variant="outline" 
+                        size="sm"
+                        @click="openStripePortal"
+                    >
                         <Plus class="h-4 w-4 mr-2" />
                         Ajouter une carte
                     </Button>
@@ -124,7 +132,11 @@
                         </div>
                         <div class="flex items-center space-x-2">
                             <Badge class="bg-green-100 text-green-800">Par défaut</Badge>
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                                variant="ghost" 
+                                size="sm"
+                                @click="openStripePortal"
+                            >
                                 <Edit class="h-4 w-4" />
                             </Button>
                         </div>
@@ -249,6 +261,22 @@ const fetchBillingInfo = async () => {
         error.value = err
     } finally {
         loading.value = false
+    }
+}
+
+const openStripePortal = async () => {
+    try {
+        const currentUrl = window.location.origin + window.location.pathname
+        
+        const response = await fetcher.post('/workspace/subscription/billing-portal', {
+            return_url: currentUrl
+        })
+        
+        if (response.data?.url) {
+            window.location.href = response.data.url
+        }
+    } catch (err) {
+        console.error('Erreur lors de l\'ouverture du portail Stripe:', err)
     }
 }
 
