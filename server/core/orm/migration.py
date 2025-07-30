@@ -251,17 +251,21 @@ def compare_enums(autogen_context: AutogenContext, upgrade_ops: UpgradeOps, sche
 
 @Operations.register_operation("replace_enum")
 class ReplaceEnumOperation(MigrateOperation):
-    def __init__(self, enum_name: str, new_values: list[str], old_values: list[str]) -> None:
+    def __init__(self, enum_name: str, new_values: list[str], old_values: list[str], value_mapping: dict[str, str] | None = None) -> None:
         self.enum_name: str = enum_name
         self.new_values: list[str] = new_values
         self.old_values: list[str] = old_values
+        self.value_mapping: dict[str, str] | None = value_mapping
 
     @classmethod
-    def replace_enum(cls, operations, enum_name: str, new_values: list[str], old_values: list[str]) -> None:
-        return operations.invoke(cls(enum_name, new_values, old_values))
+    def replace_enum(cls, operations, enum_name: str, new_values: list[str], old_values: list[str], value_mapping: dict[str, str] | None = None) -> None:
+        return operations.invoke(cls(enum_name, new_values, old_values, value_mapping))
 
     def reverse(self) -> MigrateOperation:
-        return ReplaceEnumOperation(self.enum_name, self.old_values, self.new_values)
+        reverse_mapping = None
+        if self.value_mapping:
+            reverse_mapping = {v: k for k, v in self.value_mapping.items()}
+        return ReplaceEnumOperation(self.enum_name, self.old_values, self.new_values, reverse_mapping)
 
 
 @Operations.register_operation("create_enum")
@@ -308,16 +312,61 @@ def replace_enum(operations, operation: ReplaceEnumOperation) -> None:
 
     # Find all tables using this enum and update them
     result = operations.get_bind().execute(sa.text(
-        "SELECT table_name, column_name FROM information_schema.columns WHERE udt_name = :old_enum_name"
+        "SELECT table_name, column_name, is_nullable FROM information_schema.columns WHERE udt_name = :old_enum_name"
     ), {"old_enum_name": old_enum_name})
 
     for row in result:
-        table_name, column_name = row
+        table_name, column_name, is_nullable = row
+        default_value = f"'{new_values[0]}'" if new_values else "null"
+
+        # Build CASE statement for value conversion
+        if operation.value_mapping:
+            # Use custom mapping provided by user
+            case_conditions = []
+            for old_val, new_val in operation.value_mapping.items():
+                case_conditions.append(f"WHEN {column_name}::text = '{old_val}' THEN '{new_val}'::{enum_name}")
+
+            # Add case-insensitive fallback for unmapped values
+            case_insensitive_conditions = []
+            for new_val in new_values:
+                case_insensitive_conditions.append(f"WHEN LOWER({column_name}::text) = LOWER('{new_val}') THEN '{new_val}'::{enum_name}")
+
+            # Final fallback
+            if is_nullable == "YES":
+                final_fallback = "null"
+            else:
+                final_fallback = f"{default_value}::{enum_name}"
+
+            case_statement = f"""CASE 
+                {' '.join(case_conditions)}
+                {' '.join(case_insensitive_conditions)}
+                ELSE {final_fallback}
+            END"""
+        else:
+            # Use automatic mapping (existing values that match new enum values)
+            # First try exact match, then case-insensitive match
+            case_insensitive_conditions = []
+            for new_val in new_values:
+                case_insensitive_conditions.append(f"WHEN LOWER({column_name}::text) = LOWER('{new_val}') THEN '{new_val}'::{enum_name}")
+
+            if is_nullable == "YES":
+                case_statement = f"""CASE 
+                    WHEN {column_name}::text = ANY(ARRAY{new_values}) THEN {column_name}::text::{enum_name}
+                    {' '.join(case_insensitive_conditions)}
+                    ELSE null
+                END"""
+            else:
+                case_statement = f"""CASE 
+                    WHEN {column_name}::text = ANY(ARRAY{new_values}) THEN {column_name}::text::{enum_name}
+                    {' '.join(case_insensitive_conditions)}
+                    ELSE {default_value}::{enum_name}
+                END"""
+
         operations.execute(f"""
             ALTER TABLE {table_name}
             ALTER COLUMN {column_name}
             TYPE {enum_name}
-            USING {column_name}::text::{enum_name}
+            USING {case_statement}
         """)
 
     # Drop old enum
@@ -344,7 +393,11 @@ def drop_enum(operations, operation: DropEnumOperation) -> None:
 def render_replace_enum(_, operation: ReplaceEnumOperation) -> str:
     new_values_repr = repr(operation.new_values)
     old_values_repr = repr(operation.old_values)
-    return f"op.replace_enum('{operation.enum_name}', {new_values_repr}, {old_values_repr})"
+    if operation.value_mapping:
+        value_mapping_repr = repr(operation.value_mapping)
+        return f"op.replace_enum('{operation.enum_name}', {new_values_repr}, {old_values_repr}, {value_mapping_repr})"
+    else:
+        return f"op.replace_enum('{operation.enum_name}', {new_values_repr}, {old_values_repr})"
 
 
 @renderers.dispatch_for(CreateEnumOperation)
