@@ -16,6 +16,7 @@ class StripeService:
         customer_data = {
             "email": email,
             "metadata": metadata or {},
+            "preferred_locales": ["fr"],
         }
 
         if name:
@@ -30,6 +31,7 @@ class StripeService:
         customer_data = {
             "email": email,
             "metadata": metadata or {},
+            "preferred_locales": ["fr"],
         }
 
         if name:
