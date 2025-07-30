@@ -170,6 +170,9 @@ Once the server is running, you can access:
 
 1. Install Stripe CLI:
    Read the official documentation to install [Stripe CLI](https://docs.stripe.com/stripe-cli).
+2. Configure Stripe Environment in Stipe Dashboard and configure Billing Portal:
+   - Go to [Stripe Dashboard](https://dashboard.stripe.com/) and configure your Stripe environment
+   - Open Billing Portal and configure your billing portal from "Parameters/Billing/Customer portal"
 
 ### Setup
 

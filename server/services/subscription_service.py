@@ -285,10 +285,20 @@ class SubscriptionService:
         subscription.end_date = datetime.fromtimestamp(stripe_subscription.ended_at).astimezone() if stripe_subscription.ended_at else None
         subscription.cancel_at_period_end = stripe_subscription.cancel_at_period_end
 
+        price_id = None
         available_users_count = 0
         for item in stripe_subscription['items']:
+            price_id = item.plan['id']
             available_users_count += item.quantity
         subscription.available_users_count = available_users_count
+
+        if price_id:
+            service_plan = await ServicePlan.query.filter(
+                stripe_price_id=price_id,
+            ).first()
+
+            if service_plan:
+                subscription.service_plan = service_plan
 
         if stripe_subscription.trial_start:
             subscription.trial_start = datetime.fromtimestamp(stripe_subscription.trial_start).astimezone()

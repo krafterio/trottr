@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from dateutil.relativedelta import relativedelta
 from typing import TYPE_CHECKING, Union
 
 from edgy import fields
@@ -75,9 +76,9 @@ class WorkspaceSubscription(BaseModel):
             next_billing_date = self.end_date
         elif self.start_date and self.service_plan:
             if self.service_plan.period.value == "Mensuel":
-                next_billing_date = self.start_date + timedelta(days=30)
+                next_billing_date = self.start_date + relativedelta(months=1)
             else:
-                next_billing_date = self.start_date + timedelta(days=365)
+                next_billing_date = self.start_date + relativedelta(years=1)
 
         return next_billing_date
 
