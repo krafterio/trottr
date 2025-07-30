@@ -84,7 +84,8 @@
                                 :editable-events="{ create: !isEditMode && !selectedSlot, resize: true, drag: true, delete: false }"
                                 :snap-to-interval="30" :time-step="60" :cell-height="40" :time-from="6 * 60" locale="fr"
                                 :hide-view-selector="true" :disable-views="['years', 'year', 'month', 'day', 'days']"
-                                @event-created="onEventCreated" @event-change="onEventChange" class="h-full" />
+                                :view-date="currentDate" @event-created="onEventCreated" @event-change="onEventChange"
+                                @view-change="onViewChange" @ready="onCalendarReady" class="h-full" />
                         </div>
                     </div>
                     <div v-else class="flex-1 flex items-center justify-center">
@@ -193,7 +194,7 @@ const { getPriorityConfig } = useJob()
 const workspaceStore = useWorkspaceStore()
 
 const selectedOperator = ref(null)
-const currentDate = ref(new Date())
+const currentDate = ref(props.job?.scheduled_start ? new Date(props.job.scheduled_start) : new Date())
 
 const operators = ref([])
 const loadingOperators = ref(true)
@@ -293,9 +294,9 @@ const fetchOperatorEvents = async (operator) => {
     operator.events = []
 
     try {
-        const now = new Date()
-        const startOfWeek = new Date(now)
-        startOfWeek.setDate(now.getDate() - now.getDay() + 1)
+        // Utiliser currentDate au lieu de la date actuelle
+        const startOfWeek = new Date(currentDate.value)
+        startOfWeek.setDate(currentDate.value.getDate() - currentDate.value.getDay() + 1)
         startOfWeek.setHours(0, 0, 0, 0)
 
         const endOfWeek = new Date(startOfWeek)
@@ -445,6 +446,52 @@ const onEventChange = (event) => {
     }
 }
 
+const onViewChange = (view) => {
+    if (view.start) {
+        const oldDate = currentDate.value
+        currentDate.value = new Date(view.start)
+
+        if (selectedSlot.value) {
+            const oldStart = new Date(selectedSlot.value.start)
+            const oldEnd = new Date(selectedSlot.value.end)
+
+            const dayOfWeek = oldStart.getDay()
+
+            const oldWeekStart = new Date(oldDate)
+            oldWeekStart.setDate(oldDate.getDate() - oldDate.getDay() + 1)
+
+            const newWeekStart = new Date(currentDate.value)
+            newWeekStart.setDate(currentDate.value.getDate() - currentDate.value.getDay() + 1)
+
+            const weeksDiff = Math.floor((newWeekStart - oldWeekStart) / (1000 * 60 * 60 * 24 * 7))
+
+            const newStart = new Date(currentDate.value)
+            newStart.setDate(currentDate.value.getDate() - currentDate.value.getDay() + dayOfWeek)
+            newStart.setHours(oldStart.getHours(), oldStart.getMinutes(), oldStart.getSeconds())
+
+            const newEnd = new Date(currentDate.value)
+            newEnd.setDate(currentDate.value.getDate() - currentDate.value.getDay() + dayOfWeek)
+            newEnd.setHours(oldEnd.getHours(), oldEnd.getMinutes(), oldEnd.getSeconds())
+
+            selectedSlot.value = {
+                ...selectedSlot.value,
+                start: newStart,
+                end: newEnd
+            }
+        }
+
+        if (selectedOperator.value) {
+            fetchOperatorEvents(selectedOperator.value)
+        }
+    }
+}
+
+const onCalendarReady = (calendar) => {
+    if (calendar.startDate) {
+        currentDate.value = new Date(calendar.startDate)
+    }
+}
+
 const formatSlotDate = (date) => {
     if (!date) return ''
     return new Date(date).toLocaleDateString('fr-FR', {
@@ -572,6 +619,10 @@ const selectedSpeciality = ref('')
 
 watch(() => props.open, (newValue) => {
     if (newValue) {
+        // Initialiser currentDate avec la date du job si on est en mode édition
+        if (props.job?.scheduled_start) {
+            currentDate.value = new Date(props.job.scheduled_start)
+        }
         fetchJobSpecialities()
         fetchOperators()
     }
