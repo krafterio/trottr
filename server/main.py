@@ -17,6 +17,7 @@ from api.subscriptions import router as subscriptions_router
 from api.health import router as health_router
 from api.users import router as users_router
 from api.storage import router as storage_router
+from api.dataset import router as dataset_router
 from api.websocket import router as websocket_router
 from api.presence import router as presence_router
 from api.search import router as search_router
@@ -171,6 +172,7 @@ def app(app_class: type[App] = App) -> App:
     api_router.include_router(subscriptions_router, tags=["subscriptions"])
     api_router.include_router(users_router, prefix="/users", tags=["users"])
     api_router.include_router(storage_router, tags=["storage"])
+    api_router.include_router(dataset_router)
     api_router.include_router(country_router, prefix="/countries", tags=["country"])
     api_router.include_router(job_status_router, prefix="/job-status", tags=["job-status"])
     api_router.include_router(job_category_router, prefix="/job-category", tags=["job-category"])
