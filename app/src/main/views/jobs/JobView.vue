@@ -40,11 +40,11 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <Button variant="outline">
+                    <Button v-if="isPlanned" variant="outline" @click="openPlannerDialog">
                         <CalendarArrowUp class="h-4 w-4" />
                         Replanifier
                     </Button>
-                    <Button variant="outline" @click="openPlannerDialog">
+                    <Button v-else variant="outline" @click="openPlannerDialog">
                         <UserPlus class="h-4 w-4" />
                         Assigner et planifier
                     </Button>
@@ -133,7 +133,7 @@
                                         <span class="text-sm">{{ getPriorityConfig(job.priority).label }}</span>
                                     </Badge>
                                 </div>
-                                <div class="flex gap-2">
+                                <div class="flex gap-2" v-if="isPlanned">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button variant="outline">
@@ -157,6 +157,12 @@
                                     <Button>
                                         <Play class="h-3 w-3 fill-current" />
                                         Démarrer
+                                    </Button>
+                                </div>
+                                <div class="flex gap-2" v-else>
+                                    <Button variant="outline" @click="openPlannerDialog">
+                                        <UserPlus class="h-3 w-3" />
+                                        Assigner et planifier
                                     </Button>
                                 </div>
                             </div>
@@ -269,7 +275,7 @@
                                             <div class="flex items-center justify-between text-xs text-neutral-500">
                                                 <span>{{ formatDate(diagnostic.created_at) }}</span>
                                                 <span v-if="diagnostic.created_by">{{ diagnostic.created_by.email
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                         </div>
                                     </VueDraggable>
@@ -364,9 +370,17 @@
                                 <Circle
                                     class="absolute translate-x-[-50%] top-50% -left-5 fill-neutral-300 stroke-neutral-300"
                                     style="height: 10px; width: 10px;" />
-                                <span class="text-sm font-medium text-neutral-700">Démarrage prévu</span>
-                                <span class="text-sm text-neutral-900">{{ job?.scheduled_start ?
-                                    formatDate(job.scheduled_start) : 'Non planifié' }}</span>
+                                <div class="flex items-center gap-2">
+                                    <CalendarArrowUp class="h-4 w-4" />
+                                    <span class="text-sm font-medium text-neutral-700">Démarrage prévu</span>
+                                </div>
+                                <div class="text-sm">
+                                    <span class="text-sm text-neutral-500" v-if="getTimeUntilJob()">{{ getTimeUntilJob()
+                                    }} - </span>
+                                    <span :class="job?.scheduled_start ? 'text-neutral-900' : 'text-neutral-400'">{{
+                                        job?.scheduled_start ?
+                                            formatDate(job.scheduled_start) : 'Non planifié' }}</span>
+                                </div>
                             </div>
 
                             <span
@@ -379,13 +393,17 @@
                                     class="absolute translate-x-[-50%] top-50% -left-5 ring-1 ring-offset-2 rounded-full"
                                     :class="job?.scheduled_end ? 'bg-secondary ring-secondary' : 'bg-neutral-300 ring-neutral-300'"
                                     style="height: 10px; width: 10px;" />
-                                <span class="text-sm font-medium text-neutral-700">Fin prévue</span>
+                                <div class="flex items-center gap-2">
+                                    <CalendarArrowDown class="h-4 w-4" />
+                                    <span class="text-sm font-medium text-neutral-700">Fin prévue</span>
+                                </div>
                                 <div class="text-sm">
                                     <span class="text-secondary-dark me-2" v-if="job?.scheduled_end">{{ getDuration()
-                                    }}</span>
+                                        }}</span>
 
-                                    <span class="text-neutral-900">{{ job?.scheduled_end ? formatDate(job.scheduled_end)
-                                        : 'Non planifié' }}</span>
+                                    <span :class="job?.scheduled_end ? 'text-neutral-900' : 'text-neutral-400'">{{
+                                        job?.scheduled_end ? formatDate(job.scheduled_end)
+                                            : 'Non planifié' }}</span>
                                 </div>
                             </div>
                         </div>
@@ -601,6 +619,7 @@ import {
     Asterisk,
     Building2,
     Calendar,
+    CalendarArrowDown,
     CalendarArrowUp,
     ChevronDown,
     Circle,
@@ -830,7 +849,6 @@ const getOperatorInitials = (operator) => {
 const getClientInfo = computed(() => {
     if (!job.value) return { name: 'Client non défini', icon: User, type: 'none', label: 'Client' }
 
-    // Si il y a une société ET un contact, c'est la société le client
     if (job.value.customer_company) {
         return {
             name: job.value.customer_company.name,
@@ -841,7 +859,6 @@ const getClientInfo = computed(() => {
         }
     }
 
-    // Si il y a seulement un contact (pas de société)
     if (job.value.customer_contact) {
         return {
             name: job.value.customer_contact.full_name,
@@ -854,6 +871,32 @@ const getClientInfo = computed(() => {
 
     return { name: 'Client non défini', icon: User, type: 'none', label: 'Client', link: null }
 })
+
+const isPlanned = computed(() => {
+    return job.value?.operator && job.value?.scheduled_start && job.value?.scheduled_end
+})
+
+const getTimeUntilJob = () => {
+    if (!job.value?.scheduled_start) return null
+
+    const now = new Date()
+    const jobStart = new Date(job.value.scheduled_start)
+    const diffMs = jobStart - now
+
+    if (diffMs <= 0) return null
+
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+
+    if (diffDays > 0) {
+        return `Dans ${diffDays}j ${diffHours}h`
+    } else if (diffHours > 0) {
+        return `Dans ${diffHours}h`
+    } else {
+        const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+        return `Dans ${diffMinutes}min`
+    }
+}
 
 const getClientAddress = () => {
     if (job.value?.site) {
@@ -932,9 +975,11 @@ const openPlannerDialog = () => {
 const handleJobAssigned = (data) => {
     if (data.updatedJob) {
         job.value = data.updatedJob
-        toast.success(`Intervention assignée à ${data.operator.name}`)
+        const message = data.toastMessage || `Intervention assignée à ${data.operator.name}`
+        toast.success(message)
     } else {
-        toast.success(`Intervention assignée à ${data.operator.name}`)
+        const message = data.toastMessage || `Intervention assignée à ${data.operator.name}`
+        toast.success(message)
         fetchJob()
     }
 }

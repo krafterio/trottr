@@ -67,7 +67,7 @@
                     <div v-if="selectedOperator" class="flex-1">
                         <div class="h-full">
                             <VueCal :events="selectedOperatorEvents" view="week" :hide-weekends="false"
-                                :editable-events="{ create: !selectedSlot, resize: true, drag: true, delete: false }"
+                                :editable-events="{ create: !isEditMode && !selectedSlot, resize: true, drag: true, delete: false }"
                                 :snap-to-interval="30" :time-step="60" :cell-height="40" :time-from="6 * 60" locale="fr"
                                 :hide-view-selector="true" :disable-views="['years', 'year', 'month', 'day', 'days']"
                                 @event-created="onEventCreated" @event-change="onEventChange" class="h-full" />
@@ -80,7 +80,6 @@
                         </div>
                     </div>
 
-                    <!-- Volet de résumé -->
                     <div v-if="selectedSlot"
                         class="bg-white border-t border-neutral-200 p-4 max-h-24 transition-all duration-300 ease-in-out">
                         <div class="flex items-center justify-between">
@@ -114,12 +113,35 @@
                                     </div>
                                 </div>
                             </div>
-                            <Button @click="assignJob" class="ml-4">
-                                <CalendarCheck class="h-4 w-4" />
-                                Planifier sur ce créneau
-                            </Button>
+                            <div class="flex items-center gap-2">
+                                <Button v-if="!isEditMode" variant="outline" @click="cancelSlot" class="mr-2">
+                                    Annuler
+                                </Button>
+                                <Button @click="assignJob">
+                                    <CalendarCheck class="h-4 w-4" />
+                                    {{ isEditMode ? 'Modifier l\'assignation' : 'Planifier sur ce créneau' }}
+                                </Button>
+                            </div>
                         </div>
                     </div>
+
+                    <div v-else-if="selectedOperator && !selectedSlot">
+                        <div class="flex-1 flex items-center h-14 px-4">
+                            <LucideSquareDashedMousePointer class="h-8 w-8 text-neutral-400 me-2" />
+                            <div class="flex flex-col">
+                                <p class="text-xs text-neutral-400">Dessinez un créneau sur le calendrier pour planifier
+                                    l'intervention. Le créneau n'est entregistré qu'à la validation après cette fenêtre.
+                                </p>
+                                <p class="text-sm text-neutral-600">
+                                    Opérateur sélectionné:
+                                    <span class="text-primary font-semibold">
+                                        {{ selectedOperator.name }}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </DialogContent>
@@ -133,7 +155,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/common/compo
 import { useFetcher } from '@/common/composables/fetcher'
 import { useJob } from '@/common/composables/useJob'
 import { useWorkspaceStore } from '@/main/stores/workspace'
-import { Calendar, CalendarCheck, Circle, Clock, Folder, MapPin, ScanSearch, User } from 'lucide-vue-next'
+import { Calendar, CalendarCheck, Circle, Clock, Folder, LucideSquareDashedMousePointer, MapPin, ScanSearch, User } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { VueCal } from 'vue-cal'
 import 'vue-cal/style.css'
@@ -162,6 +184,10 @@ const operators = ref([])
 const loadingOperators = ref(true)
 const loadingEvents = ref(false)
 
+const isEditMode = computed(() => {
+    return props.job?.operator && props.job?.scheduled_start && props.job?.scheduled_end
+})
+
 const fetchOperators = async () => {
     loadingOperators.value = true
     try {
@@ -171,13 +197,8 @@ const fetchOperators = async () => {
                 workspace: workspaceStore.workspace?.id
             }
         })
-
-        console.log('Response:', response)
-
-        // Récupérer les utilisateurs depuis response.data.items
         const allUsers = response.data?.items || []
 
-        // Filtrer seulement les opérateurs (au cas où l'API ne filtre pas)
         const operatorsOnly = allUsers.filter(user => user.role === 'Operator')
 
         operators.value = operatorsOnly.map(user => ({
@@ -189,8 +210,20 @@ const fetchOperators = async () => {
         }))
 
         if (operators.value.length > 0) {
-            selectedOperator.value = operators.value[0]
-            await fetchOperatorEvents(operators.value[0])
+            if (isEditMode.value && props.job?.operator) {
+                const existingOperator = operators.value.find(op => op.id === props.job.operator.id)
+                if (existingOperator) {
+                    selectedOperator.value = existingOperator
+                    await fetchOperatorEvents(existingOperator)
+                    createExistingSlot()
+                } else {
+                    selectedOperator.value = operators.value[0]
+                    await fetchOperatorEvents(operators.value[0])
+                }
+            } else {
+                selectedOperator.value = operators.value[0]
+                await fetchOperatorEvents(operators.value[0])
+            }
         }
     } catch (error) {
         console.error('Erreur lors du chargement des opérateurs:', error)
@@ -199,21 +232,31 @@ const fetchOperators = async () => {
     }
 }
 
+const createExistingSlot = () => {
+    if (isEditMode.value && props.job?.operator && props.job?.scheduled_start && props.job?.scheduled_end) {
+        selectedSlot.value = {
+            start: new Date(props.job.scheduled_start),
+            end: new Date(props.job.scheduled_end),
+            title: props.job.name,
+            class: 'creation-slot-calendar',
+            operator: selectedOperator.value
+        }
+    }
+}
+
 const fetchOperatorEvents = async (operator) => {
     if (!operator) return
 
-    // Vider les événements immédiatement
     operator.events = []
 
     try {
-        // Calculer la semaine actuelle
         const now = new Date()
         const startOfWeek = new Date(now)
-        startOfWeek.setDate(now.getDate() - now.getDay() + 1) // Lundi
+        startOfWeek.setDate(now.getDate() - now.getDay() + 1)
         startOfWeek.setHours(0, 0, 0, 0)
 
         const endOfWeek = new Date(startOfWeek)
-        endOfWeek.setDate(startOfWeek.getDate() + 6) // Dimanche
+        endOfWeek.setDate(startOfWeek.getDate() + 6)
         endOfWeek.setHours(23, 59, 59, 999)
 
         const response = await fetcher.get(`/jobs/by-operator/${operator.id}`, {
@@ -223,18 +266,16 @@ const fetchOperatorEvents = async (operator) => {
             }
         })
 
-        console.log('Operator events:', response.data)
+        const events = response.data
+            .filter(job => !isEditMode.value || job.id !== props.job?.id)
+            .map(job => ({
+                start: new Date(job.scheduled_start),
+                end: new Date(job.scheduled_end),
+                title: job.name,
+                class: 'bg-blue-500 text-white',
+                job: job
+            }))
 
-        // Convertir les jobs en événements pour le calendrier
-        const events = response.data.map(job => ({
-            start: new Date(job.scheduled_start),
-            end: new Date(job.scheduled_end),
-            title: job.name,
-            class: 'bg-blue-500 text-white',
-            job: job
-        }))
-
-        // Mettre à jour les événements de l'opérateur
         operator.events = events
 
     } catch (error) {
@@ -250,9 +291,19 @@ const selectedOperatorEvents = computed(() => {
         events.push(selectedSlot.value)
     }
 
-    return events
+    return events.map(event => {
+        if (event.class === 'creation-slot-calendar') {
+            return event
+        } else {
+            return {
+                ...event,
+                draggable: false,
+                resizable: false,
+                deletable: false
+            }
+        }
+    })
 })
-
 
 
 const previousWeek = () => {
@@ -262,8 +313,6 @@ const previousWeek = () => {
 const nextWeek = () => {
     currentDate.value = new Date(currentDate.value.getTime() + 7 * 24 * 60 * 60 * 1000)
 }
-
-
 
 const getPriorityClass = (priority) => {
     const config = getPriorityConfig(priority)
@@ -300,8 +349,6 @@ const getClientAddress = () => {
     return 'Adresse non définie'
 }
 
-
-
 const selectedSlot = ref(null)
 
 const onEventCreated = (event) => {
@@ -321,9 +368,8 @@ const onEventCreated = (event) => {
 
 const selectOperator = (operator) => {
     selectedOperator.value = operator
-    fetchOperatorEvents(operator) // Charger les événements de l'opérateur sélectionné
+    fetchOperatorEvents(operator)
 
-    // Mettre à jour l'opérateur dans le slot sélectionné si il existe
     if (selectedSlot.value) {
         selectedSlot.value = {
             ...selectedSlot.value,
@@ -387,18 +433,16 @@ const assignJob = async () => {
                 scheduled_end: selectedSlot.value.end.toISOString()
             }
 
-            console.log('Updating job with data:', updateData)
-
             const response = await fetcher.patch(`/jobs/${jobId}`, updateData)
 
-            console.log('Job updated successfully:', response.data)
+            const toastMessage = getToastMessage()
 
-            // Émettre l'événement avec les données mises à jour
             emit('assigned', {
                 operator: selectedSlot.value.operator,
                 job: props.job,
                 slot: selectedSlot.value,
-                updatedJob: response.data
+                updatedJob: response.data,
+                toastMessage: toastMessage
             })
 
             selectedSlot.value = null
@@ -406,9 +450,38 @@ const assignJob = async () => {
 
         } catch (error) {
             console.error('Erreur lors de la mise à jour du job:', error)
-            // Ici on pourrait afficher un toast d'erreur
         }
     }
+}
+
+const getToastMessage = () => {
+
+    if (!isEditMode.value) {
+        const date = formatSlotDate(selectedSlot.value.start)
+        const time = formatSlotTime(selectedSlot.value.start)
+        return `Intervention planifiée au ${date} à ${time} et assignée à ${selectedSlot.value.operator.name}`
+    }
+
+    const originalOperator = props.job.operator?.id
+    const currentOperator = selectedSlot.value.operator.id
+    const originalStart = new Date(props.job.scheduled_start)
+    const currentStart = selectedSlot.value.start
+    const operatorChanged = originalOperator !== currentOperator
+    const slotChanged = Math.abs(originalStart.getTime() - currentStart.getTime()) > 1000
+
+    if (operatorChanged && slotChanged) {
+        const date = formatSlotDate(selectedSlot.value.start)
+        const time = formatSlotTime(selectedSlot.value.start)
+        return `Intervention replanifiée au ${date} à ${time} et assignée à ${selectedSlot.value.operator.name}`
+    } else if (slotChanged) {
+        return `Intervention modifiée pour le ${formatSlotDate(selectedSlot.value.start)} à ${formatSlotTime(selectedSlot.value.start)}`
+    } else {
+        return `Intervention assignée à ${selectedSlot.value.operator.name}`
+    }
+}
+
+const cancelSlot = () => {
+    selectedSlot.value = null
 }
 
 watch(() => props.open, (newValue) => {
