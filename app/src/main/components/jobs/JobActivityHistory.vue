@@ -95,7 +95,8 @@ const loadActivities = async () => {
             params: {
                 job_id: props.jobId,
                 limit: 50,
-                offset: 0
+                offset: 0,
+                order_by: 'created_at:desc',
             },
             headers: {
                 'X-Filter': await normalizeJson('job_activity', ['job', '=', props.jobId]),
