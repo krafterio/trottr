@@ -150,7 +150,11 @@ const props = defineProps({
     },
     company: {
         type: Object,
-        required: true
+        required: false
+    },
+    contactId: {
+        type: [Number, String],
+        required: false
     },
     loading: {
         type: Boolean,
@@ -195,7 +199,13 @@ const handleDelete = (job) => {
 }
 
 const handleCreateJob = () => {
-    bus.trigger('open-job-dialog', { company: props.company })
+    if (props.company) {
+        bus.trigger('open-job-dialog', { company: props.company })
+    } else if (props.contactId) {
+        bus.trigger('open-job-dialog', { contact: props.contactId })
+    } else {
+        bus.trigger('open-job-dialog', {})
+    }
 }
 
 const toggleJobSelection = (jobId) => {

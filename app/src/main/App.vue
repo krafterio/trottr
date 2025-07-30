@@ -19,9 +19,10 @@
 		<Toaster />
 		<CompanyDialog />
 		<ContactDialog />
-		<SiteDialog />
 		<JobDialog />
 		<ConfirmDeleteDialog />
+		<JobSiteDialog />
+		<SiteDialog />
 	</div>
 </template>
 
@@ -29,14 +30,15 @@
 import { Toaster } from '@/common/components/ui/sonner'
 import { websocketService } from '@/common/services/websocket'
 import { useAuthStore } from '@/common/stores/auth'
-import { usePreferencesStore } from '@/main/stores/preferences'
 import AppSidebar from '@/main/components/AppSidebar.vue'
 import CompanyDialog from '@/main/components/companies/CompanyDialog.vue'
 import ContactDialog from '@/main/components/contacts/ContactDialog.vue'
 import ConfirmDeleteDialog from '@/main/components/dialogs/ConfirmDeleteDialog.vue'
 import JobDialog from '@/main/components/jobs/JobDialog.vue'
 import AppNavbar from '@/main/components/navbar/AppNavbar.vue'
+import JobSiteDialog from '@/main/components/sites/JobSiteDialog.vue'
 import SiteDialog from '@/main/components/sites/SiteDialog.vue'
+import { usePreferencesStore } from '@/main/stores/preferences'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import 'vue-sonner/style.css'
@@ -59,7 +61,7 @@ onMounted(async () => {
 	if (authStore.isAuthenticated) {
 		try {
 			await authStore.fetchUser()
-            await preferencesStore.loadPreferences()
+			await preferencesStore.loadPreferences()
 		} catch (error) {
 			console.error('Erreur lors du chargement des données utilisateur:', error)
 		}

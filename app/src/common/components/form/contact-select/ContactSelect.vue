@@ -6,7 +6,7 @@
         <template #selected-item="{ item }">
             <slot name="selected-item" :item="item">
                 <span class="truncate font-medium">{{ item.full_name || `${item.first_name} ${item.last_name}`.trim()
-                }}</span>
+                    }}</span>
             </slot>
         </template>
 
@@ -51,7 +51,7 @@ const props = defineProps({
     },
     clearable: {
         type: Boolean,
-        default: false
+        default: true
     },
     disabled: {
         type: Boolean,

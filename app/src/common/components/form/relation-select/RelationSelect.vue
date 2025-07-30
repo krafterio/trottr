@@ -17,14 +17,20 @@
                 <span v-else class="text-muted-foreground">
                     {{ placeholder }}
                 </span>
-                <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                <div class="flex items-center gap-1 ml-2">
+                    <Button v-if="selectedItem && clearable" type="button" variant="ghost" size="sm"
+                        class="h-6 w-6 p-0 rounded-full cursor-pointer opacity-50 hover:opacity-100 hover:bg-neutral-200"
+                        @click.stop="clearSelection">
+                        <X style="width: 12px; height: 12px;" />
+                    </Button>
+                    <ChevronsUpDown class="h-4 w-4 shrink-0 opacity-50" />
+                </div>
             </Button>
         </PopoverTrigger>
         <PopoverContent class="w-[300px] p-0">
             <Command>
                 <CommandInput :placeholder="searchPlaceholder" v-model="searchQuery"
                     @update:model-value="onSearchChange" />
-                <CommandEmpty>{{ emptyMessage }}</CommandEmpty>
                 <CommandList>
                     <CommandGroup>
                         <CommandItem v-if="clearable && selectedItem" :value="'clear'" @click="clearSelection"
@@ -57,6 +63,13 @@
                         </CommandItem>
                     </CommandGroup>
                 </CommandList>
+
+                <div v-if="items.length === 0 && !loading" class="p-2">
+                    <slot name="empty" :items="items" :loading="loading">
+                        <div class="text-sm text-center text-neutral-500">{{ emptyMessage }}</div>
+                        <slot name="empty-action" />
+                    </slot>
+                </div>
             </Command>
         </PopoverContent>
     </Popover>
@@ -72,11 +85,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/common/components/ui/avat
 import { Button } from '@/common/components/ui/button'
 import {
     Command,
-    CommandEmpty,
     CommandGroup,
     CommandInput,
     CommandItem,
-    CommandList,
+    CommandList
 } from '@/common/components/ui/command'
 import {
     Popover,
@@ -159,7 +171,7 @@ const props = defineProps({
     },
     clearable: {
         type: Boolean,
-        default: false
+        default: true
     },
     // Paramètres additionnels pour l'API
     params: {

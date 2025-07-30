@@ -138,16 +138,7 @@
                     </TabsContent>
 
                     <TabsContent value="interventions" class="bg-white rounded-lg border">
-                        <div class="p-6">
-                            <div class="text-center py-8">
-                                <Wrench class="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-                                <h3 class="text-lg font-medium text-neutral-900 mb-2">Interventions</h3>
-                                <p class="text-neutral-600 mb-4">Cette section permettra de consulter les interventions
-                                    liées à
-                                    ce contact.</p>
-                                <p class="text-sm text-neutral-500">TODO: Implémenter la gestion des interventions</p>
-                            </div>
-                        </div>
+                        <JobTable :jobs="contactJobs" :contact-id="contact.id" :loading="loading" />
                     </TabsContent>
 
                     <TabsContent v-if="workspaceStore.workspace?.use_subsites" value="lots"
@@ -178,6 +169,7 @@ import { Separator } from '@/common/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/common/components/ui/tabs'
 import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
+import JobTable from '@/main/components/jobs/JobTable.vue'
 import SitesTable from '@/main/components/sites/SitesTable.vue'
 
 import { useWorkspaceStore } from '@/main/stores/workspace'
@@ -190,8 +182,7 @@ import {
     RotateCcw,
     Save,
     Trash,
-    User,
-    Wrench
+    User
 } from 'lucide-vue-next'
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -205,6 +196,7 @@ const fetcher = useFetcher()
 
 const contactId = route.params.id
 const contact = ref({})
+const contactJobs = ref([])
 const loading = ref(false)
 const error = ref(null)
 const isDirty = ref(false)
@@ -212,6 +204,10 @@ const originalForm = ref({})
 
 useBus(bus, 'confirm-delete-contact:confirmed', () => {
     deleteContact()
+})
+
+useBus(bus, 'job-created-stay', () => {
+    fetchContactJobs()
 })
 
 const contactForm = reactive({
@@ -315,7 +311,17 @@ const saveContact = async () => {
     }
 }
 
+const fetchContactJobs = async () => {
+    try {
+        const response = await fetcher.get(`/jobs?customer_contact=${contactId}`)
+        contactJobs.value = response.data
+    } catch (error) {
+        console.error('Erreur lors du chargement des jobs:', error)
+    }
+}
+
 onMounted(() => {
     fetchContact()
+    fetchContactJobs()
 })
 </script>

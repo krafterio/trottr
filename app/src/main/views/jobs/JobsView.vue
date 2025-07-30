@@ -117,17 +117,23 @@
                                     </TableCell>
                                     <TableCell>
                                         <div class="flex flex-col gap-1">
-                                            <div v-if="job.customer_company"
-                                                class="text-sm text-neutral-900 cursor-pointer hover:text-primary underline"
-                                                @click.stop="handleCompanyClick(job.customer_company)">
-                                                {{ job.customer_company.name }}
+                                            <div class="flex items-center gap-1">
+                                                <div v-if="getClientInfo(job).link"
+                                                    class="text-sm font-medium text-neutral-900 cursor-pointer hover:text-primary underline"
+                                                    @click.stop="$router.push(getClientInfo(job).link)">
+                                                    {{ getClientInfo(job).name }}
+                                                </div>
+                                                <div v-else class="text-sm text-neutral-900">
+                                                    {{ getClientInfo(job).name }}
+                                                </div>
                                             </div>
-                                            <div v-else-if="job.customer_contact" class="text-sm text-neutral-900">
-                                                {{ job.customer_contact.full_name }}
-                                            </div>
-                                            <div v-else class="text-sm text-neutral-500">-</div>
                                             <div v-if="job.site" class="text-xs text-neutral-500 truncate max-w-xs">
                                                 {{ getSiteAddress(job.site) }}
+                                            </div>
+                                            <div v-else
+                                                class="text-xs text-neutral-500 truncate max-w-xs flex items-center gap-1">
+                                                <Info class="h-3 w-3" />
+                                                Pas de site défini
                                             </div>
                                         </div>
                                     </TableCell>
@@ -214,7 +220,7 @@ import { useFetcher } from '@/common/composables/fetcher'
 import { useJob } from '@/common/composables/useJob'
 import TablePagination from '@/main/components/TablePagination.vue'
 import { usePreferencesStore } from '@/main/stores/preferences'
-import { ChevronDown, Columns, Download, Eye, MoreVertical, PanelLeftClose, PanelLeftOpen, Plus, Search, Trash } from 'lucide-vue-next'
+import { Building2, ChevronDown, Columns, Download, Eye, Info, MoreVertical, PanelLeftClose, PanelLeftOpen, Plus, Search, Trash, User } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
@@ -340,6 +346,33 @@ const getSiteAddress = (site) => {
         site.city
     ].filter(Boolean)
     return parts.join(' - ')
+}
+
+const getClientInfo = (job) => {
+    if (job.customer_company) {
+        return {
+            name: job.customer_company.name,
+            type: 'company',
+            icon: Building2,
+            link: { name: 'company', params: { id: job.customer_company.id } }
+        }
+    }
+
+    if (job.customer_contact) {
+        return {
+            name: job.customer_contact.full_name,
+            type: 'contact',
+            icon: User,
+            link: { name: 'contact', params: { id: job.customer_contact.id } }
+        }
+    }
+
+    return {
+        name: '-',
+        type: 'none',
+        icon: User,
+        link: null
+    }
 }
 
 onMounted(() => {

@@ -73,7 +73,7 @@
                         <div v-if="!isEdit">
                             <label class="text-sm font-medium text-neutral-700">Site</label>
                             <SiteSelect v-model="form.site" class="mt-1" placeholder="Sélectionner un site"
-                                :disabled="!canSelectSite"
+                                :disabled="!canSelectSite" :disable-create="true"
                                 :company-id="form.customer_company?.id || form.customer_company"
                                 :contact-id="form.customer_contact?.id || form.customer_contact" />
                         </div>
@@ -270,7 +270,7 @@ const handleSaveAndView = () => {
 }
 
 useBus(bus, 'open-job-dialog', (event) => {
-    const data = event.detail || {}
+    const data = event.detail || event || {}
     isOpen.value = true
 
     if (data && data.id) {
@@ -296,8 +296,12 @@ useBus(bus, 'open-job-dialog', (event) => {
         currentJob.value = null
         resetForm()
 
-        if (data && data.detail && data.detail.company) {
-            form.customer_company = data.detail.company.id || data.detail.company
+        // Gérer les données de company ou contact envoyées directement
+        if (data.company) {
+            form.customer_company = data.company.id || data.company
+        }
+        if (data.contact) {
+            form.customer_contact = data.contact
         }
 
         loadDefaultStatus()

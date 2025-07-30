@@ -252,7 +252,7 @@
                                             <div class="flex items-center justify-between text-xs text-neutral-500">
                                                 <span>{{ formatDate(diagnostic.created_at) }}</span>
                                                 <span v-if="diagnostic.created_by">{{ diagnostic.created_by.email
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                         </div>
                                     </VueDraggable>
@@ -369,12 +369,19 @@
 
                         <div class="grid grid-cols-2 gap-5 items-center">
                             <div class="flex gap-2 items-center">
-                                <Building2 class="h-7 w-7 flex-shrink-0" :stroke-width="1.2" />
+                                <component :is="getClientInfo.icon" class="h-7 w-7 flex-shrink-0" :stroke-width="1.2" />
                                 <div class="flex flex-col gap-0 min-w-0 flex-1">
                                     <p class="text-xs font-medium text-neutral-700 !mb-0">
-                                        Client commanditaire
+                                        {{ getClientInfo.label }}
                                     </p>
-                                    <p class="font-mono uppercase truncate">{{ job?.customer_company?.name }}</p>
+                                    <p v-if="getClientInfo.link"
+                                        class="truncate cursor-pointer font-medium hover:text-primary hover:underline"
+                                        @click="$router.push(getClientInfo.link)">
+                                        {{ getClientInfo.name }}
+                                    </p>
+                                    <p v-else class="font-mono uppercase truncate">
+                                        {{ getClientInfo.name }}
+                                    </p>
                                 </div>
                             </div>
 
@@ -385,7 +392,7 @@
                                     <p class="text-xs font-medium text-neutral-700 !mb-0">
                                         Priorité
                                     </p>
-                                    <p class="font-mono uppercase truncate">
+                                    <p class="truncate font-medium">
                                         {{ getPriorityConfig(job?.priority).label }}
                                     </p>
                                 </div>
@@ -400,10 +407,10 @@
                                     <p class="text-xs font-medium text-neutral-700 !mb-0">
                                         Catégorie d'intervention
                                     </p>
-                                    <p class="font-mono uppercase truncate" v-if="job?.category?.name">{{
+                                    <p class="truncate font-medium" v-if="job?.category?.name">{{
                                         job?.category?.name }}
                                     </p>
-                                    <p class="font-mono uppercase truncate" v-else>-</p>
+                                    <p class="truncate" v-else>-</p>
                                 </div>
                             </div>
 
@@ -413,14 +420,15 @@
                                     <p class="text-xs font-medium text-neutral-700 !mb-0">
                                         Référence client
                                     </p>
-                                    <p class="font-mono uppercase truncate" v-if="job?.customer_reference">{{
+                                    <p class="truncate font-medium" v-if="job?.customer_reference">{{
                                         job?.customer_reference }}</p>
-                                    <p class="font-mono uppercase" v-else>-</p>
+                                    <p class="truncate" v-else>-</p>
                                 </div>
                             </div>
                         </div>
 
-                        <Card class="p-4 gap-0 items-start relative">
+                        <Card class="p-4 gap-0 items-start relative cursor-pointer hover:bg-neutral-100"
+                            @click="openEditDialog">
                             <div class="flex absolute top-3 right-3 gap-2">
                                 <Button variant="outline" class="h-8 w-8" size="icon" @click="openEditDialog">
                                     <Edit class="h-3 w-3" />
@@ -430,11 +438,12 @@
                                 <ScrollText class="h-4 w-4" />
                                 <h4 class="text-sm font-medium">Description de l'intervention</h4>
                             </div>
-                            <p class="text-sm font-medium">{{ job?.name || 'Aucun sujet' }}</p>
+                            <p class="text-sf font-medium">{{ job?.name || 'Aucun sujet' }}</p>
                             <p class="text-sm text-neutral-400 mt-1">{{ job?.description || 'Aucune description' }}</p>
                         </Card>
 
-                        <Card class="p-4 gap-0 items-start relative">
+                        <Card class="p-4 gap-0 items-start relative cursor-pointer hover:bg-neutral-100"
+                            @click="openSiteDialog">
                             <div class="flex absolute top-3 right-3 gap-2">
                                 <Button variant="outline" class="h-8 w-8" size="icon" @click="openSiteDialog">
                                     <Edit class="h-3 w-3" />
@@ -491,46 +500,6 @@
         </DialogContent>
     </Dialog>
 
-    <Dialog :open="siteDialogOpen" @update:open="siteDialogOpen = false">
-        <DialogContent class="sm:max-w-[625px]">
-            <DialogHeader>
-                <DialogTitle>Modifier le site d'intervention</DialogTitle>
-                <DialogDescription>
-                    Sélectionnez un nouveau site pour cette intervention.
-                </DialogDescription>
-            </DialogHeader>
-            <div class="grid gap-4 py-4">
-                <div class="grid gap-2">
-                    <Label for="site">Site d'intervention</Label>
-                    <SiteSelect v-model="siteForm.site" class="w-full" placeholder="Sélectionner un site"
-                        :company-id="job?.customer_company?.id" :contact-id="job?.customer_contact?.id" />
-                </div>
-
-                <div v-if="selectedSite" class="border rounded-lg p-4 bg-neutral-50">
-                    <div class="flex items-center justify-between mb-2">
-                        <h4 class="text-sm font-medium text-neutral-900">Aperçu du site</h4>
-                        <Button variant="outline" size="sm" @click="openSiteEditDialog">
-                            <Edit class="h-3 w-3" />
-                            Éditer
-                        </Button>
-                    </div>
-                    <div class="text-sm text-neutral-600 space-y-1">
-                        <p v-if="selectedSite.name" class="font-medium">{{ selectedSite.name }}</p>
-                        <p v-if="selectedSite.street">{{ selectedSite.street }}</p>
-                        <p v-if="selectedSite.street_2">{{ selectedSite.street_2 }}</p>
-                        <p v-if="selectedSite.zip && selectedSite.city">{{ selectedSite.zip }} {{ selectedSite.city }}
-                        </p>
-                        <p v-if="selectedSite.country">{{ selectedSite.country.name }}</p>
-                    </div>
-                </div>
-            </div>
-            <DialogFooter>
-                <Button variant="outline" @click="siteDialogOpen = false">Annuler</Button>
-                <Button @click="saveSite" :disabled="loading">Enregistrer</Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-
     <!-- Dialog pour ajouter un diagnostic -->
     <Dialog :open="diagnosticDialogOpen" @update:open="diagnosticDialogOpen = false">
         <DialogContent class="sm:max-w-[500px]">
@@ -574,7 +543,6 @@
 </template>
 
 <script setup>
-import SiteSelect from '@/common/components/form/site-select/SiteSelect.vue'
 import Badge from '@/common/components/ui/badge/Badge.vue'
 import { Button } from '@/common/components/ui/button'
 import Card from '@/common/components/ui/card/Card.vue'
@@ -622,7 +590,7 @@ import {
     UserPlus,
     UserRoundX
 } from 'lucide-vue-next'
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
@@ -689,11 +657,6 @@ const editForm = ref({
     description: ''
 })
 
-const siteDialogOpen = ref(false)
-const siteForm = ref({
-    site: null
-})
-const selectedSite = ref(null)
 const plannerDialogOpen = ref(false)
 
 const fetchJob = async () => {
@@ -821,6 +784,34 @@ const getClientName = () => {
     return 'Client non défini'
 }
 
+const getClientInfo = computed(() => {
+    if (!job.value) return { name: 'Client non défini', icon: User, type: 'none', label: 'Client' }
+
+    // Si il y a une société ET un contact, c'est la société le client
+    if (job.value.customer_company) {
+        return {
+            name: job.value.customer_company.name,
+            icon: Building2,
+            type: 'company',
+            label: 'Client (société)',
+            link: { name: 'company', params: { id: job.value.customer_company.id } }
+        }
+    }
+
+    // Si il y a seulement un contact (pas de société)
+    if (job.value.customer_contact) {
+        return {
+            name: job.value.customer_contact.full_name,
+            icon: User,
+            type: 'contact',
+            label: 'Client (particulier)',
+            link: { name: 'contact', params: { id: job.value.customer_contact.id } }
+        }
+    }
+
+    return { name: 'Client non défini', icon: User, type: 'none', label: 'Client', link: null }
+})
+
 const getClientAddress = () => {
     if (job.value?.site) {
         const parts = [
@@ -862,7 +853,7 @@ const saveEdit = async () => {
     loading.value = true
     try {
         const jobId = route.params.id
-        await fetcher.put(`/jobs/${jobId}`, editForm.value)
+        await fetcher.patch(`/jobs/${jobId}`, editForm.value)
         toast.success('Intervention modifiée avec succès')
         fetchJob() // Refresh job data
         editDialogOpen.value = false
@@ -875,52 +866,14 @@ const saveEdit = async () => {
 }
 
 const openSiteDialog = () => {
-    siteForm.value.site = job.value?.site || null
-    selectedSite.value = job.value?.site || null
-    siteDialogOpen.value = true
-}
-
-const openSiteEditDialog = async () => {
-    if (selectedSite.value) {
-        try {
-            const response = await fetcher.get(`/sites/${selectedSite.value.id}`)
-            const siteData = response.data
-
-            bus.trigger('open-site-dialog', {
-                id: siteData.id,
-                name: siteData.name,
-                building_type: siteData.building_type,
-                street: siteData.street,
-                street_2: siteData.street_2,
-                zip: siteData.zip,
-                city: siteData.city,
-                country: siteData.country,
-                company: siteData.company,
-                contact: siteData.contact
-            })
-            siteDialogOpen.value = false
-        } catch (error) {
-            console.error('Erreur lors du chargement du site:', error)
-            toast.error('Erreur lors du chargement du site')
-        }
+    const dialogData = {
+        job: job.value,
+        customerCompany: job.value?.customer_company,
+        customerContact: job.value?.customer_contact,
+        currentSite: job.value?.site
     }
-}
 
-const saveSite = async () => {
-    loading.value = true
-    try {
-        const jobId = route.params.id
-        const siteId = siteForm.value.site?.id || siteForm.value.site
-        await fetcher.put(`/jobs/${jobId}`, { site: siteId })
-        toast.success('Site d\'intervention modifié avec succès')
-        fetchJob() // Refresh job data
-        siteDialogOpen.value = false
-    } catch (error) {
-        console.error('Erreur lors de la sauvegarde du site:', error)
-        toast.error('Erreur lors de la sauvegarde du site')
-    } finally {
-        loading.value = false
-    }
+    bus.trigger('open-job-site-dialog', dialogData)
 }
 
 const viewSite = (site) => {
@@ -934,16 +887,12 @@ const openPlannerDialog = () => {
 }
 
 const handleJobAssigned = (data) => {
-    console.log('Job assigned:', data)
-
     if (data.updatedJob) {
-        // Mettre à jour le job local avec les données de l'API
         job.value = data.updatedJob
         toast.success(`Intervention assignée à ${data.operator.name}`)
     } else {
-        // Fallback si pas de données mises à jour
         toast.success(`Intervention assignée à ${data.operator.name}`)
-        fetchJob() // Recharger le job
+        fetchJob()
     }
 }
 
@@ -984,20 +933,6 @@ const deleteDiagnostic = async () => {
     }
 }
 
-watch(() => siteForm.value.site, async (newSite) => {
-    if (newSite && newSite.id) {
-        try {
-            const response = await fetcher.get(`/sites/${newSite.id}`)
-            selectedSite.value = response.data
-        } catch (error) {
-            console.error('Erreur lors du chargement du site:', error)
-            selectedSite.value = null
-        }
-    } else {
-        selectedSite.value = null
-    }
-})
-
 useBus(bus, 'job-saved', () => {
     fetchJob()
 })
@@ -1006,16 +941,19 @@ useBus(bus, 'job-created-stay', () => {
     fetchJob()
 })
 
-useBus(bus, 'site-saved', () => {
-    fetchJob()
-})
-
 useBus(bus, 'site-created-stay', () => {
     fetchJob()
 })
 
+
+
 useBus(bus, 'confirm-delete-job-diagnostic:confirmed', () => {
     deleteDiagnostic()
+})
+
+useBus(bus, 'job-site-updated', (data) => {
+    // Recharger le job pour avoir les données mises à jour
+    fetchJob()
 })
 
 onMounted(() => {
