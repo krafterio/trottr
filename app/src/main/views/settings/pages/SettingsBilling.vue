@@ -63,6 +63,31 @@
             <div class="space-y-4">
                 <h3 class="text-base font-medium text-neutral-900">Utilisation actuelle</h3>
 
+                <!-- Alerte dépassement limite utilisateurs -->
+                <Alert v-if="workspaceStore.isOverMemberLimit" variant="destructive" class="border-red-200 bg-red-50">
+                    <Users class="h-4 w-4" />
+                    <AlertDescription class="space-y-3">
+                        <div>
+                            <strong>Attention :</strong> Vous avez {{ workspaceStore.memberCount }} utilisateurs actifs 
+                            mais votre plan n'autorise que {{ workspaceStore.availableMemberCount }} utilisateurs. 
+                            Mettez à niveau votre plan ou supprimez des utilisateurs pour éviter toute interruption de service.
+                        </div>
+                        <div class="flex gap-2 pt-2">
+                            <Button variant="outline" size="sm" class="bg-white hover:bg-neutral-50" @click="openStripePortal">
+                                Changer de plan
+                            </Button>
+                            <Button 
+                                variant="outline" 
+                                size="sm" 
+                                class="bg-white hover:bg-neutral-50"
+                                @click="navigateToUsers"
+                            >
+                                Gérer les utilisateurs
+                            </Button>
+                        </div>
+                    </AlertDescription>
+                </Alert>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div class="border rounded-lg p-4">
                         <div class="flex items-center justify-between mb-2">
@@ -70,14 +95,18 @@
                             <Users class="h-4 w-4 text-neutral-500" />
                         </div>
                         <div class="flex items-baseline space-x-2">
-                            <span class="text-sm font-semibold text-neutral-900">{{ billingInfo.active_users_count }}</span>
+                            <span class="text-sm font-semibold text-neutral-900" 
+                                  :class="{ 'text-red-600': workspaceStore.isOverMemberLimit }">
+                                {{ workspaceStore.memberCount }}
+                            </span>
                             <span class="text-sm text-neutral-500">
-                                / {{ billingInfo.subscription_available_users_count || 'illimité' }}
+                                / {{ workspaceStore.availableMemberCount || 'illimité' }}
                             </span>
                         </div>
                         <div class="w-full bg-neutral-200 rounded-full h-2 mt-2">
                             <div 
-                                class="bg-primary h-2 rounded-full" 
+                                class="h-2 rounded-full transition-colors" 
+                                :class="workspaceStore.isOverMemberLimit ? 'bg-red-500' : 'bg-primary'"
                                 :style="`width: ${getUsersPercentage()}%`"
                             ></div>
                         </div>
@@ -242,8 +271,13 @@ import { Calendar, CreditCard, Download, Edit, Plus, Users } from 'lucide-vue-ne
 import { ref, onMounted } from 'vue'
 import { useFetcher } from '@/common/composables/fetcher'
 import BillingInfoDialog from '@/main/components/dialogs/BillingInfoDialog.vue'
+import { useWorkspaceStore } from '@/main/stores/workspace'
+import { Alert, AlertDescription } from '@/common/components/ui/alert'
+import { useRouter } from 'vue-router'
 
 const fetcher = useFetcher()
+const workspaceStore = useWorkspaceStore()
+const router = useRouter()
 
 const billingInfo = ref(null)
 const loading = ref(false)
@@ -306,6 +340,10 @@ const openBillingDialog = () => {
     showBillingDialog.value = true
 }
 
+const navigateToUsers = () => {
+    router.push({ name: 'settings-users' })
+}
+
 const getUsagePercentage = (current, max) => {
     if (!max || max === 0) return 0
     return Math.min((current / max) * 100, 100)
@@ -313,6 +351,7 @@ const getUsagePercentage = (current, max) => {
 
 onMounted(() => {
     fetchBillingInfo()
+    workspaceStore.fetchWorkspace()
 })
 
 const invoices = ref([
@@ -381,10 +420,10 @@ const getNextBillingText = () => {
 }
 
 const getUsersPercentage = () => {
-    if (!billingInfo.value?.subscription_available_users_count) return 0
+    if (!workspaceStore.availableMemberCount) return 0
     return getUsagePercentage(
-        billingInfo.value.active_users_count, 
-        billingInfo.value.subscription_available_users_count
+        workspaceStore.memberCount, 
+        workspaceStore.availableMemberCount
     )
 }
 

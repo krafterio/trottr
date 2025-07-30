@@ -108,6 +108,18 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         return packAvailableUsageCredits.value > 0 ? (remainingPackAvailableUsageCredits.value / packAvailableUsageCredits.value) * 100 : 0.0
     })
 
+    const memberCount = computed(() => {
+        return workspace.value?.member_count || 0
+    })
+
+    const availableMemberCount = computed(() => {
+        return workspace.value?.available_member_count || 0
+    })
+
+    const isOverMemberLimit = computed(() => {
+        return memberCount.value > availableMemberCount.value
+    })
+
     async function fetchWorkspace(force = false) {
         if (!authStore.isAuthenticated || loading.value || (workspace.value && !force)) return
 
@@ -211,6 +223,9 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         packCurrentUsageCredits,
         remainingPackAvailableUsageCredits,
         ratioPackUsageCredits,
+        memberCount,
+        availableMemberCount,
+        isOverMemberLimit,
         loading,
         error,
         fetchWorkspace,
