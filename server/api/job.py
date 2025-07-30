@@ -9,6 +9,7 @@ from models.job_category import JobCategory
 from models.job_status import JobStatus
 from schemas.job import JobCreate, JobUpdate, JobRead
 from api.auth import get_current_user
+from services.job_activity import JobActivityService
 from services.workspace import get_user_workspace
 from models.user import User as CurrentUser
 
@@ -44,7 +45,11 @@ async def get_job(
     return job
 
 @router.post("", response_model=JobRead, status_code=status.HTTP_201_CREATED, dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
-async def create_job(job: JobCreate, workspace=Depends(get_user_workspace)):
+async def create_job(
+        job: JobCreate,
+        workspace=Depends(get_user_workspace),
+        job_activity: JobActivityService = Depends(),
+):
     job_data = job.model_dump()
     job_data.pop("reference", None)
     job_data["workspace"] = workspace
@@ -81,6 +86,8 @@ async def create_job(job: JobCreate, workspace=Depends(get_user_workspace)):
     
     obj = Job(**job_data)
     await obj.save()
+
+    await job_activity.create_tracking_create(obj)
     
     return await Job.query.select_related("customer_company", "customer_contact", "site", "operator", "category", "status").get(id=obj.id)
 
@@ -88,7 +95,7 @@ async def create_job(job: JobCreate, workspace=Depends(get_user_workspace)):
 async def update_job(
     job_id: int,
     job_update: JobUpdate,
-    current_user: CurrentUser = Depends(get_current_user)
+    job_activity: JobActivityService = Depends(),
 ):
     job = await Job.query.get(id=job_id)
     if not job:
@@ -115,6 +122,8 @@ async def update_job(
         operator = await User.query.get(id=update_data["operator"])
         if not operator:
             raise HTTPException(status_code=400, detail="Operator not found")
+        else:
+            await job_activity.create_tracking_update(job, 'operator', getattr('id', job.operator), update_data.get("operator"))
     
     if update_data.get("category"):
         category = await JobCategory.query.get(id=update_data["category"])
@@ -125,6 +134,8 @@ async def update_job(
         status = await JobStatus.query.get(id=update_data["status"])
         if not status:
             raise HTTPException(status_code=400, detail="Status not found")
+        else:
+            await job_activity.create_tracking_update(job, 'status', job.status.id if job.status else None, update_data.get("status"))
     
     for field, value in update_data.items():
         setattr(job, field, value)
