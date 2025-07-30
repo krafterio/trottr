@@ -192,21 +192,32 @@
                     </div>
 
                     <div class="divide-y">
+                        <div v-if="invoices.length === 0" class="p-4 text-center text-neutral-500">
+                            Aucune facture disponible
+                        </div>
                         <div v-for="invoice in invoices" :key="invoice.id" class="p-4">
                             <div class="grid grid-cols-12 gap-4 items-center">
                                 <div class="col-span-3">
-                                    <p class="text-sm text-neutral-900">{{ invoice.date }}</p>
+                                    <p class="text-sm text-neutral-900">{{ formatInvoiceDate(invoice.created) }}</p>
+                                    <p v-if="invoice.number" class="text-xs text-neutral-500">{{ invoice.number }}</p>
                                 </div>
                                 <div class="col-span-3">
-                                    <p class="text-sm font-medium text-neutral-900">{{ invoice.amount }}</p>
+                                    <p class="text-sm font-medium text-neutral-900">
+                                        {{ formatInvoiceAmount(invoice.amount_paid, invoice.currency) }}
+                                    </p>
                                 </div>
                                 <div class="col-span-3">
                                     <Badge :class="getInvoiceStatusClass(invoice.status)">
-                                        {{ invoice.status }}
+                                        {{ getInvoiceStatusText(invoice.status) }}
                                     </Badge>
                                 </div>
                                 <div class="col-span-3">
-                                    <Button variant="ghost" size="sm">
+                                    <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        @click="downloadInvoice(invoice)"
+                                        :disabled="!invoice.invoice_pdf && !invoice.hosted_invoice_url"
+                                    >
                                         <Download class="h-4 w-4 mr-2" />
                                         PDF
                                     </Button>
@@ -283,6 +294,7 @@ const billingInfo = ref(null)
 const loading = ref(false)
 const error = ref(null)
 const showBillingDialog = ref(false)
+const invoices = ref([])
 
 const fetchBillingInfo = async () => {
     try {
@@ -295,6 +307,16 @@ const fetchBillingInfo = async () => {
         error.value = err
     } finally {
         loading.value = false
+    }
+}
+
+const fetchInvoices = async () => {
+    try {
+        const response = await fetcher.get('/workspace/subscription/invoices')
+        invoices.value = response.data.invoices || []
+    } catch (err) {
+        console.error('Erreur lors du chargement des factures:', err)
+        invoices.value = []
     }
 }
 
@@ -330,6 +352,40 @@ const formatDate = (date) => {
     }).format(new Date(date))
 }
 
+const formatInvoiceDate = (timestamp) => {
+    return new Intl.DateTimeFormat('fr-FR', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    }).format(new Date(timestamp * 1000))
+}
+
+const formatInvoiceAmount = (amount, currency) => {
+    return new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: currency
+    }).format(amount)
+}
+
+const getInvoiceStatusText = (status) => {
+    switch (status) {
+        case 'paid': return 'Payée'
+        case 'open': return 'En attente'
+        case 'void': return 'Annulée'
+        case 'draft': return 'Brouillon'
+        case 'uncollectible': return 'Impayée'
+        default: return status
+    }
+}
+
+const downloadInvoice = (invoice) => {
+    if (invoice.invoice_pdf) {
+        window.open(invoice.invoice_pdf, '_blank')
+    } else if (invoice.hosted_invoice_url) {
+        window.open(invoice.hosted_invoice_url, '_blank')
+    }
+}
+
 const formatPeriod = (period) => {
     if (period === 'mensuel') return 'mois'
 
@@ -352,40 +408,16 @@ const getUsagePercentage = (current, max) => {
 onMounted(() => {
     fetchBillingInfo()
     workspaceStore.fetchWorkspace()
+    fetchInvoices()
 })
-
-const invoices = ref([
-    {
-        id: 1,
-        date: '15 Déc 2024',
-        amount: '49,00 €',
-        status: 'Payée'
-    },
-    {
-        id: 2,
-        date: '15 Nov 2024',
-        amount: '49,00 €',
-        status: 'Payée'
-    },
-    {
-        id: 3,
-        date: '15 Oct 2024',
-        amount: '49,00 €',
-        status: 'Payée'
-    },
-    {
-        id: 4,
-        date: '15 Sep 2024',
-        amount: '49,00 €',
-        status: 'Échouée'
-    }
-])
 
 const getInvoiceStatusClass = (status) => {
     switch (status) {
-        case 'Payée': return 'bg-green-100 text-green-800'
-        case 'En attente': return 'bg-yellow-100 text-yellow-800'
-        case 'Échouée': return 'bg-red-100 text-red-800'
+        case 'paid': return 'bg-green-100 text-green-800'
+        case 'open': return 'bg-yellow-100 text-yellow-800'
+        case 'void': 
+        case 'uncollectible': return 'bg-red-100 text-red-800'
+        case 'draft': return 'bg-gray-100 text-gray-800'
         default: return 'bg-neutral-100 text-neutral-800'
     }
 }

@@ -10,7 +10,8 @@ from schemas.subscription import (
     SubscriptionResponse,
     BillingPortalResponse,
     SubscriptionCancelRequest,
-    SubscriptionBillingPortalRequest
+    SubscriptionBillingPortalRequest,
+    InvoicesListResponse
 )
 from services.workspace import get_user_workspace
 
@@ -123,4 +124,24 @@ async def create_billing_portal_session(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Erreur lors de la création de la session: {str(e)}"
+        )
+
+
+@router.get("/workspace/subscription/invoices")
+async def get_workspace_invoices(
+    workspace: Workspace = Depends(get_user_workspace),
+    limit: int = 20
+) -> InvoicesListResponse:
+    try:
+        invoices = await subscription_service.get_workspace_invoices(
+            workspace=workspace,
+            limit=limit
+        )
+
+        return InvoicesListResponse(invoices=invoices)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Erreur lors de la récupération des factures: {str(e)}"
         )

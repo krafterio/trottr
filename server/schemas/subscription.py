@@ -32,4 +32,21 @@ class SubscriptionResponse(BaseModel):
 
 
 class BillingPortalResponse(BaseModel):
-    url: str 
+    url: str
+
+
+class InvoiceResponse(BaseModel):
+    id: str
+    amount_paid: float
+    currency: str
+    status: str
+    created: int
+    invoice_pdf: str | None = None
+    hosted_invoice_url: str | None = None
+    number: str | None = None
+    period_start: int | None = None
+    period_end: int | None = None
+
+
+class InvoicesListResponse(BaseModel):
+    invoices: list[InvoiceResponse] 

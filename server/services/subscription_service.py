@@ -340,5 +340,37 @@ class SubscriptionService:
             return_url=return_url,
         )
 
+    async def get_workspace_invoices(self, workspace: Workspace, limit: int = 10) -> list[dict]:
+        settings = get_settings()
+
+        if not workspace.stripe_customer_id or not settings.subscription_stripe_enabled:
+            return []
+
+        try:
+            stripe_invoices = await stripe_service.list_customer_invoices(
+                customer_id=workspace.stripe_customer_id,
+                limit=limit
+            )
+
+            invoices = []
+            for invoice in stripe_invoices.data:
+                invoices.append({
+                    'id': invoice.id,
+                    'amount_paid': invoice.amount_paid / 100,
+                    'currency': invoice.currency.upper(),
+                    'status': invoice.status,
+                    'created': invoice.created,
+                    'invoice_pdf': invoice.invoice_pdf,
+                    'hosted_invoice_url': invoice.hosted_invoice_url,
+                    'number': invoice.number,
+                    'period_start': invoice.period_start,
+                    'period_end': invoice.period_end,
+                })
+
+            return invoices
+        except Exception as e:
+            print(f"Erreur lors de la récupération des factures: {e}")
+            return []
+
 
 subscription_service = SubscriptionService() 

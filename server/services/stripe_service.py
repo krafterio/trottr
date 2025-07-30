@@ -117,6 +117,13 @@ class StripeService:
     async def get_upcoming_invoice(self, customer_id: str):
         return stripe.Invoice.upcoming(customer=customer_id)
 
+    async def list_customer_invoices(self, customer_id: str, limit: int = 10) -> stripe.ListObject:
+        return stripe.Invoice.list(
+            customer=customer_id,
+            limit=limit,
+            status='paid'
+        )
+
     async def sync_workspace_plan_to_stripe(self, service_plan: ServicePlan) -> dict[str, str]:
         if not service_plan.name or not service_plan.type or not service_plan.period:
             raise ValueError("Le plan doit avoir un nom, un type et une période")
