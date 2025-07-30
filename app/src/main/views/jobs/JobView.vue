@@ -46,7 +46,7 @@
                     </Button>
                     <Button variant="outline" @click="openPlannerDialog">
                         <UserPlus class="h-4 w-4" />
-                        Assigner technicien
+                        Assigner et planifier
                     </Button>
                     <Button>
                         <Plus class="h-4 w-4" />
@@ -358,18 +358,34 @@
                                 : 'Chargement...' }}</p>
                         </div>
 
-                        <div class="bg-neutral-100 border rounded-lg p-3">
-                            <div class="flex items-center justify-between mb-2">
+                        <div class="ps-8 relative">
+                            <div class="bg-neutral-100 border rounded-lg p-3 flex items-center justify-between mb-2 relative cursor-pointer hover:bg-secondary-light hover:border-secondary"
+                                @click="openPlannerDialog">
+                                <Circle
+                                    class="absolute translate-x-[-50%] top-50% -left-5 fill-neutral-300 stroke-neutral-300"
+                                    style="height: 10px; width: 10px;" />
                                 <span class="text-sm font-medium text-neutral-700">Démarrage prévu</span>
                                 <span class="text-sm text-neutral-900">{{ job?.scheduled_start ?
                                     formatDate(job.scheduled_start) : 'Non planifié' }}</span>
                             </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-neutral-700">À terminer</span>
+
+                            <span
+                                class="absolute left-3 top-6 w-0.5 h-12 border-l-1 border-dashed border-neutral-300"></span>
+
+                            <div class="border rounded-lg p-3 flex items-center justify-between relative cursor-pointer hover:bg-secondary-light hover:border-secondary"
+                                :class="job?.scheduled_end ? 'bg-secondary-light border-secondary ' : 'bg-neutral-100'"
+                                @click="openPlannerDialog">
+                                <span
+                                    class="absolute translate-x-[-50%] top-50% -left-5 ring-1 ring-offset-2 rounded-full"
+                                    :class="job?.scheduled_end ? 'bg-secondary ring-secondary' : 'bg-neutral-300 ring-neutral-300'"
+                                    style="height: 10px; width: 10px;" />
+                                <span class="text-sm font-medium text-neutral-700">Fin prévue</span>
                                 <div class="text-sm">
+                                    <span class="text-secondary-dark me-2" v-if="job?.scheduled_end">{{ getDuration()
+                                    }}</span>
+
                                     <span class="text-neutral-900">{{ job?.scheduled_end ? formatDate(job.scheduled_end)
                                         : 'Non planifié' }}</span>
-                                    <span class="text-neutral-600 ml-2">{{ getDuration() }}</span>
                                 </div>
                             </div>
                         </div>
@@ -472,7 +488,7 @@
                             </div>
                             <div class="text-sm text-neutral-600">
                                 <p v-if="job?.site?.name" class="cursor-pointer hover:text-primary underline"
-                                    @click="viewSite(job.site)">{{ job.site.name }}</p>
+                                    @click.stop="viewSite(job.site)">{{ job.site.name }}</p>
                                 <p v-if="job?.site?.street">{{ job.site.street }}</p>
                                 <p v-if="job?.site?.zip && job?.site?.city">{{ job.site.zip }} {{ job.site.city }}</p>
                                 <p v-if="!job?.site">Aucun site défini</p>
