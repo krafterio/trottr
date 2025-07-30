@@ -275,7 +275,7 @@
                                             <div class="flex items-center justify-between text-xs text-neutral-500">
                                                 <span>{{ formatDate(diagnostic.created_at) }}</span>
                                                 <span v-if="diagnostic.created_by">{{ diagnostic.created_by.email
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                         </div>
                                     </VueDraggable>
@@ -376,7 +376,7 @@
                                 </div>
                                 <div class="text-sm">
                                     <span class="text-sm text-neutral-500" v-if="getTimeUntilJob()">{{ getTimeUntilJob()
-                                    }} - </span>
+                                        }} - </span>
                                     <span :class="job?.scheduled_start ? 'text-neutral-900' : 'text-neutral-400'">{{
                                         job?.scheduled_start ?
                                             formatDate(job.scheduled_start) : 'Non planifié' }}</span>
@@ -399,7 +399,7 @@
                                 </div>
                                 <div class="text-sm">
                                     <span class="text-secondary-dark me-2" v-if="job?.scheduled_end">{{ getDuration()
-                                        }}</span>
+                                    }}</span>
 
                                     <span :class="job?.scheduled_end ? 'text-neutral-900' : 'text-neutral-400'">{{
                                         job?.scheduled_end ? formatDate(job.scheduled_end)
@@ -515,9 +515,33 @@
 
                         <Card
                             class="p-4 gap-0 border-dashed flex items-center justify-center cursor-pointer hover:bg-neutral-50"
-                            @click="openPlannerDialog">
+                            @click="openPlannerDialog" v-if="!job?.operator">
                             <UserPlus class="h-10 w-10 mb-3 text-neutral-500" :stroke-width="1.2" />
                             <p class="text-sm text-neutral-500">Assigner un technicien</p>
+                        </Card>
+                        <Card
+                            class="p-4 pe-3 gap-0 border flex flex-row items-center justify-between cursor-pointer hover:bg-neutral-50"
+                            @click="openPlannerDialog" v-if="job?.operator">
+                            <div class="flex items-center space-x-3">
+                                <Avatar class="h-10 w-10 rounded-sm" v-if="job?.operator">
+                                    <AvatarImage v-if="job?.operator?.avatar"
+                                        :src="`/storage/download/${job?.operator?.avatar}`" v-fetcher-src.lazy
+                                        :alt="job?.operator?.name" class="h-10 w-10" />
+                                    <AvatarFallback v-else class="bg-neutral-800 text-neutral-300 rounded-sm">
+                                        {{ getOperatorInitials(job.operator) }}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <User v-else class="h-7 w-7 text-neutral-400" :stroke-width="1.1" />
+                                <div>
+                                    <p class="text-sm font-medium text-neutral-900" v-if="job?.operator">{{
+                                        job?.operator?.name }}</p>
+                                    <p class="text-sm font-medium text-neutral-900" v-else>À assigner</p>
+                                    <p class="text-xs text-neutral-500">Opérateur assigné</p>
+                                </div>
+                            </div>
+                            <Button variant="outline" size="icon" class="h-8 w-8" @click.stop="removeOperator">
+                                <UserMinus class="h-3 w-3" />
+                            </Button>
                         </Card>
                     </div>
                 </div>
@@ -640,6 +664,7 @@ import {
     ShieldAlert,
     Trash,
     User,
+    UserMinus,
     UserPlus,
     UserRoundX
 } from 'lucide-vue-next'
@@ -1018,6 +1043,22 @@ const deleteDiagnostic = async () => {
         console.error('Erreur lors de la suppression du diagnostic:', error)
         toast.error('Erreur lors de la suppression du diagnostic')
         bus.trigger('confirm-delete-dialog:close')
+    }
+}
+
+const removeOperator = async () => {
+    if (!job.value?.id) return
+
+    try {
+        await fetcher.patch(`/jobs/${job.value.id}`, {
+            operator: null
+        })
+
+        toast.success('Opérateur retiré avec succès')
+        await fetchJob()
+    } catch (error) {
+        console.error('Erreur lors du retrait de l\'opérateur:', error)
+        toast.error('Erreur lors du retrait de l\'opérateur')
     }
 }
 

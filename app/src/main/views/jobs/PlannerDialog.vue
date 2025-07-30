@@ -38,14 +38,28 @@
                     <div class="space-y-4">
                         <div>
                             <h3 class="text-md font-semibold text-neutral-900 mb-3">Techniciens</h3>
+                            <div class="mb-3">
+                                <Select v-model="selectedSpeciality" @update:model-value="filterOperators">
+                                    <SelectTrigger class="w-full">
+                                        <SelectValue placeholder="Toutes les spécialités" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Toutes les spécialités</SelectItem>
+                                        <SelectItem v-for="speciality in availableSpecialities" :key="speciality.id"
+                                            :value="speciality.id">
+                                            {{ speciality.name }}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <div v-if="loadingOperators" class="text-center py-4">
                                 <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2">
                                 </div>
                                 <p class="text-sm text-neutral-500">Chargement des techniciens...</p>
                             </div>
                             <div v-else class="space-y-2">
-                                <div v-for="operator in operators" :key="operator.id" @click="selectOperator(operator)"
-                                    :class="[
+                                <div v-for="operator in filteredOperators" :key="operator.id"
+                                    @click="selectOperator(operator)" :class="[
                                         'p-2 rounded-md cursor-pointer border transition-colors',
                                         selectedOperator?.id === operator.id
                                             ? 'bg-primary text-primary-foreground border-neutral-300'
@@ -152,6 +166,7 @@
 import { Badge } from '@/common/components/ui/badge'
 import Button from '@/common/components/ui/button/Button.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/common/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useJob } from '@/common/composables/useJob'
 import { useWorkspaceStore } from '@/main/stores/workspace'
@@ -183,20 +198,30 @@ const currentDate = ref(new Date())
 const operators = ref([])
 const loadingOperators = ref(true)
 const loadingEvents = ref(false)
+const jobSpecialities = ref([])
+const loadingSpecialities = ref(false)
 
-const isEditMode = computed(() => {
-    return props.job?.operator && props.job?.scheduled_start && props.job?.scheduled_end
-})
+const fetchJobSpecialities = async () => {
+    loadingSpecialities.value = true
+    try {
+        const response = await fetcher.get('/job-speciality')
+        jobSpecialities.value = response.data || []
+    } catch (error) {
+        console.error('Erreur lors du chargement des spécialités:', error)
+    } finally {
+        loadingSpecialities.value = false
+    }
+}
 
 const fetchOperators = async () => {
     loadingOperators.value = true
     try {
-        const response = await fetcher.get('/users', {
+        const response = await fetcher.get('/operators', {
             params: {
-                role: 'Operator',
                 workspace: workspaceStore.workspace?.id
             }
         })
+
         const allUsers = response.data?.items || []
 
         const operatorsOnly = allUsers.filter(user => user.role === 'Operator')
@@ -204,7 +229,8 @@ const fetchOperators = async () => {
         operators.value = operatorsOnly.map(user => ({
             id: user.id,
             name: user.name || user.email,
-            speciality: user.speciality || 'Technicien',
+            speciality: user.job_specialities?.map(s => s.name).join(', ') || 'Opérateur',
+            speciality_ids: user.job_specialities?.map(s => s.id) || [],
             available: true,
             events: []
         }))
@@ -220,6 +246,11 @@ const fetchOperators = async () => {
                     selectedOperator.value = operators.value[0]
                     await fetchOperatorEvents(operators.value[0])
                 }
+            } else if (hasScheduledDateButNoOperator.value) {
+                selectedOperator.value = operators.value[0]
+                await fetchOperatorEvents(operators.value[0])
+                createToAssignSlot()
+                assignToAssignSlot()
             } else {
                 selectedOperator.value = operators.value[0]
                 await fetchOperatorEvents(operators.value[0])
@@ -240,6 +271,18 @@ const createExistingSlot = () => {
             title: props.job.name,
             class: 'creation-slot-calendar',
             operator: selectedOperator.value
+        }
+    }
+}
+
+const createToAssignSlot = () => {
+    if (props.job?.scheduled_start && props.job?.scheduled_end) {
+        selectedSlot.value = {
+            start: new Date(props.job.scheduled_start),
+            end: new Date(props.job.scheduled_end),
+            title: props.job.name,
+            class: 'toassign-slot-calendar',
+            operator: null
         }
     }
 }
@@ -292,7 +335,7 @@ const selectedOperatorEvents = computed(() => {
     }
 
     return events.map(event => {
-        if (event.class === 'creation-slot-calendar') {
+        if (event.class === 'creation-slot-calendar' || event.class === 'toassign-slot-calendar') {
             return event
         } else {
             return {
@@ -366,6 +409,13 @@ const onEventCreated = (event) => {
     }
 }
 
+const assignToAssignSlot = () => {
+    if (selectedSlot.value && selectedSlot.value.class === 'toassign-slot-calendar' && selectedOperator.value) {
+        selectedSlot.value.class = 'creation-slot-calendar'
+        selectedSlot.value.operator = selectedOperator.value
+    }
+}
+
 const selectOperator = (operator) => {
     selectedOperator.value = operator
     fetchOperatorEvents(operator)
@@ -375,6 +425,8 @@ const selectOperator = (operator) => {
             ...selectedSlot.value,
             operator: operator
         }
+
+        assignToAssignSlot()
     }
 }
 
@@ -388,6 +440,8 @@ const onEventChange = (event) => {
             start: startDate,
             end: endDate
         }
+
+        assignToAssignSlot()
     }
 }
 
@@ -484,8 +538,41 @@ const cancelSlot = () => {
     selectedSlot.value = null
 }
 
+const filterOperators = () => {
+    if (!selectedSpeciality.value || selectedSpeciality.value === 'all') {
+        operators.value = operators.value.map(op => ({ ...op, available: true }))
+    } else {
+        operators.value = operators.value.map(op => ({
+            ...op,
+            available: op.speciality_ids.includes(selectedSpeciality.value)
+        }))
+    }
+}
+
+const isEditMode = computed(() => {
+    return props.job?.operator && props.job?.scheduled_start && props.job?.scheduled_end
+})
+
+const hasScheduledDateButNoOperator = computed(() => {
+    return props.job?.scheduled_start && props.job?.scheduled_end && !props.job?.operator
+})
+
+const availableSpecialities = computed(() => {
+    return jobSpecialities.value
+})
+
+const filteredOperators = computed(() => {
+    if (!selectedSpeciality.value || selectedSpeciality.value === 'all') {
+        return operators.value
+    }
+    return operators.value.filter(op => op.speciality_ids.includes(selectedSpeciality.value))
+})
+
+const selectedSpeciality = ref('')
+
 watch(() => props.open, (newValue) => {
     if (newValue) {
+        fetchJobSpecialities()
         fetchOperators()
     }
 })
