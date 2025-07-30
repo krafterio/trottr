@@ -1,6 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Union
-from zoneinfo import ZoneInfo
 
 from edgy import fields
 from enum import Enum
@@ -67,7 +66,7 @@ class WorkspaceSubscription(BaseModel):
 
     @property
     def next_billing_date(self) -> datetime | None:
-        current_date = datetime.now(ZoneInfo("UTC"))
+        current_date = datetime.now(timezone.utc)
         next_billing_date = None
 
         if self.trial_end and self.trial_end > current_date:

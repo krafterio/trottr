@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import stripe
@@ -12,6 +12,96 @@ from services.stripe_service import stripe_service
 
 
 class SubscriptionService:
+    async def create_or_update_subscription(
+        self,
+        workspace: Workspace,
+        update_customer: bool = True
+    ) -> WorkspaceSubscription:
+        settings = get_settings()
+
+        subscription = await self.get_active_subscription(workspace)
+
+        if not subscription:
+            user_count = await workspace.workspace_users.query.filter(workspace=workspace).count()
+            subscription = await self.create_subscription(workspace, workspace.service_plan, user_count)
+
+        elif settings.subscription_stripe_enabled:
+            owner = await workspace.get_owner()
+
+            if not owner:
+                raise ValueError("Le workspace doit avoir un propriétaire")
+
+            if workspace.stripe_customer_id and workspace.stripe_customer_id.startswith('gen_'):
+                stripe_customer = await stripe_service.create_customer(
+                    email=owner.email,
+                    name=workspace.name,
+                    metadata={
+                        "workspace_id": str(workspace.id),
+                    },
+                    address={
+                        "line1": workspace.street,
+                        "line2": workspace.street2,
+                        "city": workspace.city,
+                        "state": workspace.zip,
+                        "country": workspace.country.iso_code if workspace.country else 'FR',
+                    }
+                )
+                workspace.stripe_customer_id = stripe_customer.id
+                await workspace.save()
+
+                subscription.stripe_customer_id = stripe_customer.id
+                await subscription.save()
+            elif workspace.stripe_customer_id and update_customer:
+                await stripe_service.update_customer(
+                    customer_id=workspace.stripe_customer_id,
+                    email=owner.email,
+                    name=workspace.name,
+                    metadata={
+                        "workspace_id": str(workspace.id),
+                    },
+                    address={
+                        "line1": workspace.street,
+                        "line2": workspace.street2,
+                        "city": workspace.city,
+                        "state": workspace.zip,
+                        "country": workspace.country.iso_code if workspace.country else 'FR',
+                    }
+                )
+
+            if subscription.stripe_subscription_id.startswith('gen_'):
+                trial_period_days = None
+                if subscription.trial_end:
+                    trial_period_days = (subscription.trial_end - datetime.now(timezone.utc)).days
+
+                tax_rates = await ServiceTax.query.filter(country_code='FR').all()
+                stripe_tax_rates = []
+
+                if tax_rates:
+                    for tax in tax_rates:
+                        if not tax.stripe_id and settings.subscription_stripe_enabled:
+                            stripe_tax_id = await stripe_service.sync_tax_rate_to_stripe(tax)
+                            tax.stripe_id = stripe_tax_id
+                            await tax.save()
+
+                        stripe_tax_rates.append(tax.stripe_id)
+
+                stripe_subscription = await stripe_service.create_subscription(
+                    customer_id=workspace.stripe_customer_id,
+                    price_id=subscription.service_plan.stripe_price_id,
+                    quantity=subscription.available_users_count,
+                    tax_rates=stripe_tax_rates,
+                    trial_period_days=trial_period_days,
+                    metadata={
+                        "workspace_id": str(workspace.id),
+                        "workspace_plan_id": str(subscription.service_plan.id)
+                    }
+                )
+
+                subscription.stripe_subscription_id = stripe_subscription.id
+                await subscription.save()
+
+        return subscription
+
     async def create_subscription(
         self,
         workspace: Workspace,
@@ -32,7 +122,13 @@ class SubscriptionService:
                     name=workspace.name,
                     metadata={
                         "workspace_id": str(workspace.id),
-                        "workspace_unique_id": workspace.unique_id
+                    },
+                    address={
+                        "line1": workspace.street,
+                        "line2": workspace.street2,
+                        "city": workspace.city,
+                        "state": workspace.zip,
+                        "country": workspace.country.iso_code if workspace.country else 'FR',
                     }
                 )
                 workspace.stripe_customer_id = stripe_customer.id
@@ -189,8 +285,10 @@ class SubscriptionService:
         subscription.end_date = datetime.fromtimestamp(stripe_subscription.ended_at).astimezone() if stripe_subscription.ended_at else None
         subscription.cancel_at_period_end = stripe_subscription.cancel_at_period_end
 
-        if stripe_subscription.items and stripe_subscription.items.data:
-            subscription.available_users_count = stripe_subscription.items.data[0].quantity
+        available_users_count = 0
+        for item in stripe_subscription['items']:
+            available_users_count += item.quantity
+        subscription.available_users_count = available_users_count
 
         if stripe_subscription.trial_start:
             subscription.trial_start = datetime.fromtimestamp(stripe_subscription.trial_start).astimezone()
@@ -204,6 +302,11 @@ class SubscriptionService:
         await subscription.save()
 
         return subscription
+
+    async def get_last_subscription(self, workspace: Workspace) -> WorkspaceSubscription | None:
+        return await WorkspaceSubscription.query.filter(
+            workspace=workspace,
+        ).order_by('-created_at').first()
 
     async def get_active_subscription(self, workspace: Workspace) -> WorkspaceSubscription | None:
         return await WorkspaceSubscription.query.filter(

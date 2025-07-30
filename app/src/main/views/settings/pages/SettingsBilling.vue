@@ -24,7 +24,7 @@
                         <p class="text-neutral-600">
                             {{ billingInfo.subscription_available_users_count ? 
                                 `Jusqu'à ${billingInfo.subscription_available_users_count} utilisateurs` : 
-                                'Plan gratuit' 
+                                'Aucun plan actif'
                             }}
                         </p>
                     </div>
@@ -35,13 +35,13 @@
 
                 <div class="flex items-baseline space-x-2 mb-4">
                     <span class="text-3xl font-bold text-neutral-900">
-                        {{ billingInfo.plan_price ? 
-                            formatPrice(billingInfo.plan_price, billingInfo.plan_currency) : 
+                        {{ billingInfo.subscription_price ?
+                            formatPrice(billingInfo.subscription_price, billingInfo.plan_currency) :
                             'Gratuit' 
                         }}
                     </span>
                     <span v-if="billingInfo.plan_period" class="text-neutral-600">
-                        /{{ billingInfo.plan_period.toLowerCase() }}
+                        / {{ formatPeriod(billingInfo.plan_period.toLowerCase()) }}
                     </span>
                 </div>
 
@@ -138,10 +138,6 @@
             <div class="space-y-4">
                 <div class="flex items-center justify-between">
                     <h3 class="text-base font-medium text-neutral-900">Historique de facturation</h3>
-                    <Button variant="outline" size="sm">
-                        <Download class="h-4 w-4 mr-2" />
-                        Télécharger toutes
-                    </Button>
                 </div>
 
                 <div class="border rounded-lg">
@@ -270,6 +266,12 @@ const formatDate = (date) => {
         month: 'long',
         year: 'numeric'
     }).format(new Date(date))
+}
+
+const formatPeriod = (period) => {
+    if (period === 'mensuel') return 'mois'
+
+    return 'an'
 }
 
 const openBillingDialog = () => {

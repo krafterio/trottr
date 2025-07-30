@@ -11,6 +11,7 @@ from services.auth import get_password_hash
 from services.mail import MailService
 from services.storage import StorageService
 from models.workspace_user import WorkspaceUser
+from services.subscription_service import SubscriptionService
 from services.verification import create_verification_code, send_verification_email
 from core.config import get_settings
 
@@ -29,7 +30,8 @@ async def get_workspace(
 @router.patch("", response_model=WorkspaceRead)
 async def update_workspace(
     workspace_data: WorkspaceUpdate = Body(...),
-    workspace: Workspace = Depends(get_user_workspace)
+    workspace: Workspace = Depends(get_user_workspace),
+    subscription_service: SubscriptionService = Depends(),
 ):
     try:
         data = workspace_data.model_dump(exclude_unset=True)
@@ -49,6 +51,9 @@ async def update_workspace(
             setattr(workspace, key, value)
 
         await workspace.save()
+
+        if 'name' in data or 'street' in data or 'street2' in data or 'zip' in data or 'city' in data or 'siren' in data or 'vat' in data or 'country_id' in data:
+            await subscription_service.create_or_update_subscription(workspace)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

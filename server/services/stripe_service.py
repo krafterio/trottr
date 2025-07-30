@@ -9,18 +9,36 @@ from models.service_tax import ServiceTax
 class StripeService:
     def __init__(self):
         settings = get_settings()
+        stripe.enable_telemetry = False
         stripe.api_key = settings.stripe_secret_key
 
-    async def create_customer(self, email: str, name: str | None = None, metadata: dict[str, str] | None = None) -> stripe.Customer:
+    async def create_customer(self, email: str, name: str | None = None, metadata: dict[str, str] | None = None, address: dict[str, str] | None = None) -> stripe.Customer:
         customer_data = {
             "email": email,
-            "metadata": metadata or {}
+            "metadata": metadata or {},
         }
 
         if name:
             customer_data["name"] = name
 
+        if address:
+            customer_data["address"] = address
+
         return stripe.Customer.create(**customer_data)
+
+    async def update_customer(self, customer_id: str, email: str, name: str | None = None, metadata: dict[str, str] | None = None, address: dict[str, str] | None = None) -> stripe.Customer:
+        customer_data = {
+            "email": email,
+            "metadata": metadata or {},
+        }
+
+        if name:
+            customer_data["name"] = name
+
+        if address:
+            customer_data["address"] = address
+
+        return stripe.Customer.modify(customer_id, **customer_data)
 
     async def create_subscription(
         self, 

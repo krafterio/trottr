@@ -164,6 +164,63 @@ Once the server is running, you can access:
 1. Google reCaptcha: https://www.google.com/recaptcha/admin/create
 
 
+## Stripe Configuration (Development)
+
+### Prerequisites
+
+1. Install Stripe CLI:
+   Read the official documentation to install [Stripe CLI](https://docs.stripe.com/stripe-cli).
+
+### Setup
+
+1. **Login to Stripe CLI:**
+   ```bash
+   stripe login
+   ```
+   Follow the prompts to authenticate with your Stripe account.
+
+2. **Configure environment variables** in `server/.env`:
+   ```bash
+   STRIPE_ENABLED=True
+   STRIPE_PUBLISHABLE_KEY=pk_*****
+   STRIPE_SECRET_KEY=sk_*****
+   STRIPE_WEBHOOK_SECRET=
+   ```
+
+3. **Setup webhook endpoint** for local development:
+   ```bash
+   # Forward Stripe webhooks to your local server
+   stripe listen --forward-to localhost:8003/api/webhooks/stripe
+   ```
+
+   This command will output a webhook signing secret like `whsec_...`. Copy this value to your `STRIPE_WEBHOOK_SECRET` environment variable.
+
+4. **Keep the webhook listener running** during development. You can run it in a separate terminal:
+   ```bash
+   # Terminal 1: Start your server
+   ./kt serve
+
+   # Terminal 2: Start webhook forwarding
+   stripe listen --forward-to localhost:8003/api/webhooks/stripe
+   ```
+
+### Testing Payments
+
+You can use Stripe's test card numbers for testing:
+- **Successful payment:** `4242 4242 4242 4242`
+- **Payment requires authentication:** `4000 0025 0000 3155`
+- **Payment is declined:** `4000 0000 0000 9995`
+
+Use any future expiration date and any 3-digit CVC.
+
+### Important Notes
+
+- The webhook listener must be running to receive subscription events
+- Test mode keys start with `sk_test_` and `pk_test_`
+- Never commit real API keys to version control
+- For production, configure webhooks directly in the Stripe Dashboard
+
+
 ## Development
 
 ### Development Workflow

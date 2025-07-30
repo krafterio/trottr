@@ -158,7 +158,7 @@ const updateBillingInfo = async () => {
     try {
         loading.value = true
         const value = {...form.value}
-        value.country_id = value.country?.id || null
+        value.country_id = value.country?.id || value.country || null
         
         await fetcher.patch('/workspace', value)
         

@@ -17,7 +17,7 @@ class WorkspaceBillingResponse(BaseModel):
     invoice_country: CountryRead | None = None
     invoice_siren: str | None = None
     invoice_vat: str | None = None
-    currency: str | None = None
+    invoice_currency: str | None = None
     plan_name: str | None = None
     plan_type: Union[ServicePlanType, None] = None
     plan_period: Union[ServicePlanPeriod, None] = None
@@ -27,6 +27,7 @@ class WorkspaceBillingResponse(BaseModel):
     current_month_jobs_count: int
     subscription_status: Union[SubscriptionStatus, None] = None
     subscription_available_users_count: int
+    subscription_price: float
     subscription_start_date: datetime | None = None
     subscription_end_date: datetime | None = None
     subscription_trial_start: datetime | None = None
