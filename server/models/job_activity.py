@@ -10,18 +10,18 @@ from .user import User
 
 
 class JobActivityType(str, Enum):
-    MESSAGE = "message"
-    NOTE = "note"
-    TRACKING_CREATE = "tracking_create"
-    TRACKING_UPDATE = "tracking_update"
+    message = "message"
+    note = "note"
+    tracking_create = "tracking_create"
+    tracking_update = "tracking_update"
 
 
 class JobActivityValueType(str, Enum):
-    STRING = "string"
-    INTEGER = "integer"
-    FLOAT = "float"
-    BOOL = "bool"
-    OBJECT = "object"
+    string = "string"
+    integer = "integer"
+    float = "float"
+    bool = "bool"
+    object = "object"
 
 
 @api_route_model(

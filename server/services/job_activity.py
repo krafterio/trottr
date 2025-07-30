@@ -15,7 +15,7 @@ class JobActivityService:
         """Create a message activity"""
         activity = JobActivity(
             job=job,
-            type=JobActivityType.MESSAGE,
+            type=JobActivityType.message,
             content=message
         )
 
@@ -31,7 +31,7 @@ class JobActivityService:
         """Create a note activity"""
         activity = JobActivity(
             job=job,
-            type=JobActivityType.NOTE,
+            type=JobActivityType.note,
             content=note
         )
 
@@ -47,7 +47,7 @@ class JobActivityService:
         """Create a tracking create activity"""
         activity = JobActivity(
             job=job,
-            type=JobActivityType.TRACKING_CREATE,
+            type=JobActivityType.tracking_create,
             content=content or f"Job créé"
         )
 
@@ -69,7 +69,7 @@ class JobActivityService:
         
         activity = JobActivity(
             job=job,
-            type=JobActivityType.TRACKING_UPDATE,
+            type=JobActivityType.tracking_update,
             content=content or f"Champ '{field_name}' modifié",
             field_name=field_name,
             value_type=value_type,
@@ -85,15 +85,15 @@ class JobActivityService:
     def _detect_value_type(value: Any) -> JobActivityValueType:
         """Detect the type of a value"""
         if isinstance(value, str):
-            return JobActivityValueType.STRING
+            return JobActivityValueType.string
         elif isinstance(value, int):
-            return JobActivityValueType.INTEGER
+            return JobActivityValueType.integer
         elif isinstance(value, float):
-            return JobActivityValueType.FLOAT
+            return JobActivityValueType.float
         elif isinstance(value, bool):
-            return JobActivityValueType.BOOL
+            return JobActivityValueType.bool
         else:
-            return JobActivityValueType.OBJECT
+            return JobActivityValueType.object
     
     @staticmethod
     def _serialize_value(value: Any) -> str:
