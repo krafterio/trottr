@@ -483,7 +483,7 @@ const getUsagePercentage = (current, max) => {
 
 onMounted(() => {
     fetchBillingInfo()
-    workspaceStore.fetchWorkspace()
+    workspaceStore.fetchWorkspace(true)
     fetchInvoices()
     fetchPaymentMethods()
 })

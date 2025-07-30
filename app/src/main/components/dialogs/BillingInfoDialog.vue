@@ -112,8 +112,10 @@ import { Input } from '@/common/components/ui/input'
 import { Label } from '@/common/components/ui/label'
 import { useFetcher } from '@/common/composables/fetcher'
 import CountrySelect from '@/common/components/form/country-select/CountrySelect.vue'
+import {useWorkspaceStore} from '@/main/stores/workspace';
 
 const fetcher = useFetcher()
+const workspaceStore = useWorkspaceStore()
 const open = defineModel('open', { default: false })
 
 const loading = ref(false)
@@ -161,6 +163,7 @@ const updateBillingInfo = async () => {
         value.country_id = value.country?.id || value.country || null
         
         await fetcher.patch('/workspace', value)
+        workspaceStore.fetchWorkspace(true).then()
         
         open.value = false
     } catch (err) {
