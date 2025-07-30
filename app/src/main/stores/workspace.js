@@ -23,7 +23,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         const ws = workspace.value;
 
         if (!ws || !isTrial.value || (!ws?.is_trial && !ws?.trial_end)) {
-            return true;
+            return !!ws?.is_valid;
         }
 
         return false;

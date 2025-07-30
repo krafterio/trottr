@@ -72,10 +72,12 @@ class WorkspaceRead(BaseModel):
     siren: str | None = None
     vat: str | None = None
     owner: UserRead | None = None
+    available_member_count: int
     member_count: int = Field(default=0, description="Nombre de membres dans le workspace")
     comply_with_local_privacy_laws: bool
     trial_end: datetime | None = None
     is_trial: bool
+    is_valid: bool
     default_job_duration: DefaultJobDuration | None = None
     default_job_priority: DefaultJobPriority | None = None
     use_subsites: bool

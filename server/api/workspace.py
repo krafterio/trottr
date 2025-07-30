@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Body, HTTPException, UploadFile, File, Q
 from models.workspace import Workspace
 from models.user import User
 from models.workspace_invitation import WorkspaceInvitation
+from models.workspace_subscription import WorkspaceSubscription, SubscriptionStatus
 from schemas.base import List
 from schemas.user import UserRegister, VerificationResponse
 from schemas.workspace import WorkspaceUpdate, WorkspaceRead, WorkspaceUserRead
@@ -606,6 +607,15 @@ async def _get_workspace_read(workspace: Workspace) -> WorkspaceRead:
     owner = await workspace.get_owner()
     member_count = await WorkspaceUser.query.filter(workspace=workspace).count()
     workspace = await Workspace.query.select_related('country').get(id=workspace.id)
+    subscription = await WorkspaceSubscription.query.filter(
+        workspace=workspace,
+        status__in=[SubscriptionStatus.active, SubscriptionStatus.trialing],
+        is_active=True,
+    ).order_by('-created_at').first()
+
+    available_member_count = subscription.available_users_count if subscription else 0
+
+    is_valid = available_member_count >= member_count
 
     return WorkspaceRead(
         id=workspace.id,
@@ -621,9 +631,11 @@ async def _get_workspace_read(workspace: Workspace) -> WorkspaceRead:
         siren=workspace.siren,
         vat=workspace.vat,
         owner=owner,
+        available_member_count=available_member_count,
         member_count=member_count,
         comply_with_local_privacy_laws=workspace.comply_with_local_privacy_laws,
         trial_end=workspace.trial_end,
+        is_valid=is_valid,
         is_trial=workspace.is_trial,
         default_job_duration=workspace.default_job_duration,
         default_job_priority=workspace.default_job_priority,
