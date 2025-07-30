@@ -41,9 +41,11 @@ export function useFilters() {
         createCondition,
         createRule,
         normalize,
+        normalizeJson: async (modelName, filter) => await validateJson(metadataStore, modelName, filter),
         merge: async (modelName, ...filters) => await merge(metadataStore, modelName, ...filters),
         mergeJson: async (modelName, ...filters) => await mergeJson(metadataStore, modelName, ...filters),
         validate: async (modelName, filter) => await validate(metadataStore, modelName, filter),
+        validateJson: async (modelName, filter) => await validateJson(metadataStore, modelName, filter),
     }
 }
 
@@ -148,6 +150,12 @@ async function validate(metadataStore, modelName, filter) {
     }
 
     return validateFilter(metadataStore, metadata, filter);
+}
+
+async function validateJson(metadataStore, modelName, filter) {
+    const res = await validate(metadataStore, modelName, filter);
+
+    return res ? JSON.stringify(res) : null;
 }
 
 async function validateFilter(metadataStore, metadata, filter) {
