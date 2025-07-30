@@ -183,7 +183,6 @@
                         </TabsList>
 
                         <TabsContent value="historique">
-
                             <div class="p-4">
                                 <div class="flex items-center justify-between mb-4">
                                     <h2 class="text-lg font-semibold text-neutral-900">Historique</h2>
@@ -199,10 +198,7 @@
                                     </div>
                                 </div>
 
-                                <div class="text-center py-8 text-neutral-500">
-                                    <p>Fonctionnalité en cours de développement</p>
-                                    <p class="text-sm mt-2">L'historique des interventions sera bientôt disponible</p>
-                                </div>
+                                <JobActivityHistory :job-id="route.params.id" />
                             </div>
                         </TabsContent>
 
@@ -661,6 +657,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import PlannerDialog from './PlannerDialog.vue'
 import JobJobTasks from './tabs/JobJobTasks.vue'
+import JobActivityHistory from '@/main/components/jobs/JobActivityHistory.vue'
 const props = defineProps({
     inDialog: {
         type: Boolean,
