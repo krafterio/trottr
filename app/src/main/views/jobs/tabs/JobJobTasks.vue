@@ -68,9 +68,9 @@
                                         :alt="task.done_by?.name" class="h-4 w-4" />
                                 </Avatar>
                                 <span v-if="task.done_by">{{ task.done_by.name || task.done_by.email
-                                }}</span>
+                                    }}</span>
                                 <span v-if="task.done_at">Terminée le {{ formatDate(task.done_at)
-                                }}</span>
+                                    }}</span>
                             </div>
                             <div v-else class="flex items-center gap-1 text-neutral-400">
                                 <Info class="h-3 w-3" />
@@ -233,7 +233,7 @@ const dateValue = computed({
 const fetchJobTasks = async () => {
     try {
         tasksLoading.value = true
-        const response = await fetcher.get('/job-job-tasks', { params: { job: props.jobId } })
+        const response = await fetcher.get(`/job-job-tasks/by-job/${props.jobId}`)
         jobTasks.value = response.data || []
     } catch (error) {
         console.error('Erreur lors du chargement des tâches:', error)
@@ -251,7 +251,7 @@ const fetchAvailableTasks = async () => {
     }
 }
 
-const openTaskDialog = () => {
+const openTaskDialog = async () => {
     isEditTask.value = false
     taskForm.value = {
         job_task: null,
@@ -260,6 +260,12 @@ const openTaskDialog = () => {
         done_by: null,
         done_at: null
     }
+
+    // Charger les tâches disponibles seulement quand on ouvre le dialogue
+    if (availableTasks.value.length === 0) {
+        await fetchAvailableTasks()
+    }
+
     taskDialogOpen.value = true
 }
 
@@ -400,6 +406,5 @@ useBus(bus, 'confirm-delete-task:confirmed', () => {
 
 onMounted(() => {
     fetchJobTasks()
-    fetchAvailableTasks()
 })
 </script>

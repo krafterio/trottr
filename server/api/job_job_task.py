@@ -4,7 +4,7 @@ from models.job_job_task import JobJobTask
 from models.job import Job
 from models.job_task import JobTask
 from models.user import User
-from schemas.job_job_task import JobJobTaskCreate, JobJobTaskUpdate, JobJobTaskRead
+from schemas.job_job_task import JobJobTaskCreate, JobJobTaskUpdate, JobJobTaskRead, JobJobTaskReadOptimized
 from api.auth import get_current_user
 from services.workspace import get_user_workspace
 from models.user import User as CurrentUser
@@ -112,12 +112,12 @@ async def delete_job_job_task(
     await job_job_task.delete()
     return None
 
-@router.get("/by-job/{job_id}", response_model=List[JobJobTaskRead])
+@router.get("/by-job/{job_id}", response_model=List[JobJobTaskReadOptimized])
 async def get_job_job_tasks_by_job(
     job_id: int,
     current_user: CurrentUser = Depends(get_current_user)
 ):
-    job_job_tasks = await JobJobTask.query.select_related("done_by", "job", "job_task").filter(job=job_id).order_by("sequence").all()
+    job_job_tasks = await JobJobTask.query.select_related("done_by", "job_task").filter(job=job_id).order_by("sequence").all()
     return job_job_tasks
 
 @router.put("/reorder", dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
