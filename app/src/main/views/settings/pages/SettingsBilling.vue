@@ -304,8 +304,10 @@ import { useRouter } from 'vue-router'
 import AddPaymentMethodDialog from '@/main/components/dialogs/AddPaymentMethodDialog.vue'
 import { bus, useBus } from '@/common/composables/bus'
 import { toast } from 'vue-sonner'
+import {useAuthStore} from '@/common/stores/auth';
 
 const fetcher = useFetcher()
+const authStore = useAuthStore()
 const workspaceStore = useWorkspaceStore()
 const router = useRouter()
 
@@ -482,6 +484,10 @@ const getUsagePercentage = (current, max) => {
 }
 
 onMounted(() => {
+    if (!authStore.isAuthenticated) {
+        return
+    }
+
     fetchBillingInfo()
     workspaceStore.fetchWorkspace(true)
     fetchInvoices()
