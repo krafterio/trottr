@@ -18,8 +18,11 @@ class JobJobTaskBase(BaseModel):
     @field_validator('done_by', 'job', 'job_task', mode='before')
     @classmethod
     def extract_id(cls, v):
-        if isinstance(v, dict) and 'id' in v:
-            return v['id']
+        if isinstance(v, dict):
+            if 'id' in v:
+                return v['id']
+            elif hasattr(v, 'id'):
+                return v.id
         return v
 
     @field_validator('done_at', mode='before')

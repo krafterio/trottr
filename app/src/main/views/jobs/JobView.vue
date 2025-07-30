@@ -174,7 +174,7 @@
                     <Tabs default-value="historique" class="border-b p-4 py-3">
                         <TabsList>
                             <TabsTrigger value="historique">Historique</TabsTrigger>
-                            <TabsTrigger value="operations">Opérations</TabsTrigger>
+                            <TabsTrigger value="tasks">Tâches</TabsTrigger>
                             <TabsTrigger v-if="workspaceStore.workspace?.use_diagnostics" value="diagnostics">
                                 Diagnostics</TabsTrigger>
                             <TabsTrigger value="pieces">Pièces détachées</TabsTrigger>
@@ -206,21 +206,8 @@
                             </div>
                         </TabsContent>
 
-                        <TabsContent value="operations">
-                            <div class="p-4">
-                                <div class="flex items-center justify-between mb-4">
-                                    <h2 class="text-lg font-semibold text-neutral-900">Opérations effectuées</h2>
-                                    <Button>
-                                        <Plus class="h-4 w-4" />
-                                        Ajouter une opération
-                                    </Button>
-                                </div>
-
-                                <div class="text-center py-8 text-neutral-500">
-                                    <p>Fonctionnalité en cours de développement</p>
-                                    <p class="text-sm mt-2">La gestion des opérations sera bientôt disponible</p>
-                                </div>
-                            </div>
+                        <TabsContent value="tasks">
+                            <JobJobTasks :job-id="route.params.id" />
                         </TabsContent>
 
                         <TabsContent value="diagnostics">
@@ -673,7 +660,7 @@ import { VueDraggable } from 'vue-draggable-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import PlannerDialog from './PlannerDialog.vue'
-
+import JobJobTasks from './tabs/JobJobTasks.vue'
 const props = defineProps({
     inDialog: {
         type: Boolean,

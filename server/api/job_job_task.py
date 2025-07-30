@@ -131,4 +131,35 @@ async def reorder_job_job_tasks(data: JobJobTaskReorder):
         
         return {"message": "Tâches de job réorganisées avec succès"}
     except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.patch("/{job_job_task_id}/toggle_done_state", dependencies=[Depends(get_current_user), Depends(get_user_workspace)])
+async def toggle_job_job_task_done_state(
+    job_job_task_id: int,
+    current_user: CurrentUser = Depends(get_current_user),
+    workspace = Depends(get_user_workspace)
+):
+    try:
+        job_job_task = await JobJobTask.query.get(id=job_job_task_id)
+        if not job_job_task:
+            raise HTTPException(status_code=404, detail="Job job task not found")
+        
+        from datetime import datetime
+        
+        # Toggle l'état
+        job_job_task.is_done = not job_job_task.is_done
+        
+        if job_job_task.is_done:
+            # Marquer comme terminé
+            job_job_task.done_at = datetime.now()
+            job_job_task.done_by = current_user
+        else:
+            # Marquer comme non terminé
+            job_job_task.done_at = None
+            job_job_task.done_by = None
+        
+        await job_job_task.save()
+        
+        return await JobJobTask.query.select_related("done_by", "job", "job_task").get(id=job_job_task_id)
+    except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) 

@@ -80,3 +80,13 @@ async def patch_user_preferences(
     current_preferences.update(preferences)
     await current_user.update(preferences=current_preferences)
     return {"preferences": current_preferences}
+
+@router.get("/{user_id}")
+async def get_user(
+    user_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    user = await User.query.get(id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user

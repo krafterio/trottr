@@ -43,7 +43,7 @@
     "marked": "^16.0.0",
     "pinia": "^2.1.7",
     "quill": "^2.0.0-rc.2",
-    "reka-ui": "^2.4.0",
+    "reka-ui": "^2.4.1",
     "shadcn-vue": "^2.2.0",
     "tailwind-merge": "^3.3.1",
     "tw-animate-css": "^1.3.5",
