@@ -98,8 +98,8 @@
                                 <Avatar class="h-8 w-8 rounded-sm" v-if="job?.operator">
                                     <AvatarImage v-if="job?.operator?.avatar"
                                         :src="`/storage/download/${job?.operator?.avatar}`" v-fetcher-src.lazy
-                                        :alt="job?.operator?.name" />
-                                    <AvatarFallback class="bg-neutral-800 text-neutral-300 rounded-sm">
+                                        :alt="job?.operator?.name" class="h-8 w-8" />
+                                    <AvatarFallback v-else class="bg-neutral-800 text-neutral-300 rounded-sm">
                                         {{ getOperatorInitials(job.operator) }}
                                     </AvatarFallback>
                                 </Avatar>
@@ -269,7 +269,7 @@
                                             <div class="flex items-center justify-between text-xs text-neutral-500">
                                                 <span>{{ formatDate(diagnostic.created_at) }}</span>
                                                 <span v-if="diagnostic.created_by">{{ diagnostic.created_by.email
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                         </div>
                                     </VueDraggable>

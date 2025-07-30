@@ -138,22 +138,30 @@
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div v-if="job.operator" class="flex items-center py-2">
-                                            <div class="flex-shrink-0 h-8 w-8">
-                                                <div
-                                                    class="h-8 w-8 rounded-full bg-neutral-100 flex items-center justify-center">
-                                                    <span class="text-sm font-medium text-neutral-600">
-                                                        {{ getInitials(job.operator.name) }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div class="ml-3">
-                                                <div class="text-sm font-medium text-neutral-900">
-                                                    {{ job.operator.name }}
-                                                </div>
+                                        <div v-if="job.operator" class="flex items-center space-x-3">
+                                            <Avatar class="h-8 w-8 rounded-sm">
+                                                <AvatarImage v-if="job.operator.avatar"
+                                                    :src="`/storage/download/${job.operator.avatar}`" v-fetcher-src.lazy
+                                                    :alt="job.operator.name" class="h-8 w-8" />
+                                                <AvatarFallback v-else
+                                                    class="bg-neutral-800 text-neutral-300 rounded-sm">
+                                                    {{ getOperatorInitials(job.operator) }}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p class="text-sm font-medium text-neutral-900">{{ job.operator.name }}
+                                                </p>
+                                                <p class="text-xs text-neutral-500">Opérateur</p>
                                             </div>
                                         </div>
-                                        <div v-else class="text-sm text-neutral-500">Non assigné</div>
+
+                                        <div v-else class="flex items-center space-x-3">
+                                            <User class="h-8 w-8 text-neutral-400" :stroke-width="1.3" />
+                                            <div>
+                                                <p class="text-sm font-medium text-neutral-900">Non assigné</p>
+                                                <p class="text-xs text-neutral-500">Opérateur</p>
+                                            </div>
+                                        </div>
                                     </TableCell>
                                     <TableCell>
                                         <div v-if="job.scheduled_start" class="py-2">
@@ -210,6 +218,9 @@
 </template>
 
 <script setup>
+import Avatar from '@/common/components/ui/avatar/Avatar.vue'
+import AvatarFallback from '@/common/components/ui/avatar/AvatarFallback.vue'
+import AvatarImage from '@/common/components/ui/avatar/AvatarImage.vue'
 import { Button } from '@/common/components/ui/button'
 import { Checkbox } from '@/common/components/ui/checkbox'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu'
@@ -335,6 +346,15 @@ const formatDate = (dateString) => {
 const getInitials = (name) => {
     if (!name) return ''
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+}
+
+const getOperatorInitials = (operator) => {
+    if (!operator) return 'U'
+    if (operator.initials) return operator.initials
+    if (operator.name) {
+        return operator.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    }
+    return operator.email?.[0]?.toUpperCase() || 'U'
 }
 
 const getSiteAddress = (site) => {
