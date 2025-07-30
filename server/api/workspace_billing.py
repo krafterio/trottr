@@ -27,6 +27,7 @@ async def get_workspace_billing_info(workspace: Workspace = Depends(get_user_wor
     
     subscription = await subscription_service.get_last_subscription(workspace)
     subscription_available_users_count = subscription.available_users_count if subscription else 0
+    subscription_price = workspace.service_plan.price if workspace.service_plan else 0
 
     return WorkspaceBillingResponse(
         invoice_name=workspace.name or None,
@@ -47,7 +48,7 @@ async def get_workspace_billing_info(workspace: Workspace = Depends(get_user_wor
         current_month_jobs_count=current_month_jobs_count or 0,
         subscription_status=subscription.status if subscription else None,
         subscription_available_users_count=subscription_available_users_count,
-        subscription_price=subscription_available_users_count * (workspace.service_plan.price or 0),
+        subscription_price=subscription_available_users_count * subscription_price,
         subscription_start_date=subscription.start_date if subscription else None,
         subscription_end_date=subscription.end_date if subscription else None,
         subscription_trial_start=subscription.trial_start if subscription else None,
