@@ -613,7 +613,7 @@ async def _get_workspace_read(workspace: Workspace) -> WorkspaceRead:
         is_active=True,
     ).order_by('-created_at').first()
 
-    available_member_count = subscription.available_users_count if subscription else 0
+    available_member_count = subscription.available_users_count if subscription else member_count
 
     is_valid = available_member_count >= member_count
 
