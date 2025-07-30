@@ -11,7 +11,9 @@ from schemas.subscription import (
     BillingPortalResponse,
     SubscriptionCancelRequest,
     SubscriptionBillingPortalRequest,
-    InvoicesListResponse
+    InvoicesListResponse,
+    PaymentMethodsListResponse,
+    SetupIntentResponse
 )
 from services.workspace import get_user_workspace
 
@@ -144,4 +146,62 @@ async def get_workspace_invoices(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Erreur lors de la récupération des factures: {str(e)}"
+        )
+
+
+@router.get("/workspace/subscription/payment-methods")
+async def get_workspace_payment_methods(
+    workspace: Workspace = Depends(get_user_workspace)
+) -> PaymentMethodsListResponse:
+    try:
+        payment_methods = await subscription_service.get_workspace_payment_methods(workspace)
+        return PaymentMethodsListResponse(payment_methods=payment_methods)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Erreur lors de la récupération des moyens de paiement: {str(e)}"
+        )
+
+
+@router.post("/workspace/subscription/setup-intent")
+async def create_setup_intent(
+    workspace: Workspace = Depends(get_user_workspace)
+) -> SetupIntentResponse:
+    try:
+        setup_intent = await subscription_service.create_payment_setup_intent(
+            workspace=workspace
+        )
+        return SetupIntentResponse(**setup_intent)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Erreur lors de la création du setup intent: {str(e)}"
+        )
+
+
+@router.delete("/workspace/subscription/payment-method/{payment_method_id}")
+async def remove_payment_method(
+    payment_method_id: str,
+    workspace: Workspace = Depends(get_user_workspace)
+):
+    try:
+        success = await subscription_service.remove_payment_method(
+            workspace=workspace,
+            payment_method_id=payment_method_id
+        )
+        
+        if success:
+            return {"message": "Moyen de paiement supprimé avec succès"}
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Échec de la suppression du moyen de paiement"
+            )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Erreur lors de la suppression: {str(e)}"
         )

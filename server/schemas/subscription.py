@@ -49,4 +49,24 @@ class InvoiceResponse(BaseModel):
 
 
 class InvoicesListResponse(BaseModel):
-    invoices: list[InvoiceResponse] 
+    invoices: list[InvoiceResponse]
+
+
+class PaymentMethodResponse(BaseModel):
+    id: str
+    brand: str
+    last4: str
+    exp_month: int
+    exp_year: int
+    funding: str
+    is_default: bool
+
+
+class PaymentMethodsListResponse(BaseModel):
+    payment_methods: list[PaymentMethodResponse]
+
+
+class SetupIntentResponse(BaseModel):
+    client_secret: str
+    setup_intent_id: str
+    publishable_key: str 

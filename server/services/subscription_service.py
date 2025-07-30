@@ -372,5 +372,65 @@ class SubscriptionService:
             print(f"Erreur lors de la récupération des factures: {e}")
             return []
 
+    async def get_workspace_payment_methods(self, workspace: Workspace) -> list[dict]:
+        settings = get_settings()
+
+        if not workspace.stripe_customer_id or not settings.subscription_stripe_enabled:
+            return []
+
+        try:
+            stripe_payment_methods = await stripe_service.list_payment_methods(
+                customer_id=workspace.stripe_customer_id
+            )
+
+            payment_methods = []
+            for pm in stripe_payment_methods.data:
+                if pm.card:
+                    payment_methods.append({
+                        'id': pm.id,
+                        'brand': pm.card.brand,
+                        'last4': pm.card.last4,
+                        'exp_month': pm.card.exp_month,
+                        'exp_year': pm.card.exp_year,
+                        'funding': pm.card.funding,
+                        'is_default': False  # On déterminera cela plus tard si nécessaire
+                    })
+
+            return payment_methods
+        except Exception as e:
+            print(f"Erreur lors de la récupération des moyens de paiement: {e}")
+            return []
+
+    async def create_payment_setup_intent(self, workspace: Workspace) -> dict:
+        settings = get_settings()
+
+        if not workspace.stripe_customer_id or not settings.subscription_stripe_enabled:
+            raise ValueError("Le workspace n'a pas d'ID client Stripe")
+
+        try:
+            setup_intent = await stripe_service.create_setup_intent(
+                customer_id=workspace.stripe_customer_id
+            )
+
+            return {
+                'client_secret': setup_intent.client_secret,
+                'setup_intent_id': setup_intent.id,
+                'publishable_key': settings.stripe_publishable_key
+            }
+        except Exception as e:
+            raise ValueError(f"Erreur lors de la création du setup intent: {e}")
+
+    async def remove_payment_method(self, workspace: Workspace, payment_method_id: str) -> bool:
+        settings = get_settings()
+
+        if not workspace.stripe_customer_id or not settings.subscription_stripe_enabled:
+            raise ValueError("Le workspace n'a pas d'ID client Stripe")
+
+        try:
+            await stripe_service.detach_payment_method(payment_method_id)
+            return True
+        except Exception as e:
+            raise ValueError(f"Erreur lors de la suppression du moyen de paiement: {e}")
+
 
 subscription_service = SubscriptionService() 

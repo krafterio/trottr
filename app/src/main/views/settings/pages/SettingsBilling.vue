@@ -140,33 +140,44 @@
                     <Button 
                         variant="outline" 
                         size="sm"
-                        @click="openStripePortal"
+                        @click="openAddPaymentMethodDialog"
                     >
                         <Plus class="h-4 w-4 mr-2" />
                         Ajouter une carte
                     </Button>
                 </div>
 
-                <div class="border rounded-lg p-4">
+                <div v-if="paymentMethods.length === 0" class="border rounded-lg p-4 text-center text-neutral-500">
+                    Aucun moyen de paiement enregistré
+                </div>
+
+                <div v-for="paymentMethod in paymentMethods" :key="paymentMethod.id" class="border rounded-lg p-4">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
-                            <div
-                                class="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded flex items-center justify-center">
+                            <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded flex items-center justify-center">
                                 <CreditCard class="h-4 w-4 text-white" />
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-neutral-900">•••• •••• •••• 4242</p>
-                                <p class="text-xs text-neutral-500">Expire 12/26</p>
+                                <p class="text-sm font-medium text-neutral-900">
+                                    {{ getCardBrandIcon(paymentMethod.brand) }} 
+                                    {{ paymentMethod.brand.toUpperCase() }} •••• {{ paymentMethod.last4 }}
+                                </p>
+                                <p class="text-xs text-neutral-500">
+                                    Expire {{ String(paymentMethod.exp_month).padStart(2, '0') }}/{{ paymentMethod.exp_year }}
+                                </p>
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <Badge class="bg-green-100 text-green-800">Par défaut</Badge>
+                            <Badge v-if="paymentMethod.is_default" class="bg-green-100 text-green-800">
+                                Par défaut
+                            </Badge>
                             <Button 
                                 variant="ghost" 
                                 size="sm"
-                                @click="openStripePortal"
+                                @click="removePaymentMethod(paymentMethod.id)"
+                                class="text-red-600 hover:text-red-700 hover:bg-red-50"
                             >
-                                <Edit class="h-4 w-4" />
+                                <Trash class="h-4 w-4" />
                             </Button>
                         </div>
                     </div>
@@ -270,6 +281,11 @@
         <BillingInfoDialog 
             v-model:open="showBillingDialog"
         />
+        
+        <AddPaymentMethodDialog 
+            v-model:open="showAddPaymentMethodDialog"
+            @payment-method-added="onPaymentMethodAdded"
+        />
     </div>
 </template>
 
@@ -278,13 +294,16 @@ import Badge from '@/common/components/ui/badge/Badge.vue'
 import { Button } from '@/common/components/ui/button'
 import { Label } from '@/common/components/ui/label'
 import { Separator } from '@/common/components/ui/separator'
-import { Calendar, CreditCard, Download, Edit, Plus, Users } from 'lucide-vue-next'
+import { Calendar, CreditCard, Download, Edit, Plus, Users, Trash } from 'lucide-vue-next'
 import { ref, onMounted } from 'vue'
 import { useFetcher } from '@/common/composables/fetcher'
 import BillingInfoDialog from '@/main/components/dialogs/BillingInfoDialog.vue'
 import { useWorkspaceStore } from '@/main/stores/workspace'
 import { Alert, AlertDescription } from '@/common/components/ui/alert'
 import { useRouter } from 'vue-router'
+import AddPaymentMethodDialog from '@/main/components/dialogs/AddPaymentMethodDialog.vue'
+import { bus, useBus } from '@/common/composables/bus'
+import { toast } from 'vue-sonner'
 
 const fetcher = useFetcher()
 const workspaceStore = useWorkspaceStore()
@@ -294,7 +313,9 @@ const billingInfo = ref(null)
 const loading = ref(false)
 const error = ref(null)
 const showBillingDialog = ref(false)
+const showAddPaymentMethodDialog = ref(false)
 const invoices = ref([])
+const paymentMethods = ref([])
 
 const fetchBillingInfo = async () => {
     try {
@@ -319,6 +340,61 @@ const fetchInvoices = async () => {
         invoices.value = []
     }
 }
+
+const fetchPaymentMethods = async () => {
+    try {
+        const response = await fetcher.get('/workspace/subscription/payment-methods')
+        paymentMethods.value = response.data.payment_methods || []
+    } catch (err) {
+        console.error('Erreur lors du chargement des moyens de paiement:', err)
+        paymentMethods.value = []
+    }
+}
+
+const openAddPaymentMethodDialog = () => {
+    showAddPaymentMethodDialog.value = true
+}
+
+const onPaymentMethodAdded = () => {
+    fetchPaymentMethods()
+}
+
+const removePaymentMethod = async (paymentMethodId) => {
+    // Vérifier si c'est le moyen de paiement par défaut
+    const paymentMethod = paymentMethods.value.find(pm => pm.id === paymentMethodId)
+    
+    if (paymentMethod?.is_default) {
+        toast.error('Impossible de supprimer le moyen de paiement par défaut. Veuillez d\'abord en définir un autre comme défaut.')
+        return
+    }
+
+    // Déclencher la modal de confirmation via le bus
+    bus.trigger('confirm-delete', {
+        title: 'Supprimer le moyen de paiement',
+        message: 'Êtes-vous sûr de vouloir supprimer cette carte ?',
+        itemName: `${paymentMethod.brand.toUpperCase()} •••• ${paymentMethod.last4}`,
+        confirmationText: 'Cette action est irréversible.',
+        confirmEvent: 'payment-method:delete-confirmed',
+        paymentMethodId: paymentMethodId
+    })
+}
+
+// Écouter la confirmation de suppression
+useBus(bus, 'payment-method:delete-confirmed', async (event) => {
+    const { paymentMethodId } = event.detail
+    
+    try {
+        await fetcher.delete(`/workspace/subscription/payment-method/${paymentMethodId}`)
+        await fetchPaymentMethods()
+        
+        // Fermer le dialog
+        bus.trigger('confirm-delete-dialog:close')
+    } catch (err) {
+        toast.error('Erreur lors de la suppression du moyen de paiement')
+        console.error('Erreur lors de la suppression:', err)
+        bus.trigger('confirm-delete-dialog:close')
+    }
+})
 
 const openStripePortal = async () => {
     try {
@@ -409,6 +485,7 @@ onMounted(() => {
     fetchBillingInfo()
     workspaceStore.fetchWorkspace()
     fetchInvoices()
+    fetchPaymentMethods()
 })
 
 const getInvoiceStatusClass = (status) => {
@@ -485,5 +562,14 @@ const getInvoiceAddress = () => {
     }
     
     return parts.length > 0 ? parts.join('<br />') : 'Non renseigné'
+}
+
+const getCardBrandIcon = (brand) => {
+    switch (brand.toLowerCase()) {
+        case 'visa': return '💳'
+        case 'mastercard': return '💳'
+        case 'amex': return '💳'
+        default: return '💳'
+    }
 }
 </script>

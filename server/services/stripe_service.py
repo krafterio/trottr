@@ -124,6 +124,23 @@ class StripeService:
             status='paid'
         )
 
+    async def list_payment_methods(self, customer_id: str) -> stripe.ListObject:
+        return stripe.PaymentMethod.list(
+            customer=customer_id,
+            type='card'
+        )
+
+    async def create_setup_intent(self, customer_id: str) -> stripe.SetupIntent:
+        return stripe.SetupIntent.create(
+            customer=customer_id,
+            payment_method_types=['card'],
+            usage='off_session',
+            confirm=False
+        )
+
+    async def detach_payment_method(self, payment_method_id: str) -> stripe.PaymentMethod:
+        return stripe.PaymentMethod.detach(payment_method_id)
+
     async def sync_workspace_plan_to_stripe(self, service_plan: ServicePlan) -> dict[str, str]:
         if not service_plan.name or not service_plan.type or not service_plan.period:
             raise ValueError("Le plan doit avoir un nom, un type et une période")
