@@ -197,12 +197,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
         }
     })
 
-    watch(() => isValid.value, async (valid) => {
-        if (!valid) {
-            bus.trigger('workspace:invalid-license')
-        }
-    })
-
     return {
         workspace,
         name,
