@@ -1,7 +1,7 @@
 from edgy import fields, Model
 from typing import Any
 
-from pydantic import ConfigDict, model_validator
+from pydantic import ConfigDict
 
 from core import context
 
@@ -62,6 +62,53 @@ class WorkspaceableMixin(Model):
 
         if workspace and (not hasattr(self, "workspace") or self.workspace != workspace):
             self.workspace = workspace
+
+        return await super().save(force_insert, values, force_save)
+
+
+class BlameableMixin(Model):
+    """
+    Mixin to automatically add created_by and updated_by fields.
+    
+    This mixin adds foreign key relationships to track which user created
+    and last updated the record.
+    
+    Usage:
+        class MyModel(BaseModel, BlameableMixin):
+            # Your model fields here
+            pass
+    """
+    class Meta:
+        abstract = True
+
+    model_config = ConfigDict(
+        extra='ignore',
+    )
+
+    created_by = fields.ForeignKey(
+        "User",
+        on_delete="SET NULL",
+        null=True,
+        related_name=False,
+        label="Créé par"
+    )
+    
+    updated_by = fields.ForeignKey(
+        "User",
+        on_delete="SET NULL",
+        null=True,
+        related_name=False,
+        label="Mis à jour par"
+    )
+
+    async def save(self: Model, force_insert: bool = False, values: dict[str, Any] | set[str] | None = None,
+                   force_save: bool | None = None) -> Model:
+        current_user = context.get_user()
+        
+        if current_user:
+            if not hasattr(self, "id") or not self.id:
+                self.created_by = current_user
+            self.updated_by = current_user
 
         return await super().save(force_insert, values, force_save)
 
