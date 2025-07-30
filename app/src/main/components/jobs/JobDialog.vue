@@ -85,12 +85,19 @@
                 <Button variant="outline" @click="handleClose" :disabled="loading">
                     Annuler
                 </Button>
-                <Button @click="handleSaveAndClose" :disabled="loading" variant="outline">
-                    {{ loading ? 'Sauvegarde...' : 'Enregistrer et fermer' }}
-                </Button>
-                <Button @click="handleSaveAndView" :disabled="loading">
-                    {{ loading ? 'Sauvegarde...' : 'Enregistrer et voir' }}
-                </Button>
+                <div v-if="!isEdit">
+                    <Button @click="handleSaveAndClose" :disabled="loading" variant="outline">
+                        {{ loading ? 'Sauvegarde...' : 'Enregistrer et fermer' }}
+                    </Button>
+                    <Button @click="handleSaveAndView" :disabled="loading">
+                        {{ loading ? 'Sauvegarde...' : 'Enregistrer et voir' }}
+                    </Button>
+                </div>
+                <div v-else>
+                    <Button @click="handleSaveAndClose" :disabled="loading">
+                        {{ loading ? 'Sauvegarde...' : 'Enregistrer' }}
+                    </Button>
+                </div>
             </DialogFooter>
         </DialogContent>
     </Dialog>
@@ -224,13 +231,13 @@ const handleSubmit = async (saveAndView = false) => {
             name: form.name,
             description: form.description,
             customer_reference: form.customer_reference,
-            customer_company: form.customer_company,
-            customer_contact: form.customer_contact,
+            customer_company: form.customer_company?.id || form.customer_company,
+            customer_contact: form.customer_contact?.id || form.customer_contact,
             priority: form.priority,
             category: form.category?.id || form.category,
             status: form.status?.id || form.status,
-            site: form.site,
-            operator: form.operator,
+            site: form.site?.id || form.site,
+            operator: form.operator?.id || form.operator,
             scheduled_start: form.scheduled_start ? new Date(form.scheduled_start).toISOString() : null,
             scheduled_end: form.scheduled_end ? new Date(form.scheduled_end).toISOString() : null
         }
@@ -281,8 +288,8 @@ useBus(bus, 'open-job-dialog', (event) => {
             name: data.name || '',
             description: data.description || '',
             customer_reference: data.customer_reference || '',
-            customer_company: data.customer_company?.id || null,
-            customer_contact: data.customer_contact?.id || null,
+            customer_company: data.customer_company?.id || data.customer_company || null,
+            customer_contact: data.customer_contact?.id || data.customer_contact || null,
             priority: data.priority || 'normal',
             category: data.category || null,
             status: data.status || null,

@@ -7,6 +7,16 @@ async def init_demo_diagnostics(workspace_id: int):
     if not workspace:
         print(f"Workspace {workspace_id} not found")
         return
+    
+    # Supprimer tous les diagnostics existants du workspace
+    existing_diagnostics = await JobDiagnostic.query.filter(workspace=workspace).all()
+    deleted_count = 0
+    for diagnostic in existing_diagnostics:
+        await diagnostic.delete()
+        deleted_count += 1
+
+    if deleted_count > 0:
+        print(f"Deleted {deleted_count} existing diagnostics")
 
     diagnostics_data = [
         # Climatisation

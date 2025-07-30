@@ -94,6 +94,23 @@
                                     <p class="text-xs text-neutral-500">Durée prévue</p>
                                 </div>
                             </div>
+                            <div class="flex items-start space-x-3">
+                                <Avatar class="h-8 w-8 rounded-sm" v-if="job?.operator">
+                                    <AvatarImage v-if="job?.operator?.avatar"
+                                        :src="`/storage/download/${job?.operator?.avatar}`" v-fetcher-src.lazy
+                                        :alt="job?.operator?.name" />
+                                    <AvatarFallback class="bg-neutral-800 text-neutral-300 rounded-sm">
+                                        {{ getOperatorInitials(job.operator) }}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <User v-else class="h-7 w-7 text-neutral-400" :stroke-width="1.1" />
+                                <div>
+                                    <p class="text-sm font-medium text-neutral-900" v-if="job?.operator">{{
+                                        job?.operator?.name }}</p>
+                                    <p class="text-sm font-medium text-neutral-900" v-else>À assigner</p>
+                                    <p class="text-xs text-neutral-500">Opérateur</p>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="mt-4 pt-4 border-t border-dashed ps-11">
@@ -543,6 +560,7 @@
 </template>
 
 <script setup>
+import { Avatar, AvatarFallback, AvatarImage } from '@/common/components/ui/avatar'
 import Badge from '@/common/components/ui/badge/Badge.vue'
 import { Button } from '@/common/components/ui/button'
 import Card from '@/common/components/ui/card/Card.vue'
@@ -782,6 +800,15 @@ const getClientName = () => {
         return job.value.customer_contact.full_name
     }
     return 'Client non défini'
+}
+
+const getOperatorInitials = (operator) => {
+    if (!operator) return 'U'
+    if (operator.initials) return operator.initials
+    if (operator.name) {
+        return operator.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    }
+    return operator.email?.[0]?.toUpperCase() || 'U'
 }
 
 const getClientInfo = computed(() => {
