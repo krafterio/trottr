@@ -274,9 +274,9 @@ const router = createRouter({
       }
     },
     {
-      path: '/operations',
-      name: 'operations',
-      component: () => import('@/main/views/gestion/OperationsView.vue'),
+      path: '/tasks',
+      name: 'tasks',
+      component: () => import('@/main/views/gestion/JobsTasksView.vue'),
       meta: {
         requiresAuth: true,
         metaTitle: 'Opérations'

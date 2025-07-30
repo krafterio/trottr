@@ -37,6 +37,8 @@ from api.site import router as site_router
 from api.job import router as job_router
 from api.job_diagnostic import router as job_diagnostic_router
 from api.job_job_diagnostic import router as job_job_diagnostic_router
+from api.job_task import router as job_task_router
+from api.job_job_task import router as job_job_task_router
 from core.api_route_model.router import register_api_route_models, register_admin_api_route_models
 from core.api_route_model.standard_actions import register_standard_api_route_model_actions
 from core.app import App
@@ -181,6 +183,8 @@ def app(app_class: type[App] = App) -> App:
     api_router.include_router(job_router, prefix="/jobs", tags=["job"])
     api_router.include_router(job_diagnostic_router, prefix="/job-diagnostics", tags=["job-diagnostic"])
     api_router.include_router(job_job_diagnostic_router, prefix="/job-job-diagnostic", tags=["job-job-diagnostic"])
+    api_router.include_router(job_task_router, prefix="/job-tasks", tags=["job-task"])
+    api_router.include_router(job_job_task_router, prefix="/job-job-tasks", tags=["job-job-task"])
     api_router.include_router(presence_router, tags=["presence"])
     api_router.include_router(search_router, prefix="/search", tags=["search"])
     api_router.include_router(import_router, prefix="/import", tags=["import"])

@@ -114,7 +114,7 @@ const moduleLinks = {
     ],
     gestion: computed(() => {
         const baseLinks = [
-            { href: '/operations', label: 'Opérations' },
+            { href: '/tasks', label: 'Tâches d\'intervention' },
             { href: '/stock', label: 'Stock' },
             { href: '/produits', label: 'Fiches produit' },
         ]
@@ -146,7 +146,7 @@ const currentModule = computed(() => {
         return 'dashboard'
     } else if (name === 'documents') {
         return 'documents'
-    } else if (name === 'stock' || name === 'operations' || name === 'produits' || name === 'flotte' || name === 'gestion' || name === 'diagnostics') {
+    } else if (name === 'stock' || name === 'tasks' || name === 'produits' || name === 'flotte' || name === 'gestion' || name === 'diagnostics') {
         return 'gestion'
     } else if (name === 'operateurs' || name === 'absences' || name === 'rh') {
         return 'rh'
