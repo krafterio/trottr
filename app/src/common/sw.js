@@ -30,12 +30,18 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+    const url = new URL(event.request.url);
+    const pathname = url.pathname;
+    const isEssentialAsset = ESSENTIAL_ASSETS.some(asset => {
+        return pathname === asset || (asset === '/' && pathname === '/');
+    });
+
     if (event.request.mode === 'navigate') {
         event.respondWith(
             fetch(event.request)
                 .catch(() => caches.match(OFFLINE_PAGE))
         );
-    } else {
+    } else if (isEssentialAsset) {
         event.respondWith(
             caches.match(event.request)
                 .then(response => response || fetch(event.request))
