@@ -23,6 +23,7 @@
 		<ConfirmDeleteDialog />
 		<JobSiteDialog />
 		<SiteDialog />
+		<WorkspaceInvalidDialog/>
 	</div>
 </template>
 
@@ -34,6 +35,7 @@ import AppSidebar from '@/main/components/AppSidebar.vue'
 import CompanyDialog from '@/main/components/companies/CompanyDialog.vue'
 import ContactDialog from '@/main/components/contacts/ContactDialog.vue'
 import ConfirmDeleteDialog from '@/main/components/dialogs/ConfirmDeleteDialog.vue'
+import WorkspaceInvalidDialog from '@/main/components/dialogs/WorkspaceInvalidDialog.vue'
 import JobDialog from '@/main/components/jobs/JobDialog.vue'
 import AppNavbar from '@/main/components/navbar/AppNavbar.vue'
 import JobSiteDialog from '@/main/components/sites/JobSiteDialog.vue'
