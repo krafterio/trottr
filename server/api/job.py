@@ -123,7 +123,7 @@ async def update_job(
         if not operator:
             raise HTTPException(status_code=400, detail="Operator not found")
         else:
-            await job_activity.create_tracking_update(job, 'operator', getattr('id', job.operator), update_data.get("operator"))
+            await job_activity.create_tracking_update(job, 'operator', job.operator.id if job.operator else None, update_data.get("operator"))
     
     if update_data.get("category"):
         category = await JobCategory.query.get(id=update_data["category"])
