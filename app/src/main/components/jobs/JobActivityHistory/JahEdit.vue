@@ -13,7 +13,7 @@
                     </AvatarFallback>
                 </Avatar>
                 <p class="text-sm"><strong>{{ activity.created_by.name }}</strong> {{
-                    getActivitySentence(activity.field_name) }} <strong>{{ activity.new_value }}</strong></p>
+                    getActivitySentence(activity.field_name) }} <strong>{{ activity?.new_status?.name || activity?.new_operator?.name || activity.new_value }}</strong></p>
             </div>
             <span class="text-xs flex items-center text-neutral-500">
                 <Calendar class="h-3 w-3 mr-2" />

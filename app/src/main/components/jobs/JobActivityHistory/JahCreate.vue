@@ -12,7 +12,7 @@
                     <AvatarFallback>{{ activity.created_by?.name?.charAt(0)?.toUpperCase() || 'U' }}
                     </AvatarFallback>
                 </Avatar>
-                <p class="text-sm">Intervention créée par <strong>{{ activity.created_by.name }}</strong></p>
+                <p class="text-sm">Intervention créée par <strong>{{ activity.created_by.name || 'utilisateur sans nom' }}</strong></p>
             </div>
             <span class="text-xs flex items-center text-neutral-500">
                 <Calendar class="h-3 w-3 mr-2" />
