@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic
+from typing import TypeVar, Generic, Any
 
 from pydantic import BaseModel, computed_field
 
@@ -23,7 +23,7 @@ class Pagination(BaseModel, Generic[M]):
         limit (int): Number of items per page.
         offset (int): Index of the first item in the current page.
     """
-    items: list[M]
+    items: list[Any]
     total: int
     limit: int
     offset: int

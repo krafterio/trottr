@@ -13,7 +13,7 @@ from core.api_route_model.params import inject_order_by, OrderByQuery, FieldSele
 
 from core.api_route_model.registry import TypeModel, RouteModelActionOptions, view_transformer_registry
 from core.api_route_model.view_transformer import PrePaginateViewTransformer, PostPaginateViewTransformer, \
-    GetViewTransformer
+    GetViewTransformer, GetViewsTransformer
 from schemas.base import Pagination
 
 
@@ -72,6 +72,8 @@ async def list_items_action[M = TypeModel](
     fields: str | None = None,
     filters: str | None = None,
 ) -> Pagination[type[M] | dict[str, Any]]:
+    context: dict[str, Any] = {}
+
     try:
         query = query or model_cls.query
         query = filter_query(query, filters)
@@ -79,7 +81,7 @@ async def list_items_action[M = TypeModel](
         query = optimize_query_filter_fields(query, fields)
 
         for transformer in view_transformer_registry.get_transformers(PrePaginateViewTransformer, model_cls):
-            transformer.pre_paginate(request, query)
+            query = await transformer.pre_paginate(request, query, context)
 
         total = await query.count()
         items = await query.limit(limit).offset(offset).all()
@@ -91,24 +93,27 @@ async def list_items_action[M = TypeModel](
         else:
             raise e
 
+    for transformer in view_transformer_registry.get_transformers(GetViewsTransformer, model_cls):
+        await transformer.get_views(request, items, context)
+
     result_items = []
 
     for item in items:
         item_dump = filter_selected_fields(item, fields)
 
         for transformer in view_transformer_registry.get_transformers(GetViewTransformer, model_cls):
-            item_dump = transformer.get_view(request, item, item_dump)
+            item_dump = await transformer.get_view(request, item, item_dump, context)
 
         result_items.append(item_dump)
 
-    result = {
-        "limit": limit,
-        "offset": offset,
-        "total": total,
-        "items": result_items,
-    }
+    result = Pagination(
+        items=result_items,
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
 
     for transformer in view_transformer_registry.get_transformers(PostPaginateViewTransformer, model_cls):
-        transformer.post_paginate(request, result)
+        await transformer.post_paginate(request, result, context)
 
     return cast(Pagination[type[M]], result)

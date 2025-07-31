@@ -84,10 +84,10 @@ class RouteModelRegistry:
 class ViewTransformerRegistry:
     """Registry for api route view transformers."""
 
-    _transformers: defaultdict[TypeModel | None, list[BaseViewTransformer]] = defaultdict()
+    _transformers: defaultdict[TypeModel | None, list[BaseViewTransformer]] = defaultdict(lambda: [])
 
     def register_transformer(self, transformer: BaseViewTransformer, model_cls: TypeModel | None = None):
-        self._transformers[model_cls].append(transformer)
+        self._transformers[model_cls].append(transformer())
 
     def has_transformers[T = BaseViewTransformer](self, transformer_cls: Type[T], model_cls: TypeModel) -> bool:
         return len(self.get_transformers(transformer_cls, model_cls)) > 0

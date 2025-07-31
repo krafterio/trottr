@@ -67,7 +67,7 @@ async def create_item_action[M = TypeModel](
         item_dump = filter_selected_fields(item, fields)
 
         for transformer in view_transformer_registry.get_transformers(GetViewTransformer, model_cls):
-            item_dump = transformer.get_view(request, item, item_dump)
+            item_dump = await transformer.get_view(request, item, item_dump, {})
 
         return item_dump
     except ValidationError as e:
