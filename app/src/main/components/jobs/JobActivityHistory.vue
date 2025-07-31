@@ -23,6 +23,14 @@
                 <JahCreate :activity="activity" />
             </div>
 
+            <div v-else-if="activity.type === 'tracking_update'">
+                <JahEdit :activity="activity" />
+            </div>
+
+            <div v-else-if="activity.type === 'note'">
+                <JahNote :activity="activity" />
+            </div>
+
             <div v-else class="flex items-start space-x-4">
                 <div
                     class="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center flex-shrink-0">
@@ -82,11 +90,14 @@
 
 <script setup>
 import { Avatar, AvatarFallback, AvatarImage } from '@/common/components/ui/avatar'
+import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useFilters } from '@/common/composables/filters'
 import { Calendar, Edit, MessageSquare, Plus, StickyNote } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
 import JahCreate from './JobActivityHistory/JahCreate.vue'
+import JahEdit from './JobActivityHistory/JahEdit.vue'
+import JahNote from './JobActivityHistory/JahNote.vue'
 
 const props = defineProps({
     jobId: {
@@ -101,6 +112,10 @@ const error = ref(null)
 
 const fetcher = useFetcher()
 const { normalizeJson } = useFilters()
+
+useBus(bus, 'job-activity-history-refresh', () => {
+    loadActivities()
+})
 
 const loadActivities = async () => {
     try {

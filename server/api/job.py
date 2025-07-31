@@ -98,6 +98,7 @@ async def update_job(
     job_activity: JobActivityService = Depends(),
 ):
     job = await Job.query.get(id=job_id)
+    
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
@@ -143,6 +144,28 @@ async def update_job(
     await job.save()
     
     return await Job.query.select_related("customer_company", "customer_contact", "site", "operator", "category", "status").get(id=job.id)
+
+@router.post("/{job_id}/notes", response_model=dict)
+async def create_job_note(
+    job_id: int,
+    note_data: dict,
+    job_activity: JobActivityService = Depends(),
+    current_user: CurrentUser = Depends(get_current_user)
+):
+    job = await Job.query.get(id=job_id)
+    
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    note_content = note_data.get("content")
+    if not note_content:
+        raise HTTPException(status_code=400, detail="Note content is required")
+    
+    activity = await job_activity.create_note(job, note_content)
+    
+    return {"message": "Note created successfully", "activity_id": activity.id}
+
+
 
 @router.delete("/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_job(

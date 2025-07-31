@@ -191,7 +191,7 @@
                                             <File class="h-4 w-4" />
                                             Ajouter une pièce jointe
                                         </Button>
-                                        <Button variant="outline">
+                                        <Button variant="outline" @click="openNoteDialog">
                                             <Plus class="h-4 w-4" />
                                             Ajouter une note
                                         </Button>
@@ -258,7 +258,7 @@
                                             <div class="flex items-center justify-between text-xs text-neutral-500">
                                                 <span>{{ formatDate(diagnostic.created_at) }}</span>
                                                 <span v-if="diagnostic.created_by">{{ diagnostic.created_by.email
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                         </div>
                                     </VueDraggable>
@@ -359,7 +359,7 @@
                                 </div>
                                 <div class="text-sm">
                                     <span class="text-sm text-neutral-500" v-if="getTimeUntilJob()">{{ getTimeUntilJob()
-                                        }} - </span>
+                                    }} - </span>
                                     <span :class="job?.scheduled_start ? 'text-neutral-900' : 'text-neutral-400'">{{
                                         job?.scheduled_start ?
                                             formatDate(job.scheduled_start) : 'Non planifié' }}</span>
@@ -382,7 +382,7 @@
                                 </div>
                                 <div class="text-sm">
                                     <span class="text-secondary-dark me-2" v-if="job?.scheduled_end">{{ getDuration()
-                                    }}</span>
+                                        }}</span>
 
                                     <span :class="job?.scheduled_end ? 'text-neutral-900' : 'text-neutral-400'">{{
                                         job?.scheduled_end ? formatDate(job.scheduled_end)
@@ -598,6 +598,35 @@
 
     <PlannerDialog :open="plannerDialogOpen" :job="job" @update:open="plannerDialogOpen = $event"
         @assigned="handleJobAssigned" />
+
+    <Dialog :open="noteDialogOpen" @update:open="noteDialogOpen = $event">
+        <DialogContent class="sm:max-w-[500px]">
+            <DialogHeader>
+                <DialogTitle>{{ isEditNote ? 'Modifier la note' : 'Ajouter une note' }}</DialogTitle>
+                <DialogDescription>
+                    Note interne de l'intervention.
+                    Cette note sera visible par tous les membres de l'équipe.
+                </DialogDescription>
+            </DialogHeader>
+
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <Label for="note-content">Contenu de la note</Label>
+                    <Textarea id="note-content" v-model="noteContent" placeholder="Saisissez votre note ici..."
+                        :rows="6" class="resize-none" />
+                </div>
+            </div>
+
+            <DialogFooter>
+                <Button variant="outline" @click="noteDialogOpen = false" :disabled="noteLoading">
+                    Annuler
+                </Button>
+                <Button @click="createNote" :disabled="noteLoading || !noteContent.trim()">
+                    {{ noteLoading ? 'Enregistrement...' : (isEditNote ? 'Modifier la note' : 'Ajouter la note') }}
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
 </template>
 
 <script setup>
@@ -619,6 +648,7 @@ import { Textarea } from '@/common/components/ui/textarea'
 import { bus, useBus } from '@/common/composables/bus'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useJob } from '@/common/composables/useJob'
+import JobActivityHistory from '@/main/components/jobs/JobActivityHistory.vue'
 import { useWorkspaceStore } from '@/main/stores/workspace'
 import {
     AlertTriangle,
@@ -657,7 +687,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import PlannerDialog from './PlannerDialog.vue'
 import JobJobTasks from './tabs/JobJobTasks.vue'
-import JobActivityHistory from '@/main/components/jobs/JobActivityHistory.vue'
 const props = defineProps({
     inDialog: {
         type: Boolean,
@@ -675,6 +704,14 @@ const job = ref(null)
 const loading = ref(true)
 const inDialog = ref(false)
 const jobStatuses = ref([])
+const noteDialogOpen = ref(false)
+const noteContent = ref('')
+const noteLoading = ref(false)
+const isEditNote = ref(false)
+const editingNoteId = ref(null)
+const isDeleteNote = ref(false)
+const deletingNoteId = ref(null)
+
 
 const fetchJobStatuses = async () => {
     try {
@@ -981,6 +1018,99 @@ const openPlannerDialog = () => {
     plannerDialogOpen.value = true
 }
 
+const openNoteDialog = () => {
+    noteDialogOpen.value = true
+    noteContent.value = ''
+    isEditNote.value = false
+    editingNoteId.value = null
+}
+
+const openEditNoteDialog = (event) => {
+    const data = event.detail
+    if (!data || !data.activity) {
+        console.error('Données invalides pour l\'édition de note:', data)
+        return
+    }
+
+    if (data.mode === 'delete') {
+        // Mode suppression
+        isDeleteNote.value = true
+        deletingNoteId.value = data.activity.id
+        bus.trigger('confirm-delete', {
+            title: 'Supprimer la note',
+            message: 'Êtes-vous sûr de vouloir supprimer cette note ?',
+            itemName: 'Note',
+            confirmationText: 'Cette action est irréversible.',
+            confirmEvent: 'confirm-delete-note:confirmed'
+        })
+    } else {
+        // Mode édition
+        if (!data.content) {
+            console.error('Contenu manquant pour l\'édition de note:', data)
+            return
+        }
+
+        noteDialogOpen.value = true
+        noteContent.value = data.content
+        isEditNote.value = true
+        editingNoteId.value = data.activity.id
+        isDeleteNote.value = false
+        deletingNoteId.value = null
+    }
+}
+
+const deleteNote = async () => {
+    if (!deletingNoteId.value) return
+
+    try {
+        await fetcher.delete(`/job_activities/${deletingNoteId.value}`)
+        toast.success('Note supprimée avec succès')
+        bus.trigger('confirm-delete-dialog:close')
+        bus.trigger('job-activity-history-refresh')
+        deletingNoteId.value = null
+        isDeleteNote.value = false
+    } catch (error) {
+        console.error('Erreur lors de la suppression de la note:', error)
+        toast.error('Erreur lors de la suppression de la note')
+        bus.trigger('confirm-delete-dialog:close')
+    }
+}
+
+const createNote = async () => {
+    if (!noteContent.value || !noteContent.value.trim()) {
+        toast.error('Veuillez saisir le contenu de la note')
+        return
+    }
+
+    noteLoading.value = true
+    try {
+        if (isEditNote.value) {
+            await fetcher.patch(`/job_activities/${editingNoteId.value}`, {
+                content: noteContent.value.trim()
+            })
+            toast.success('Note modifiée avec succès')
+        } else {
+            await fetcher.post(`/jobs/${route.params.id}/notes`, {
+                content: noteContent.value.trim()
+            })
+            toast.success('Note ajoutée avec succès')
+        }
+
+        noteDialogOpen.value = false
+        noteContent.value = ''
+        isEditNote.value = false
+        editingNoteId.value = null
+
+        // Déclencher l'event de refresh via le bus
+        bus.trigger('job-activity-history-refresh')
+    } catch (error) {
+        console.error('Erreur lors de l\'ajout/modification de la note:', error)
+        toast.error('Erreur lors de l\'ajout/modification de la note')
+    } finally {
+        noteLoading.value = false
+    }
+}
+
 const handleJobAssigned = (data) => {
     if (data.updatedJob) {
         job.value = data.updatedJob
@@ -1064,9 +1194,17 @@ useBus(bus, 'confirm-delete-job-diagnostic:confirmed', () => {
     deleteDiagnostic()
 })
 
+useBus(bus, 'confirm-delete-note:confirmed', () => {
+    deleteNote()
+})
+
 useBus(bus, 'job-site-updated', (data) => {
     // Recharger le job pour avoir les données mises à jour
     fetchJob()
+})
+
+useBus(bus, 'open-note-dialog', (data) => {
+    openEditNoteDialog(data)
 })
 
 onMounted(() => {

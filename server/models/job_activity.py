@@ -29,8 +29,8 @@ class JobActivityValueType(str, Enum):
     get=True,
     export=False,
     create=False,
-    patch=False,
-    delete=False,
+    patch=True,
+    delete=True,
 )
 class JobActivity(BaseModel, WorkspaceableMixin, BlameableMixin):
     """Model for logging job activities and tracking changes"""
