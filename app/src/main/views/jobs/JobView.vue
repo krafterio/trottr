@@ -1171,7 +1171,10 @@ const removeOperator = async () => {
 }
 
 const openAttachFileDialog = () => {
-    bus.trigger('open-attach-file-dialog')
+    bus.trigger('open-attach-file-dialog', { 
+        jobId: parseInt(route.params.id),
+        attachExistingPicture: false 
+    })
 }
 
 useBus(bus, 'job-saved', () => {

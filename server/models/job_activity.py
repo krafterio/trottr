@@ -12,6 +12,7 @@ class JobActivityType(str, Enum):
     note = "note"
     tracking_create = "tracking_create"
     tracking_update = "tracking_update"
+    attachments = "attachments"
 
 
 class JobActivityValueType(str, Enum):

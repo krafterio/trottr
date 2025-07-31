@@ -410,7 +410,10 @@ const formatDate = (dateString) => {
 }
 
 const openAttachFileDialog = () => {
-    bus.trigger('open-attach-file-dialog', { attachExistingPicture: true })
+    bus.trigger('open-attach-file-dialog', { 
+        jobId: props.jobId,
+        attachExistingPicture: true 
+    })
 }
 
 const handleDeleteReport = (report) => {

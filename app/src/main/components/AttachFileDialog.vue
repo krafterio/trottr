@@ -225,11 +225,13 @@ import { Button } from '@/common/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/common/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/common/components/ui/tabs'
 import { bus, useBus } from '@/common/composables/bus'
+import { useFetcher } from '@/common/composables/fetcher'
 
 import { Check, FileText, Image, Trash2, Upload, X } from 'lucide-vue-next'
 import { computed, reactive, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 
+const fetcher = useFetcher()
 const dialogOpen = ref(false)
 const isDragOver = ref(false)
 const fileInput = ref(null)
@@ -238,6 +240,7 @@ const activeTab = ref('upload')
 const showExistingPictures = ref(false)
 const loadingGallery = ref(false)
 const existingPictures = reactive([])
+const currentJobId = ref(null)
 let fileIdCounter = 0
 
 const selectedPicturesCount = computed(() => {
@@ -248,11 +251,11 @@ const triggerFileInput = () => {
     fileInput.value?.click()
 }
 
-const handleDragOver = (e) => {
+const handleDragOver = () => {
     isDragOver.value = true
 }
 
-const handleDragLeave = (e) => {
+const handleDragLeave = () => {
     isDragOver.value = false
 }
 
@@ -375,20 +378,42 @@ const togglePictureSelection = (picture) => {
 }
 
 const uploadFiles = async () => {
+    if (!currentJobId.value) {
+        toast.error('ID du job manquant')
+        return
+    }
+
     try {
-        if (activeTab.value === 'upload') {
-            toast.success(`${uploadedFiles.length} fichier(s) envoyé(s) avec succès`)
-        } else {
+        if (activeTab.value === 'upload' && uploadedFiles.length > 0) {
+            const formData = new FormData()
+
+            uploadedFiles.forEach(fileObj => {
+                formData.append('files', fileObj.file)
+            })
+
+            const response = await fetcher.post(`/job_attachments/${currentJobId.value}/upload`, formData)
+
+            if (response.data) {
+                const { success_count, error_count, errors } = response.data
+
+                if (success_count > 0) {
+                    toast.success(`${success_count} fichier(s) envoyé(s) avec succès`)
+                }
+
+                if (error_count > 0) {
+                    errors.forEach(error => toast.error(error))
+                }
+            }
+        } else if (activeTab.value === 'gallery') {
             const selectedPictures = existingPictures.filter(p => p.selected)
             toast.success(`${selectedPictures.length} photo(s) sélectionnée(s) avec succès`)
         }
+
         dialogOpen.value = false
         clearFiles()
-        // Reset selected pictures
         existingPictures.forEach(p => p.selected = false)
     } catch (error) {
-        console.error('Erreur lors de l\'upload:', error)
-        toast.error('Erreur lors de l\'envoi des fichiers')
+        toast.error(error?.data?.detail || 'Erreur lors de l\'envoi des fichiers')
     }
 }
 
@@ -406,12 +431,16 @@ const handleTabChange = (newTab) => {
 
 
 useBus(bus, 'open-attach-file-dialog', (event) => {
-    console.log('Received event:', event)
     const data = event.detail || event
-    console.log('Extracted data:', data)
+
     showExistingPictures.value = data?.attachExistingPicture || false
-    console.log('showExistingPictures:', showExistingPictures.value)
+
+    if (data?.jobId) {
+        currentJobId.value = data.jobId
+    }
+
     dialogOpen.value = true
+
     if (showExistingPictures.value) {
         loadExistingPictures()
     }
