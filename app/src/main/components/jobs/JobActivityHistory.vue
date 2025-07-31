@@ -136,8 +136,6 @@ const loadActivities = async () => {
         })
 
         activities.value = response.data.items || []
-
-        console.log(activities.value)
     } catch (err) {
         error.value = err.message || 'Erreur lors du chargement'
         console.error('Erreur lors du chargement des activités:', err)

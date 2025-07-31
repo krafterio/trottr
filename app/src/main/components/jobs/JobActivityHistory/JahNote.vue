@@ -2,7 +2,7 @@
     <div class="flex items-start space-x-4">
         <div
             class="w-6 h-6 bg-primary text-primary-foreground border border-primary rounded-full flex items-center justify-center flex-shrink-0">
-            <Pen class="h-3 w-3" />
+            <MessageSquareText class="h-3 w-3" />
         </div>
         <div class="flex flex-col flex-1">
             <div class="flex justify-between">
@@ -57,7 +57,7 @@ import Card from '@/common/components/ui/card/Card.vue'
 import CardContent from '@/common/components/ui/card/CardContent.vue'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu'
 import { bus } from '@/common/composables/bus'
-import { Calendar, Edit, MoreVertical, Pen, Trash } from 'lucide-vue-next'
+import { Calendar, Edit, MessageSquareText, MoreVertical, Trash } from 'lucide-vue-next'
 
 const props = defineProps({
     activity: {
