@@ -1,12 +1,10 @@
-import edgy
 from edgy import fields
 from enum import Enum
 
 from core.api_route_model import api_route_model
-from .base import BaseModel
-from .mixins import WorkspaceableMixin, BlameableMixin
-from .job import Job
-from .user import User
+from models.base import BaseModel
+from models.mixins import WorkspaceableMixin, BlameableMixin
+from models.job import Job
 
 
 class JobActivityType(str, Enum):
@@ -34,50 +32,45 @@ class JobActivityValueType(str, Enum):
 )
 class JobActivity(BaseModel, WorkspaceableMixin, BlameableMixin):
     """Model for logging job activities and tracking changes"""
-    
+
     class Meta:
         tablename = "job_activities"
-        
+
     job = fields.ForeignKey(
-        Job, 
-        on_delete="CASCADE", 
+        Job,
+        on_delete="CASCADE",
         related_name="activities",
-        label="Job"
+        label="Job",
     )
-    
+
     type = fields.ChoiceField(
         JobActivityType,
-        label="Type d'activité"
+        label="Type d'activité",
     )
-    
+
     content = fields.TextField(
         null=True,
-        blank=True,
-        label="Contenu"
+        label="Contenu",
     )
-    
+
     field_name = fields.CharField(
         max_length=255,
         null=True,
-        blank=True,
-        label="Nom du champ"
+        label="Nom du champ",
     )
-    
+
     value_type = fields.ChoiceField(
         JobActivityValueType,
         null=True,
-        blank=True,
-        label="Type de valeur"
+        label="Type de valeur",
     )
-    
+
     old_value = fields.TextField(
         null=True,
-        blank=True,
-        label="Ancienne valeur"
+        label="Ancienne valeur",
     )
-    
+
     new_value = fields.TextField(
         null=True,
-        blank=True,
-        label="Nouvelle valeur"
-    ) 
+        label="Nouvelle valeur",
+    )

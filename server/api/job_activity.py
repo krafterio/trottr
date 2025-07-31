@@ -1,3 +1,4 @@
+import json
 from typing import Any
 
 from edgy import QuerySet
@@ -7,7 +8,7 @@ from starlette.requests import Request
 from core.api_route_model.params import filter_selected_fields
 from core.api_route_model.registry import view_transformer_registry
 from core.api_route_model.view_transformer import PrePaginateViewTransformer, GetViewTransformer, GetViewsTransformer
-from models.job_activity import JobActivity
+from models.job_activity import JobActivity, JobActivityValueType
 from models.job_status import JobStatus
 from models.user import User
 
@@ -61,6 +62,25 @@ class JobActivityGetViewTransformer(GetViewTransformer):
                 item_dump['old_operator'] = context['operators'][int(item.old_value)] if int(item.old_value) in context['operators'] else None
             if item.new_value:
                 item_dump['new_operator'] = context['operators'][int(item.new_value)] if int(item.new_value) in context['operators'] else None
+
+        if item.value_type == JobActivityValueType.object:
+            try:
+                item_dump['old_value'] = json.loads(item.old_value)
+
+                if 'operator' in item_dump['old_value'] and item_dump['old_value']['operator'] is not None:
+                    job_operator = await User.query.filter(id=item_dump['old_value']['operator']).first()
+                    item_dump['old_value']['operator'] = filter_selected_fields(job_operator, ','.join(['name', 'avatar']))
+            except json.JSONDecodeError:
+                pass
+
+            try:
+                item_dump['new_value'] = json.loads(item.new_value)
+
+                if 'operator' in item_dump['new_value'] and item_dump['new_value']['operator'] is not None:
+                    job_operator = await User.query.filter(id=item_dump['new_value']['operator']).first()
+                    item_dump['new_value']['operator'] = filter_selected_fields(job_operator, ','.join(['name', 'avatar']))
+            except json.JSONDecodeError:
+                pass
 
         return item_dump
 

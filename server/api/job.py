@@ -21,7 +21,6 @@ async def list_jobs(
     limit: int = 50,
     customer_company: int = None,
     customer_contact: int = None,
-    current_user: CurrentUser = Depends(get_current_user)
 ):
     query = Job.query.select_related("customer_company", "customer_contact", "site", "operator", "category", "status")
     
@@ -37,7 +36,6 @@ async def list_jobs(
 @router.get("/{job_id}", response_model=JobRead)
 async def get_job(
     job_id: int,
-    current_user: CurrentUser = Depends(get_current_user)
 ):
     job = await Job.query.select_related("customer_company", "customer_contact", "site", "operator", "category", "status").get(id=job_id)
     if not job:
@@ -123,8 +121,6 @@ async def update_job(
         operator = await User.query.get(id=update_data["operator"])
         if not operator:
             raise HTTPException(status_code=400, detail="Operator not found")
-        else:
-            await job_activity.create_tracking_update(job, 'operator', job.operator.id if job.operator else None, update_data.get("operator"))
     
     if update_data.get("category"):
         category = await JobCategory.query.get(id=update_data["category"])
@@ -137,6 +133,24 @@ async def update_job(
             raise HTTPException(status_code=400, detail="Status not found")
         else:
             await job_activity.create_tracking_update(job, 'status', job.status.id if job.status else None, update_data.get("status"))
+
+    if update_data.get("operator") or update_data.get("scheduled_start") or update_data.get("scheduled_end"):
+        await job_activity.create_tracking_update(
+            job,
+            None,
+            {
+                '@type': 'planning',
+                'operator': job.operator.id if job.operator else None,
+                'scheduled_start': getattr(job, 'scheduled_start', None),
+                'scheduled_end': getattr(job, 'scheduled_end', None),
+            },
+            {
+                '@type': 'planning',
+                'operator': update_data.get("operator"),
+                'scheduled_start': update_data.get("scheduled_start"),
+                'scheduled_end': update_data.get("scheduled_end"),
+            },
+        )
     
     for field, value in update_data.items():
         setattr(job, field, value)

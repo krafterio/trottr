@@ -58,19 +58,19 @@ class JobActivityService:
     @staticmethod
     async def create_tracking_update(
         job: Job,
-        field_name: str,
+        field_name: str | None,
         old_value: Any,
         new_value: Any,
         content: Optional[str] = None
     ) -> JobActivity:
         """Create a tracking update activity"""
         
-        value_type = JobActivityService._detect_value_type(new_value)
+        value_type = JobActivityService._detect_value_type(new_value or old_value)
         
         activity = JobActivity(
             job=job,
             type=JobActivityType.tracking_update,
-            content=content or f"Champ '{field_name}' modifié",
+            content=content,
             field_name=field_name,
             value_type=value_type,
             old_value=JobActivityService._serialize_value(old_value),
@@ -96,10 +96,10 @@ class JobActivityService:
             return JobActivityValueType.object
     
     @staticmethod
-    def _serialize_value(value: Any) -> str:
+    def _serialize_value(value: Any) -> str | None:
         """Serialize a value to JSON string"""
         if value is None:
-            return ""
+            return None
         
         if isinstance(value, (str, int, float, bool)):
             return str(value)

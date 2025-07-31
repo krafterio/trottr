@@ -123,7 +123,7 @@ const loadActivities = async () => {
             },
             headers: {
                 'X-Filter': await normalizeJson('job_activity', ['job', '=', props.jobId]),
-                'X-Fields': 'id,type,content,field_name,old_value,new_value,created_at,created_by.id,created_by.name,created_by.avatar',
+                'X-Fields': 'id,type,content,field_name,old_value,new_value,created_at,created_by.id,created_by.name,created_by.avatar,job.reference',
             },
         })
 
