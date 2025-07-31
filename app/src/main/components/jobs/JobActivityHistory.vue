@@ -19,17 +19,9 @@
             <div v-if="index < activities.length - 1" class="absolute left-3 top-6 -bottom-10 w-px bg-neutral-200">
             </div>
 
-            <div v-if="activity.type === 'tracking_create'">
-                <JahCreate :activity="activity" />
-            </div>
-
-            <div v-else-if="activity.type === 'tracking_update'">
-                <JahEdit :activity="activity" />
-            </div>
-
-            <div v-else-if="activity.type === 'note'">
-                <JahNote :activity="activity" />
-            </div>
+            <JahCreate :activity="activity" v-if="activity.type === 'tracking_create'" />
+            <JahEdit :activity="activity" v-else-if="activity.type === 'tracking_update'" />
+            <JahNote :activity="activity" v-else-if="activity.type === 'note'" />
 
             <div v-else class="flex items-start space-x-4">
                 <div

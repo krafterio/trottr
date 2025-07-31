@@ -285,14 +285,7 @@
 
                         <TabsContent value="rapports">
                             <div class="p-4">
-                                <div class="flex items-center justify-between mb-4">
-                                    <h2 class="text-lg font-semibold text-neutral-900">Rapports d'intervention</h2>
-                                </div>
-
-                                <div class="text-center py-8 text-neutral-500">
-                                    <p>Fonctionnalité en cours de développement</p>
-                                    <p class="text-sm mt-2">La génération de rapports sera bientôt disponible</p>
-                                </div>
+                                <JobReports :job-id="job?.id" />
                             </div>
                         </TabsContent>
 
@@ -687,6 +680,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import PlannerDialog from './PlannerDialog.vue'
 import JobJobTasks from './tabs/JobJobTasks.vue'
+import JobReports from './tabs/JobReports.vue'
 const props = defineProps({
     inDialog: {
         type: Boolean,
