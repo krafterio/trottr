@@ -288,15 +288,18 @@ const processFiles = (files) => {
             preview: null
         }
 
+        uploadedFiles.push(fileObj)
+        
         if (isImage) {
             const reader = new FileReader()
             reader.onload = (e) => {
-                fileObj.preview = e.target.result
+                const index = uploadedFiles.findIndex(f => f.id === fileObj.id)
+                if (index > -1) {
+                    uploadedFiles[index].preview = e.target.result
+                }
             }
             reader.readAsDataURL(file)
         }
-
-        uploadedFiles.push(fileObj)
     })
 }
 
