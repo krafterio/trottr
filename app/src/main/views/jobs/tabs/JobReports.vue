@@ -47,7 +47,7 @@
                             <FileText class="h-4 w-4" />
                             Générer PDF
                         </Button>
-                        <Button variant="outline" class="p-0" size="sm">
+                        <Button variant="outline" class="p-0" size="sm" @click="openAttachFileDialog">
                             <Camera class="h-4 w-4" />
                             Joindre photos
                         </Button>
@@ -407,6 +407,10 @@ const formatDate = (dateString) => {
         hour: '2-digit',
         minute: '2-digit'
     })
+}
+
+const openAttachFileDialog = () => {
+    bus.trigger('open-attach-file-dialog', { attachExistingPicture: true })
 }
 
 const handleDeleteReport = (report) => {

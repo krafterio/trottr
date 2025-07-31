@@ -187,7 +187,7 @@
                                 <div class="flex items-center justify-between mb-4">
                                     <h2 class="text-lg font-semibold text-neutral-900">Historique</h2>
                                     <div class="flex items-center space-x-2">
-                                        <Button variant="outline">
+                                        <Button variant="outline" @click="openAttachFileDialog">
                                             <File class="h-4 w-4" />
                                             Ajouter une pièce jointe
                                         </Button>
@@ -1168,6 +1168,10 @@ const removeOperator = async () => {
         console.error('Erreur lors du retrait de l\'opérateur:', error)
         toast.error('Erreur lors du retrait de l\'opérateur')
     }
+}
+
+const openAttachFileDialog = () => {
+    bus.trigger('open-attach-file-dialog')
 }
 
 useBus(bus, 'job-saved', () => {

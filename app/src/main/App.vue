@@ -23,7 +23,8 @@
 		<ConfirmDeleteDialog />
 		<JobSiteDialog />
 		<SiteDialog />
-		<WorkspaceInvalidDialog/>
+		<WorkspaceInvalidDialog />
+		<AttachFileDialog />
 	</div>
 </template>
 
@@ -32,6 +33,7 @@ import { Toaster } from '@/common/components/ui/sonner'
 import { websocketService } from '@/common/services/websocket'
 import { useAuthStore } from '@/common/stores/auth'
 import AppSidebar from '@/main/components/AppSidebar.vue'
+import AttachFileDialog from '@/main/components/AttachFileDialog.vue'
 import CompanyDialog from '@/main/components/companies/CompanyDialog.vue'
 import ContactDialog from '@/main/components/contacts/ContactDialog.vue'
 import ConfirmDeleteDialog from '@/main/components/dialogs/ConfirmDeleteDialog.vue'
