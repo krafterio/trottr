@@ -16,18 +16,31 @@
 
     <div v-else class="space-y-6">
         <div v-for="(activity, index) in activities" :key="activity.id" class="relative">
-            <div v-if="index < activities.length - 1" class="absolute left-4 top-8 -bottom-10 w-px bg-neutral-200"></div>
+            <div v-if="index < activities.length - 1" class="absolute left-3 top-6 -bottom-10 w-px bg-neutral-200">
+            </div>
 
-            <div class="flex items-start space-x-4">
-                <div class="w-8 h-8 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center flex-shrink-0">
-                    <component :is="getActivityIcon(activity.type)" class="h-4 w-4" />
+            <div v-if="activity.type === 'tracking_create'">
+                <JahCreate :activity="activity" />
+            </div>
+
+            <div v-else class="flex items-start space-x-4">
+                <div
+                    class="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center flex-shrink-0">
+                    <component :is="getActivityIcon(activity.type)" class="h-3 w-3" />
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="rounded-lg p-4 border">
                         <div class="flex items-center justify-between mb-2">
                             <div class="flex items-center space-x-2">
-                                <h3>{{ getActivityTitle(activity.type) }}</h3>
-                                <span v-if="activity.created_by_id" class="font-medium">{{ getUserName(activity.created_by_id) }}</span>
+                                <Avatar class="h-6 w-6">
+                                    <AvatarImage v-if="activity.created_by.avatar"
+                                        :src="`/storage/download/${activity.created_by.avatar}`" v-fetcher-src.lazy
+                                        :alt="activity.created_by?.name" class="h-6 w-6" />
+                                    <AvatarFallback>{{ activity.created_by?.name?.charAt(0)?.toUpperCase() || 'U' }}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <h3 class="font-medium">{{ getActivityTitle(activity.type) }} {{
+                                    activity.created_by.name }}</h3>
                             </div>
                             <span class="text-xs flex items-center text-neutral-500">
                                 <Calendar class="h-3 w-3 mr-2" />
@@ -39,7 +52,8 @@
                             {{ activity.content }}
                         </div>
 
-                        <div v-if="activity.type === 'tracking_update' && activity.field_name" class="text-xs text-neutral-500 bg-neutral-50 rounded p-2 mt-2">
+                        <div v-if="activity.type === 'tracking_update' && activity.field_name"
+                            class="text-xs text-neutral-500 bg-neutral-50 rounded p-2 mt-2">
                             <div class="flex items-center space-x-2 mb-1">
                                 <span class="font-medium">Champ modifié :</span>
                                 <span>{{ activity.field_name }}</span>
@@ -67,10 +81,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { Calendar, StickyNote, MessageSquare, Plus, Edit } from 'lucide-vue-next'
+import { Avatar, AvatarFallback, AvatarImage } from '@/common/components/ui/avatar'
 import { useFetcher } from '@/common/composables/fetcher'
-import {useFilters} from '@/common/composables/filters'
+import { useFilters } from '@/common/composables/filters'
+import { Calendar, Edit, MessageSquare, Plus, StickyNote } from 'lucide-vue-next'
+import { onMounted, ref } from 'vue'
+import JahCreate from './JobActivityHistory/JahCreate.vue'
 
 const props = defineProps({
     jobId: {
@@ -90,7 +106,7 @@ const loadActivities = async () => {
     try {
         loading.value = true
         error.value = null
-        
+
         const response = await fetcher.get(`/job_activities`, {
             params: {
                 job_id: props.jobId,
@@ -100,10 +116,13 @@ const loadActivities = async () => {
             },
             headers: {
                 'X-Filter': await normalizeJson('job_activity', ['job', '=', props.jobId]),
+                'X-Fields': 'id,type,content,field_name,old_value,new_value,created_at,created_by.id,created_by.name,created_by.avatar',
             },
         })
-        
+
         activities.value = response.data.items || []
+
+        console.log(activities.value)
     } catch (err) {
         error.value = err.message || 'Erreur lors du chargement'
         console.error('Erreur lors du chargement des activités:', err)
@@ -148,12 +167,12 @@ const getUserName = (userId) => {
 
 const formatDate = (dateString) => {
     if (!dateString) return ''
-    
+
     const date = new Date(dateString)
     const now = new Date()
     const diffTime = Math.abs(now - date)
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-    
+
     const options = {
         weekday: 'short',
         day: '2-digit',
@@ -162,7 +181,7 @@ const formatDate = (dateString) => {
         hour: '2-digit',
         minute: '2-digit'
     }
-    
+
     if (diffDays === 0) {
         return `Aujourd'hui ${date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`
     } else if (diffDays === 1) {
