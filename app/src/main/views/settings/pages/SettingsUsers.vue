@@ -168,19 +168,51 @@
                         <Input id="invite-email" v-model="inviteForm.email" type="email"
                             placeholder="exemple@domaine.com" :disabled="inviteLoading" required />
                     </div>
+                    <div class="space-y-2" v-if="workspaceStore.workspace && workspaceStore.workspace.member_count >= workspaceStore.workspace.available_member_count">
+                        <div class="rounded-md border border-orange-200 bg-orange-50 p-3">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-orange-800">
+                                        Limite d'utilisateurs atteinte ({{ workspaceStore.workspace.member_count }}/{{ workspaceStore.workspace.available_member_count }}). 
+                                        Vous devez ajouter au moins 1 utilisateur supplémentaire.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <Label for="additional-users">Utilisateurs supplémentaires</Label>
+                        <Input 
+                            id="additional-users" 
+                            v-model.number="inviteForm.additional_users" 
+                            type="number"
+                            min="1"
+                            placeholder="1"
+                            :disabled="inviteLoading" 
+                            required
+                        />
+                        <p class="text-sm text-muted-foreground">
+                            Votre abonnement sera mis à jour automatiquement.
+                        </p>
+                    </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" @click="showInviteDialog = false"
                             :disabled="inviteLoading">
                             Annuler
                         </Button>
-                        <Button type="submit" :disabled="inviteLoading || !inviteForm.email">
+                        <Button type="submit" :disabled="inviteLoading || !inviteForm.email || (workspaceStore.workspace && workspaceStore.workspace.member_count >= workspaceStore.workspace.available_member_count && (!inviteForm.additional_users || inviteForm.additional_users < 1))">
                             <span v-if="inviteLoading">Envoi...</span>
+                            <span v-else-if="workspaceStore.workspace && workspaceStore.workspace.member_count >= workspaceStore.workspace.available_member_count">Mettre à jour et inviter</span>
                             <span v-else>Envoyer l'invitation</span>
                         </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
         </Dialog>
+
 
         <!-- Dialog d'édition utilisateur -->
         <UserEditDialog :is-open="showEditDialog" :user="selectedUser" />
@@ -231,9 +263,9 @@ const selectedUser = ref(null)
 const inviteLoading = ref(false)
 const editLoading = ref(false)
 
-
 const inviteForm = ref({
-    email: ''
+    email: '',
+    additional_users: 1
 })
 
 const editForm = ref({
@@ -295,14 +327,19 @@ const sendInvitation = async () => {
     inviteLoading.value = true
 
     try {
-        const response = await fetcher.post('/workspace/invite', {
-            email: inviteForm.value.email
-        })
+        const payload = { email: inviteForm.value.email }
+        if (inviteForm.value.additional_users > 0) {
+            payload.additional_users = inviteForm.value.additional_users
+        }
+
+        const response = await fetcher.post('/workspace/invite', payload)
 
         toast.success('Invitation envoyée avec succès !')
         showInviteDialog.value = false
         inviteForm.value.email = ''
+        inviteForm.value.additional_users = 1
         await fetchInvitations()
+        await workspaceStore.fetchWorkspace()
 
     } catch (err) {
         console.error('Erreur lors de l\'envoi de l\'invitation:', err)

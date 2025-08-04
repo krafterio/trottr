@@ -495,6 +495,7 @@ async def invite_user_to_workspace(
     workspace: Workspace = Depends(get_user_workspace),
     current_user: User = Depends(get_current_user),
     mail_service: MailService = Depends(),
+    subscription_service: SubscriptionService = Depends(),
     settings = Depends(get_settings)
 ):
     existing_user = await User.query.filter(email=invitation_data.email).first()
@@ -521,6 +522,31 @@ async def invite_user_to_workspace(
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Une invitation est déjà en cours pour cette adresse email"
+            )
+
+    member_count = await WorkspaceUser.query.filter(workspace=workspace).count()
+    subscription = await subscription_service.get_active_subscription(workspace)
+
+    available_member_count = subscription.available_users_count if subscription else member_count
+
+    if member_count >= available_member_count:
+        if not invitation_data.additional_users or invitation_data.additional_users < 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "code": "USER_LIMIT_EXCEEDED",
+                    "current_users": member_count,
+                    "available_users": available_member_count,
+                    "message": "Limite d'utilisateurs atteinte. Spécifiez additional_users pour augmenter l'abonnement."
+                }
+            )
+        
+        new_user_count = member_count + invitation_data.additional_users
+        if subscription:
+            await subscription_service.update_subscription_plan(
+                subscription=subscription,
+                new_plan=subscription.service_plan,
+                quantity=new_user_count
             )
 
     invitation = await WorkspaceInvitation.create_invitation(

@@ -4,6 +4,7 @@ from datetime import datetime
 
 class WorkspaceInvitationCreate(BaseModel):
     email: EmailStr
+    additional_users: int | None = None
 
 
 class WorkspaceInvitationResponse(BaseModel):
