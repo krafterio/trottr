@@ -1,0 +1,314 @@
+<style>
+    .report-title {
+        text-align: center;
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 30px;
+        color: #2c3e50;
+        border-bottom: 3px solid #3498db;
+        padding-bottom: 10px;
+    }
+
+    .job-info {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+
+    .job-info h2 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: #2c3e50;
+        font-size: 16px;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 5px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .info-item {
+        margin-bottom: 8px;
+    }
+
+    .info-label {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-right: 5px;
+    }
+
+    .section {
+        margin-bottom: 25px;
+        break-inside: avoid;
+    }
+
+    .section h3 {
+        background-color: #3498db;
+        color: white;
+        padding: 10px 15px;
+        margin: 0 0 15px 0;
+        font-size: 14px;
+        border-radius: 5px;
+    }
+
+    .report-content {
+        background-color: #fff;
+        padding: 15px;
+        border: 1px solid #e1e8ed;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+
+    .diagnostics-list,
+    .tasks-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .diagnostics-list li,
+    .tasks-list li {
+        background-color: #f8f9fa;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-left: 4px solid #3498db;
+        border-radius: 3px;
+    }
+
+    .task-done {
+        background-color: #d4edda !important;
+        border-left-color: #28a745 !important;
+    }
+
+    .task-status {
+        font-weight: bold;
+        color: #28a745;
+    }
+
+    .task-not-done {
+        color: #dc3545;
+    }
+
+    .signatures {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 30px;
+        page-break-inside: avoid;
+    }
+
+    .signature-block {
+        text-align: center;
+        border: 1px solid #dee2e6;
+        padding: 15px;
+        border-radius: 5px;
+    }
+
+    .signature-title {
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #2c3e50;
+    }
+
+    .signature-image {
+        max-width: 200px;
+        max-height: 100px;
+        border: 1px solid #ccc;
+        margin: 10px 0;
+    }
+
+    .signature-placeholder {
+        height: 80px;
+        background-color: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        margin: 10px 0;
+    }
+
+    .priority-normal {
+        color: #6c757d;
+    }
+
+    .priority-high {
+        color: #fd7e14;
+        font-weight: bold;
+    }
+
+    .priority-urgent {
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    @media print {
+        .section {
+            page-break-inside: avoid;
+        }
+
+        .signatures {
+            page-break-inside: avoid;
+        }
+    }
+</style>
+
+<div class="report-title">{{ report.name }}</div>
+
+<div class="job-info">
+    <h2>Informations de l'intervention</h2>
+    <div class="info-grid">
+        <div>
+            <div class="info-item">
+                <span class="info-label">Référence:</span>
+                {{ job.reference }}
+            </div>
+            <div class="info-item">
+                <span class="info-label">Nom:</span>
+                {{ job.name }}
+            </div>
+            {% if job.customer_reference %}
+            <div class="info-item">
+                <span class="info-label">Référence client:</span>
+                {{ job.customer_reference }}
+            </div>
+            {% endif %}
+            <div class="info-item">
+                <span class="info-label">Priorité:</span>
+                <span class="priority-{{ job.priority }}">
+                    {% if job.priority == 'normal' %}Normale
+                    {% elif job.priority == 'high' %}Haute
+                    {% elif job.priority == 'urgent' %}Urgente
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        <div>
+            {% if job.customer_company %}
+            <div class="info-item">
+                <span class="info-label">Client:</span>
+                {{ job.customer_company.name }}
+            </div>
+            {% endif %}
+            {% if job.customer_contact %}
+            <div class="info-item">
+                <span class="info-label">Contact:</span>
+                {{ job.customer_contact.first_name }} {{ job.customer_contact.last_name }}
+            </div>
+            {% endif %}
+            {% if job.site %}
+            <div class="info-item">
+                <span class="info-label">Site:</span>
+                {{ job.site.name }}
+            </div>
+            {% endif %}
+            {% if job.operator %}
+            <div class="info-item">
+                <span class="info-label">Opérateur:</span>
+                {{ job.operator.first_name }} {{ job.operator.last_name }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if job.description %}
+    <div style="margin-top: 15px;">
+        <div class="info-label">Description:</div>
+        <div style="margin-top: 5px; padding: 10px; background-color: white; border-radius: 3px;">
+            {{ job.description }}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="section">
+    <h3>Contenu du rapport</h3>
+    <div class="report-content">
+        {{ report.content | replace('\n', '<br>') | safe }}
+    </div>
+</div>
+
+{% if report.include_diagnostics and diagnostics %}
+<div class="section">
+    <h3>Diagnostics effectués</h3>
+    <ul class="diagnostics-list">
+        {% for diagnostic in diagnostics %}
+        <li>
+            <strong>{{ diagnostic.job_diagnostic.name }}</strong>
+            {% if diagnostic.description %}
+            <div style="margin-top: 5px; color: #555;">{{ diagnostic.description }}</div>
+            {% else %}
+            <div style="margin-top: 5px; color: #555;">{{ diagnostic.job_diagnostic.description }}</div>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if report.include_tasks and tasks %}
+<div class="section">
+    <h3>Tâches de l'intervention</h3>
+    <ul class="tasks-list">
+        {% for task in tasks %}
+        <li class="{% if task.is_done %}task-done{% endif %}">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="flex: 1;">
+                    <strong>{{ task.name }}</strong>
+                    {% if task.description %}
+                    <div style="margin-top: 5px; color: #555;">{{ task.description }}</div>
+                    {% endif %}
+                </div>
+                <div style="margin-left: 15px;">
+                    <span class="task-status {% if not task.is_done %}task-not-done{% endif %}">
+                        {% if task.is_done %}✓ Terminée{% else %}○ En attente{% endif %}
+                    </span>
+                    {% if task.is_done and task.done_at %}
+                    <div style="font-size: 10px; color: #666; margin-top: 2px;">
+                        {{ task.done_at.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="signatures">
+    <div class="signature-block">
+        <div class="signature-title">Signature Client</div>
+        {% if report.customer_signature %}
+        <img src="{{ report.customer_signature }}" alt="Signature Client" class="signature-image">
+        {% else %}
+        <div class="signature-placeholder">Aucune signature</div>
+        {% endif %}
+    </div>
+
+    <div class="signature-block">
+        <div class="signature-title">Signature Opérateur</div>
+        {% if report.operator_signature %}
+        <img src="{{ report.operator_signature }}" alt="Signature Opérateur" class="signature-image">
+        {% else %}
+        <div class="signature-placeholder">Aucune signature</div>
+        {% endif %}
+    </div>
+</div>
+
+<div style="margin-top: 30px; text-align: center; font-size: 10px; color: #666;">
+    <div>Rapport généré le {{ current_date }}</div>
+    <div>par {{ report.created_by.first_name }} {{ report.created_by.last_name }}</div>
+</div>

@@ -52,6 +52,7 @@ class Settings(BaseSettings):
 
     sxng_url: str = ''
     assembly_ai_token: str = ''
+    pdf_display: bool = False
 
     model_config = SettingsConfigDict(
         env_file='.env',

@@ -43,7 +43,7 @@
                 </CardContent>
                 <CardFooter class="!p-4 !py-2 border-t flex gap-2 justify-between bg-neutral-50">
                     <div class="flex gap-2">
-                        <Button variant="outline" class="p-0" size="sm">
+                        <Button variant="outline" class="p-0" size="sm" @click="generatePDF(report)">
                             <FileText class="h-4 w-4" />
                             Générer PDF
                         </Button>
@@ -410,9 +410,9 @@ const formatDate = (dateString) => {
 }
 
 const openAttachFileDialog = () => {
-    bus.trigger('open-attach-file-dialog', { 
+    bus.trigger('open-attach-file-dialog', {
         jobId: props.jobId,
-        attachExistingPicture: true 
+        attachExistingPicture: true
     })
 }
 
@@ -456,6 +456,36 @@ watch(() => props.jobId, () => {
 useBus(bus, 'confirm-delete-job-report:confirmed', () => {
     deleteReport()
 })
+
+const generatePDF = async (report) => {
+    try {
+        const response = await fetcher.get(`/job-reports/${report.id}/pdf`)
+
+        const contentType = response.headers.get('content-type')
+
+        if (contentType && contentType.includes('text/html')) {
+            const htmlContent = await response.text()
+            const newWindow = window.open('', '_blank')
+            newWindow.document.write(htmlContent)
+            newWindow.document.close()
+            toast.success('Aperçu HTML ouvert dans un nouvel onglet')
+        } else {
+            const blob = await response.blob()
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            link.href = url
+            link.download = `rapport_intervention_${report.job?.reference || report.id}.pdf`
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            URL.revokeObjectURL(url)
+            toast.success('PDF généré avec succès')
+        }
+    } catch (error) {
+        console.error('Erreur lors de la génération du PDF:', error)
+        toast.error('Erreur lors de la génération du PDF')
+    }
+}
 
 
 </script>

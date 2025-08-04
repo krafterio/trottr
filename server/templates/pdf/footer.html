@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        .footer {
+            width: 100%;
+            padding: 10px 0;
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            color: #666;
+            border-top: 1px solid #e5e5e5;
+            position: fixed;
+            bottom: 0;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .page-info {
+            text-align: left;
+        }
+
+        .company-footer {
+            text-align: right;
+            line-height: 1.3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="footer">
+        <div class="footer-content">
+            <div class="page-info">
+                <span class="pageNumber"></span> / <span class="totalPages"></span>
+            </div>
+            <div class="company-footer">
+                {% if workspace %}
+                <div>{{ workspace.name }}</div>
+                {% if workspace.phone %}
+                <div>Tél: {{ workspace.phone }}</div>
+                {% endif %}
+                {% if workspace.email %}
+                <div>Email: {{ workspace.email }}</div>
+                {% endif %}
+                {% endif %}
+                <div>Généré le {{ current_date }}</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
