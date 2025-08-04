@@ -15,7 +15,7 @@ Trottr is a SaaS platform made for Field Services Management. It helps companies
 
 1. Clone the project:
 ```bash
-git clone git@github.com:krafterio/smashr.git
+git clone git@github.com:krafterio/trottr.git
 ```
 
 2. Create and activate virtual environment:

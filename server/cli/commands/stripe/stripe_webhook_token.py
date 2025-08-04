@@ -98,7 +98,7 @@ async def create_webhook_endpoint(url: str, events_list: list[str]) -> None:
             "--url",
             url,
             "--description",
-            "Webhook for Smashr",
+            "Webhook for Trottr",
         ]
 
         all_events = []
