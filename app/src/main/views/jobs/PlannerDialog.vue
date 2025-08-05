@@ -77,8 +77,8 @@
                     </div>
                 </div>
 
-                <div class="flex-1 flex flex-col">
-                    <div v-if="selectedOperator" class="flex-1">
+                <div class="flex-1 flex flex-col relative">
+                    <div v-if="selectedOperator" class="flex-1 overflow-y-auto">
                         <div class="h-full">
                             <VueCal :events="selectedOperatorEvents" view="week" :hide-weekends="false"
                                 :editable-events="{ create: !isEditMode && !selectedSlot, resize: true, drag: true, delete: false }"
@@ -96,7 +96,7 @@
                     </div>
 
                     <div v-if="selectedSlot"
-                        class="bg-white border-t border-neutral-200 p-4 max-h-24 transition-all duration-300 ease-in-out">
+                        class="bg-white absolute bottom-0 left-0 right-0 border-t border-neutral-200 p-4 max-h-24 transition-all duration-300 ease-in-out">
                         <div class="flex items-center justify-between">
                             <div class="flex-1">
                                 <div class="flex items-center gap-4">
@@ -170,6 +170,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/common/compo
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select'
 import { useFetcher } from '@/common/composables/fetcher'
 import { useJob } from '@/common/composables/useJob'
+import { useUnavailability } from '@/common/composables/useUnavailability'
 import { useWorkspaceStore } from '@/main/stores/workspace'
 import { Calendar, CalendarCheck, Circle, Clock, Folder, LucideSquareDashedMousePointer, MapPin, ScanSearch, User } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
@@ -191,6 +192,7 @@ const emit = defineEmits(['update:open', 'assigned'])
 
 const fetcher = useFetcher()
 const { getPriorityConfig } = useJob()
+const { getUnavailabilityTypeLabel } = useUnavailability()
 const workspaceStore = useWorkspaceStore()
 
 const selectedOperator = ref(null)
@@ -320,7 +322,45 @@ const fetchOperatorEvents = async (operator) => {
                 job: job
             }))
 
-        operator.events = events
+        // Récupérer les absences de l'opérateur
+        const unavailabilitiesResponse = await fetcher.get('/unavailabilities', {
+            params: {
+                user: operator.id,
+                start_date: startOfWeek.toISOString(),
+                end_date: endOfWeek.toISOString()
+            }
+        })
+
+        const unavailabilityEvents = []
+
+        // Décortiquer les absences en jours
+        const unavailabilities = unavailabilitiesResponse.data?.items || []
+        unavailabilities.forEach(unavailability => {
+            const startDate = new Date(unavailability.start)
+            const endDate = new Date(unavailability.end)
+
+            // Créer un événement par jour
+            const currentDate = new Date(startDate)
+            while (currentDate <= endDate) {
+                const dayStart = new Date(currentDate)
+                dayStart.setHours(0, 0, 0, 0)
+
+                const dayEnd = new Date(currentDate)
+                dayEnd.setHours(23, 59, 59, 999)
+
+                unavailabilityEvents.push({
+                    start: dayStart,
+                    end: dayEnd,
+                    title: `${getUnavailabilityTypeLabel(unavailability.type)} - ${unavailability.description || 'Absence'}`,
+                    class: 'unavailability',
+                    unavailability: unavailability
+                })
+
+                currentDate.setDate(currentDate.getDate() + 1)
+            }
+        })
+
+        operator.events = [...events, ...unavailabilityEvents]
 
     } catch (error) {
         console.error('Erreur lors du chargement des événements:', error)

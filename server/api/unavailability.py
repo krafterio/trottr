@@ -6,6 +6,8 @@ from schemas.unavailability import UnavailabilityCreate, UnavailabilityUpdate, U
 from api.auth import get_current_user
 from services.workspace import get_user_workspace
 from pydantic import BaseModel
+from datetime import datetime
+from dateutil import parser
 
 router = APIRouter()
 
@@ -21,6 +23,9 @@ async def list_unavailabilities(
     page: int = 1,
     per_page: int = 50,
     type: str = None,
+    user: int = None,
+    start_date: str = None,
+    end_date: str = None,
     current_user: User = Depends(get_current_user)
 ):
     if per_page not in [20, 50, 80]:
@@ -35,6 +40,15 @@ async def list_unavailabilities(
     
     if type:
         query = query.filter(Unavailability.columns.type == type)
+    
+    if user:
+        query = query.filter(Unavailability.columns.user == user)
+    
+    if start_date:
+        query = query.filter(Unavailability.columns.end >= parser.parse(start_date))
+    
+    if end_date:
+        query = query.filter(Unavailability.columns.start <= parser.parse(end_date))
     
     total = await query.count()
     unavailabilities = await query.order_by("-created_at").offset(skip).limit(per_page).all()

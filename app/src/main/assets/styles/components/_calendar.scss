@@ -67,6 +67,15 @@
             }
         }
 
+        &.unavailability {
+            background-color: #f9edae !important;
+            border: 1px solid #f9edae !important;
+
+            &:hover {
+                background-color: #e1d598 !important;
+            }
+        }
+
         &.toassign-slot-calendar {
             background-color: #a7e00a !important;
             border: 1px solid #a7e00a !important;
