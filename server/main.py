@@ -43,6 +43,7 @@ from api.job_job_task import router as job_job_task_router
 from api.job_activity import router as job_activity_router
 from api.job_attachment import router as job_attachment_router
 from api.job_report import router as job_report_router
+from api.unavailability import router as unavailability_router
 from core.api_route_model.router import register_api_route_models, register_admin_api_route_models
 from core.api_route_model.standard_actions import register_standard_api_route_model_actions
 from core.app import App
@@ -196,6 +197,7 @@ def app(app_class: type[App] = App) -> App:
     api_router.include_router(presence_router, tags=["presence"])
     api_router.include_router(search_router, prefix="/search", tags=["search"])
     api_router.include_router(import_router, prefix="/import", tags=["import"])
+    api_router.include_router(unavailability_router, prefix="/unavailabilities", tags=["unavailability"])
 
     # Api Route Models
     register_standard_api_route_model_actions()

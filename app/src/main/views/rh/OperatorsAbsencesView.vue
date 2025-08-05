@@ -1,7 +1,7 @@
 <template>
     <div class="h-full flex flex-col">
         <div class="bg-white border-b px-6 py-4">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between mb-0">
                 <div>
                     <h1 class="text-2xl font-bold text-neutral-900">Absences / Congés</h1>
                     <p class="text-neutral-600">Gestion des absences des techniciens</p>
@@ -11,14 +11,12 @@
                         <Download class="h-4 w-4" />
                         Exporter
                     </Button>
-                    <Button @click="openCreateDialog">
+                    <Button @click="handleCreate">
                         <Plus class="h-4 w-4" />
                         Nouvelle absence
                     </Button>
                 </div>
             </div>
-
-
         </div>
 
         <div class="flex-1 flex overflow-hidden">
@@ -26,6 +24,7 @@
                 'bg-neutral-50 border-r overflow-y-auto',
                 showFilters ? 'w-64 p-4' : 'w-16 p-2 pt-4 cursor-pointer hover:bg-neutral-100'
             ]" @click="!showFilters && toggleFilters()">
+
                 <div v-if="showFilters" class="flex items-center justify-between mb-4">
                     <h3 class="font-semibold text-neutral-900">Filtres</h3>
                     <Button variant="ghost" size="sm" class="h-6 w-6 p-0 cursor-pointer" @click.stop="toggleFilters">
@@ -47,392 +46,571 @@
                     <div class="mb-6">
                         <h4 class="text-sm font-medium text-neutral-700 mb-2">Type d'absence</h4>
                         <div class="space-y-2">
-                            <label class="flex items-center">
-                                <Checkbox checked />
-                                <span class="ml-2 text-sm text-neutral-600">Vacances</span>
-                                <span class="ml-auto text-xs text-neutral-400">18</span>
-                            </label>
-                            <label class="flex items-center">
-                                <Checkbox checked />
-                                <span class="ml-2 text-sm text-neutral-600">Maladie</span>
-                                <span class="ml-auto text-xs text-neutral-400">12</span>
-                            </label>
-                            <label class="flex items-center">
-                                <Checkbox checked />
-                                <span class="ml-2 text-sm text-neutral-600">Formation</span>
-                                <span class="ml-auto text-xs text-neutral-400">8</span>
-                            </label>
-                            <label class="flex items-center">
-                                <Checkbox checked />
-                                <span class="ml-2 text-sm text-neutral-600">Autre</span>
-                                <span class="ml-auto text-xs text-neutral-400">4</span>
+                            <label v-for="option in unavailabilityTypeOptions" :key="option.value"
+                                class="flex items-center">
+                                <Checkbox :checked="selectedFilters.type?.includes(option.value) || false"
+                                    @update:checked="toggleFilter('type', option.value)" />
+                                <span class="ml-2 text-sm text-neutral-600">{{ option.label }}</span>
                             </label>
                         </div>
                     </div>
 
-                    <div class="mb-6">
-                        <h4 class="text-sm font-medium text-neutral-700 mb-2">Technicien</h4>
-                        <div class="space-y-2">
-                            <label class="flex items-center">
-                                <Checkbox checked />
-                                <span class="ml-2 text-sm text-neutral-600">Pierre Martin</span>
-                                <span class="ml-auto text-xs text-neutral-400">5</span>
-                            </label>
-                            <label class="flex items-center">
-                                <Checkbox checked />
-                                <span class="ml-2 text-sm text-neutral-600">Marie Dubois</span>
-                                <span class="ml-auto text-xs text-neutral-400">4</span>
-                            </label>
-                            <label class="flex items-center">
-                                <Checkbox checked />
-                                <span class="ml-2 text-sm text-neutral-600">Jean Dupont</span>
-                                <span class="ml-auto text-xs text-neutral-400">6</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <Button variant="outline" size="sm" class="w-full">
+                    <Button variant="outline" size="sm" class="w-full" @click="resetFilters">
                         <RotateCcw class="h-4 w-4 mr-2" />
                         Réinitialiser
                     </Button>
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto">
-                <div class="">
-                    <div class="px-6 py-4 border-b">
-                        <div class="flex items-center justify-between">
-                            <div class="relative">
-                                <Search
-                                    class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                                <Input type="text" placeholder="Recherche rapide..." class="h-9 pl-10 pr-4 py-2 w-64" />
-                            </div>
-
-                            <div class="flex items-center space-x-3">
-                                <span class="text-sm text-muted-foreground">42 absences</span>
-
-                                <Button variant="outline" size="sm" class="w-8">
-                                    <MoreVertical class="h-4 w-4" />
-                                </Button>
-                                <Button variant="outline">
-                                    <Columns class="h-4 w-4" />
-                                    Colonnes
-                                    <ChevronDown class="h-4 w-4" />
-                                </Button>
-                            </div>
+            <div class="flex-1 overflow-y-auto pb-16">
+                <div class="px-6 py-4 border-b">
+                    <div class="flex items-center justify-between">
+                        <div class="relative">
+                            <Search
+                                class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                            <Input type="text" placeholder="Rechercher une absence..." class="h-9 pl-10 pr-4 py-2 w-64"
+                                v-model="searchQuery" @input="handleSearch" />
                         </div>
+                        <span class="text-sm text-muted-foreground">{{ totalItems }} absences</span>
                     </div>
+                </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-neutral-50 border-b">
-                                <tr>
-                                    <th
-                                        class="px-3 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider max-w-5">
-                                        <Checkbox />
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                        Technicien
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                        Type
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                        Date début
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                        Date fin
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                        Durée
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                        Motif
-                                    </th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-neutral-200">
-                                <tr v-for="absence in absences" :key="absence.id"
-                                    class="hover:bg-neutral-50 cursor-pointer" @click.stop="editAbsence(absence)">
-                                    <td class="px-3 py-2 whitespace-nowrap max-w-5" @click.stop>
-                                        <Checkbox />
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-neutral-900">{{ absence.technicianName }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap">
-                                        <Badge :class="getTypeColor(absence.type)">{{ absence.type }}</Badge>
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap">
-                                        <div class="text-sm text-neutral-900">{{ formatDate(absence.startDate) }}</div>
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap">
-                                        <div class="text-sm text-neutral-900">{{ formatDate(absence.endDate) }}</div>
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap">
-                                        <div class="text-sm text-neutral-900">{{ absence.duration }} jours</div>
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap">
-                                        <div class="text-sm text-neutral-900">{{ absence.reason || '-' }}</div>
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap">
-                                        <Button variant="ghost" size="sm" @click.stop="editAbsence(absence)">
-                                            <Edit class="h-4 w-4" />
-                                        </Button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div v-if="loading" class="flex-1 flex items-center justify-center py-12">
+                    <div class="text-center">
+                        <div
+                            class="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4">
+                        </div>
+                        <p class="text-neutral-600">Chargement...</p>
                     </div>
+                </div>
+
+                <div v-else-if="unavailabilities.length === 0" class="flex-1 flex items-center justify-center py-12">
+                    <div class="text-center py-8">
+                        <div
+                            class="w-16 h-16 mx-auto mb-4 bg-neutral-100 rounded-full flex items-center justify-center">
+                            <CalendarIcon class="w-8 h-8 text-neutral-400" :stroke-width="1.2" />
+                        </div>
+                        <h3 class="text-lg font-semibold text-neutral-900 mb-2">Créez votre première absence</h3>
+                        <p class="text-neutral-600 mb-6 max-w-md mx-auto">
+                            Gérez les absences et congés de vos techniciens pour une meilleure planification des
+                            interventions.
+                        </p>
+                        <Button @click="handleCreate" class="inline-flex items-center">
+                            <Plus class="w-4 h-4 mr-2" />
+                            Ajouter une absence
+                        </Button>
+                    </div>
+                </div>
+
+                <div v-else>
+                    <Table>
+                        <TableHeader>
+                            <TableRow class="bg-neutral-50 border-b uppercase tracking-wider text-xs text-neutral-500">
+                                <TableHead class="ps-3 w-8">
+                                    <Checkbox v-model="selectAll" @update:model-value="toggleSelectAll" />
+                                </TableHead>
+                                <TableHead>Technicien</TableHead>
+                                <TableHead>Type</TableHead>
+                                <TableHead>Début</TableHead>
+                                <TableHead>Fin</TableHead>
+                                <TableHead>Description</TableHead>
+                                <TableHead class="w-10"></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow v-for="unavailability in unavailabilities" :key="unavailability.id"
+                                class="hover:bg-neutral-50">
+                                <TableCell @click.stop class="ps-3">
+                                    <Checkbox :checked="selectedUnavailabilities.includes(unavailability.id)"
+                                        @update:checked="toggleUnavailabilitySelection(unavailability.id)" />
+                                </TableCell>
+                                <TableCell class="font-medium text-neutral-900">
+                                    {{ unavailability.user?.name || unavailability.user?.email }}
+                                </TableCell>
+                                <TableCell>
+                                    <Badge :class="getUnavailabilityTypeColor(unavailability.type)">
+                                        {{ getUnavailabilityTypeLabel(unavailability.type) }}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell class="text-neutral-900">
+                                    {{ formatDate(unavailability.start) }}
+                                </TableCell>
+                                <TableCell class="text-neutral-900">
+                                    {{ formatDate(unavailability.end) }}
+                                </TableCell>
+                                <TableCell class="text-neutral-900">
+                                    {{ unavailability.description || '-' }}
+                                </TableCell>
+                                <TableCell @click.stop>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger as-child>
+                                            <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
+                                                <MoreVertical class="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem @click="handleEdit(unavailability)">
+                                                <Edit class="mr-2 h-4 w-4" />
+                                                Modifier
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem @click="handleDelete(unavailability)"
+                                                class="text-red-600">
+                                                <Trash class="mr-2 h-4 w-4" />
+                                                Supprimer
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
                 </div>
             </div>
         </div>
 
-        <TablePagination :current-page="1" :total-pages="3" :total-items="42" :items-per-page="20"
-            :position-classes="`bottom-0 ${showFilters ? 'left-80' : 'left-32'} right-0`"
+        <TablePagination :current-page="currentPage" :total-pages="totalPages" :total-items="totalItems"
+            :items-per-page="itemsPerPage"
+            :position-classes="showFilters ? 'bottom-0 left-80 right-0' : 'bottom-0 left-32 right-0'"
             @page-change="handlePageChange" @items-per-page-change="handleItemsPerPageChange" />
 
-        <!-- Dialog d'édition -->
-        <Dialog v-model:open="isEditModalOpen">
-            <DialogContent class="max-w-md">
+        <Dialog :open="dialogOpen" @update:open="dialogOpen = false">
+            <DialogContent class="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>{{ editingAbsence?.id ? 'Modifier' : 'Ajouter' }} une absence</DialogTitle>
+                    <DialogTitle>{{ isEdit ? 'Modifier l\'absence' : 'Nouvelle absence' }}</DialogTitle>
+                    <DialogDescription>
+                        Informations de l'absence
+                    </DialogDescription>
                 </DialogHeader>
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-sm font-medium text-neutral-700">Technicien</label>
-                        <Select v-model="editingAbsence.technicianId">
-                            <SelectTrigger class="mt-1 w-full">
-                                <SelectValue placeholder="Sélectionner un technicien" />
+                <form @submit.prevent="handleSubmit" class="space-y-4">
+                    <div class="grid gap-2">
+                        <Label for="user">Technicien *</Label>
+                        <UserSelect v-model="form.user" placeholder="Sélectionner un technicien" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label for="type">Type d'absence *</Label>
+                        <Select v-model="form.type" required>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Sélectionner un type" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem v-for="tech in technicians" :key="tech.id" :value="tech.id">
-                                    {{ tech.firstName }} {{ tech.lastName }}
+                                <SelectItem v-for="option in unavailabilityTypeOptions" :key="option.value"
+                                    :value="option.value">
+                                    {{ option.label }}
                                 </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
-                    <div>
-                        <label class="text-sm font-medium text-neutral-700">Type d'absence</label>
-                        <Select v-model="editingAbsence.type">
-                            <SelectTrigger class="mt-1 w-full">
-                                <SelectValue placeholder="Sélectionner un type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Vacances">Vacances</SelectItem>
-                                <SelectItem value="Maladie">Maladie</SelectItem>
-                                <SelectItem value="Formation">Formation</SelectItem>
-                                <SelectItem value="Autre">Autre</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-sm font-medium text-neutral-700">Date de début</label>
+                        <div class="grid gap-2">
+                            <Label for="start">Date de début *</Label>
                             <Popover>
                                 <PopoverTrigger as-child>
-                                    <Button variant="outline" :class="cn(
-                                        'w-full justify-start text-left font-normal mt-1',
-                                        !startDateValue && 'text-muted-foreground',
-                                    )">
+                                    <Button variant="outline" class="justify-start text-left font-normal">
                                         <CalendarIcon class="mr-2 h-4 w-4" />
-                                        {{ startDateValue ? df.format(startDateValue.toDate(getLocalTimeZone())) :
-                                            "Sélectionner une date" }}
+                                        {{ startDateValue ? df.format(toDate(startDateValue)) : 'Sélectionner une date'
+                                        }}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent class="w-auto p-0">
-                                    <Calendar v-model="startDateValue" initial-focus
-                                        @update:model-value="updateStartDate" />
+                                    <Calendar v-model="startDateValue" calendar-label="Date de début" initial-focus
+                                        locale="fr-FR" />
                                 </PopoverContent>
                             </Popover>
                         </div>
-                        <div>
-                            <label class="text-sm font-medium text-neutral-700">Date de fin</label>
+                        <div class="grid gap-2">
+                            <Label for="end">Date de fin *</Label>
                             <Popover>
                                 <PopoverTrigger as-child>
-                                    <Button variant="outline" :class="cn(
-                                        'w-full justify-start text-left font-normal mt-1',
-                                        !endDateValue && 'text-muted-foreground',
-                                    )">
+                                    <Button variant="outline" class="justify-start text-left font-normal">
                                         <CalendarIcon class="mr-2 h-4 w-4" />
-                                        {{ endDateValue ? df.format(endDateValue.toDate(getLocalTimeZone())) :
-                                            "Sélectionner une date" }}
+                                        {{ endDateValue ? df.format(toDate(endDateValue)) : 'Sélectionner une date' }}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent class="w-auto p-0">
-                                    <Calendar v-model="endDateValue" initial-focus
-                                        @update:model-value="updateEndDate" />
+                                    <Calendar v-model="endDateValue" calendar-label="Date de fin" initial-focus
+                                        locale="fr-FR" />
                                 </PopoverContent>
                             </Popover>
                         </div>
                     </div>
-                    <div>
-                        <label class="text-sm font-medium text-neutral-700">Motif (optionnel)</label>
-                        <Textarea v-model="editingAbsence.reason" class="mt-1" placeholder="Motif de l'absence..." />
+
+                    <div class="grid gap-2">
+                        <Label for="description">Description</Label>
+                        <Textarea v-model="form.description" placeholder="Description de l'absence..." rows="3" />
                     </div>
-                </div>
+                </form>
                 <DialogFooter>
-                    <Button variant="outline" @click="cancelEdit">Annuler</Button>
-                    <Button @click="saveAbsence">{{ editingAbsence?.id ? 'Modifier' : 'Ajouter' }}</Button>
+                    <Button variant="outline" @click="dialogOpen = false">Annuler</Button>
+                    <Button @click="handleSubmit" :disabled="loading">
+                        {{ loading ? 'Enregistrement...' : (isEdit ? 'Modifier' : 'Créer') }}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
     </div>
 </template>
 
 <script setup>
+import UserSelect from '@/common/components/form/user-select/UserSelect.vue'
 import { Badge } from '@/common/components/ui/badge'
 import { Button } from '@/common/components/ui/button'
 import { Calendar } from '@/common/components/ui/calendar'
 import { Checkbox } from '@/common/components/ui/checkbox'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog'
-import Input from '@/common/components/ui/input/Input.vue'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/common/components/ui/dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/common/components/ui/dropdown-menu'
+import { Input } from '@/common/components/ui/input'
+import { Label } from '@/common/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/common/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/common/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/common/components/ui/table'
 import { Textarea } from '@/common/components/ui/textarea'
-import { cn } from '@/common/lib/utils'
+import { bus, useBus } from '@/common/composables/bus'
+import { useFetcher } from '@/common/composables/fetcher'
+import { useUnavailability } from '@/common/composables/useUnavailability'
 import TablePagination from '@/main/components/TablePagination.vue'
-import {
-    CalendarDate,
-    DateFormatter,
-    getLocalTimeZone,
-} from '@internationalized/date'
-import {
-    Calendar as CalendarIcon,
-    ChevronDown,
-    Columns,
-    Download,
-    Edit,
-    MoreVertical,
-    PanelLeftClose,
-    PanelLeftOpen,
-    Plus,
-    RotateCcw,
-    Search
-} from 'lucide-vue-next'
-import { ref } from 'vue'
+import { usePreferencesStore } from '@/main/stores/preferences'
+import { CalendarDate, DateFormatter } from '@internationalized/date'
+import { toDate } from 'reka-ui/date'
 
-const showFilters = ref(true)
-const isEditModalOpen = ref(false)
+import { debounce } from 'lodash'
+import { CalendarIcon, Download, Edit, MoreVertical, PanelLeftClose, PanelLeftOpen, Plus, RotateCcw, Search, Trash } from 'lucide-vue-next'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { toast } from 'vue-sonner'
 
-// DatePicker
+const fetcher = useFetcher()
+const {
+    getUnavailabilityTypeLabel,
+    getUnavailabilityTypeOptions,
+    getUnavailabilityTypeColor,
+    fetchUnavailabilities,
+    createUnavailability,
+    updateUnavailability,
+    deleteUnavailability
+} = useUnavailability()
+const preferencesStore = usePreferencesStore()
+
+const unavailabilities = ref([])
+const currentPage = ref(1)
+const totalPages = ref(1)
+const totalItems = ref(0)
+const itemsPerPage = ref(50)
+const loading = ref(false)
+const error = ref(null)
+const searchQuery = ref('')
+const selectedUnavailabilities = ref([])
+const selectedUnavailabilityForDelete = ref(null)
+const selectedFilters = reactive({
+    type: []
+})
+
+const dialogOpen = ref(false)
+const isEdit = ref(false)
+const users = ref([])
+const form = reactive({
+    user: '',
+    type: '',
+    start: '',
+    end: '',
+    description: ''
+})
+
 const df = new DateFormatter('fr-FR', {
     dateStyle: 'long',
 })
 
-const startDateValue = ref()
-const endDateValue = ref()
-
-const editingAbsence = ref({
-    id: null,
-    technicianId: '',
-    type: '',
-    startDate: '',
-    endDate: '',
-    reason: ''
+const startDateValue = computed({
+    get: () => {
+        if (!form.start) return undefined
+        try {
+            const date = new Date(form.start)
+            return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate())
+        } catch (error) {
+            console.error('Erreur parsing date start:', error)
+            return undefined
+        }
+    },
+    set: (val) => {
+        if (val) {
+            const startDate = new Date(val.toString())
+            startDate.setHours(0, 0, 0, 0)
+            form.start = startDate.toISOString()
+        } else {
+            form.start = ''
+        }
+    }
 })
 
-const toggleFilters = () => {
+const endDateValue = computed({
+    get: () => {
+        if (!form.end) return undefined
+        try {
+            const date = new Date(form.end)
+            return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate())
+        } catch (error) {
+            console.error('Erreur parsing date end:', error)
+            return undefined
+        }
+    },
+    set: (val) => {
+        if (val) {
+            const endDate = new Date(val.toString())
+            endDate.setHours(23, 59, 59, 999)
+            form.end = endDate.toISOString()
+        } else {
+            form.end = ''
+        }
+    }
+})
+
+const showFilters = computed({
+    get() {
+        return preferencesStore.getPreference('display_filters', true)
+    },
+    set(value) {
+        preferencesStore.updatePreference('display_filters', value)
+        toast.success('Préférences mises à jour')
+    }
+})
+
+const unavailabilityTypeOptions = getUnavailabilityTypeOptions()
+
+const selectAll = computed({
+    get() {
+        return unavailabilities.value.length > 0 && selectedUnavailabilities.value.length === unavailabilities.value.length
+    },
+    set(value) {
+        if (value) {
+            selectedUnavailabilities.value = unavailabilities.value.map(u => u.id)
+        } else {
+            selectedUnavailabilities.value = []
+        }
+    }
+})
+
+const toggleFilters = async () => {
     showFilters.value = !showFilters.value
 }
 
-const updateStartDate = (date) => {
-    startDateValue.value = date
-    editingAbsence.value.startDate = date ? date.toString() : ''
-}
-
-const updateEndDate = (date) => {
-    endDateValue.value = date
-    editingAbsence.value.endDate = date ? date.toString() : ''
-}
-
-const openCreateDialog = () => {
-    editingAbsence.value = {
-        id: null,
-        technicianId: '',
-        type: '',
-        startDate: '',
-        endDate: '',
-        reason: ''
+const toggleFilter = (filterKey, value) => {
+    if (!selectedFilters[filterKey]) {
+        selectedFilters[filterKey] = []
     }
-    startDateValue.value = undefined
-    endDateValue.value = undefined
-    isEditModalOpen.value = true
-}
 
-const editAbsence = (absence) => {
-    editingAbsence.value = { ...absence }
-    // Convertir les dates string en DateValue si nécessaire
-    startDateValue.value = absence.startDate ? parseDate(absence.startDate) : undefined
-    endDateValue.value = absence.endDate ? parseDate(absence.endDate) : undefined
-    isEditModalOpen.value = true
-}
-
-const parseDate = (dateStr) => {
-    if (!dateStr) return undefined
-    const [year, month, day] = dateStr.split('-')
-    return new CalendarDate(parseInt(year), parseInt(month), parseInt(day))
-}
-
-const cancelEdit = () => {
-    editingAbsence.value = {
-        id: null,
-        technicianId: '',
-        type: '',
-        startDate: '',
-        endDate: '',
-        reason: ''
-    }
-    startDateValue.value = undefined
-    endDateValue.value = undefined
-    isEditModalOpen.value = false
-}
-
-const saveAbsence = () => {
-    if (editingAbsence.value.id) {
-        const index = absences.findIndex(abs => abs.id === editingAbsence.value.id)
-        if (index !== -1) {
-            const technicianName = technicians.find(t => t.id === editingAbsence.value.technicianId)?.firstName + ' ' +
-                technicians.find(t => t.id === editingAbsence.value.technicianId)?.lastName
-            const duration = calculateDuration(editingAbsence.value.startDate, editingAbsence.value.endDate)
-            absences[index] = {
-                ...editingAbsence.value,
-                technicianName,
-                duration
-            }
-        }
+    const index = selectedFilters[filterKey].indexOf(value)
+    if (index > -1) {
+        selectedFilters[filterKey].splice(index, 1)
     } else {
-        const newId = Math.max(...absences.map(abs => abs.id)) + 1
-        const technicianName = technicians.find(t => t.id === editingAbsence.value.technicianId)?.firstName + ' ' +
-            technicians.find(t => t.id === editingAbsence.value.technicianId)?.lastName
-        const duration = calculateDuration(editingAbsence.value.startDate, editingAbsence.value.endDate)
-        absences.push({
-            ...editingAbsence.value,
-            id: newId,
-            technicianName,
-            duration
-        })
+        selectedFilters[filterKey].push(value)
     }
-    cancelEdit()
+
+    applyFilters()
 }
 
-const calculateDuration = (startDate, endDate) => {
-    if (!startDate || !endDate) return 0
-    const start = new Date(startDate)
-    const end = new Date(endDate)
-    const diffTime = Math.abs(end - start)
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+const resetFilters = () => {
+    selectedFilters.type = []
+    applyFilters()
+}
+
+const applyFilters = () => {
+    currentPage.value = 1
+    fetchUnavailabilitiesList()
+}
+
+const fetchUnavailabilitiesList = async () => {
+    loading.value = true
+    error.value = null
+
+    try {
+        const params = {
+            page: currentPage.value,
+            per_page: itemsPerPage.value
+        }
+
+        if (selectedFilters.type.length > 0) {
+            params.type = selectedFilters.type
+        }
+
+        const response = await fetchUnavailabilities(params)
+        unavailabilities.value = response.items || []
+        totalItems.value = response.total || 0
+        totalPages.value = response.total_pages || 1
+        currentPage.value = response.page || 1
+    } catch (err) {
+        console.error('Erreur lors du chargement des indisponibilités:', err)
+        error.value = err
+    } finally {
+        loading.value = false
+    }
+}
+
+const searchUnavailabilities = async (query) => {
+    if (!query || query.trim().length < 2) {
+        currentPage.value = 1
+        fetchUnavailabilitiesList()
+        return
+    }
+
+    loading.value = true
+    error.value = null
+
+    try {
+        const params = {
+            q: query.trim(),
+            page: currentPage.value,
+            per_page: itemsPerPage.value
+        }
+
+        if (selectedFilters.type.length > 0) {
+            params.type = selectedFilters.type
+        }
+
+        const response = await fetchUnavailabilities(params)
+        unavailabilities.value = response.items || []
+        totalItems.value = response.total || 0
+        totalPages.value = response.total_pages || 1
+        currentPage.value = response.page || 1
+    } catch (err) {
+        console.error('Erreur lors de la recherche:', err)
+        error.value = err
+    } finally {
+        loading.value = false
+    }
+}
+
+const debouncedSearchUnavailabilities = debounce(searchUnavailabilities, 300)
+
+const handleCreate = () => {
+    isEdit.value = false
+    form.user = ''
+    form.type = ''
+    form.start = ''
+    form.end = ''
+    form.description = ''
+    selectedUnavailabilityForDelete.value = null
+    dialogOpen.value = true
+}
+
+const handleEdit = (unavailability) => {
+    isEdit.value = true
+    form.user = unavailability.user.id
+    form.type = unavailability.type
+    form.description = unavailability.description || ''
+    form.start = unavailability.start || ''
+    form.end = unavailability.end || ''
+    selectedUnavailabilityForDelete.value = unavailability
+    dialogOpen.value = true
+}
+
+const handleSubmit = async () => {
+    if (!form.user || !form.type || !form.start || !form.end) {
+        toast.error('Veuillez remplir tous les champs obligatoires')
+        return
+    }
+
+    if (new Date(form.start) >= new Date(form.end)) {
+        toast.error('La date de fin doit être postérieure à la date de début')
+        return
+    }
+
+    loading.value = true
+    try {
+        const userId = typeof form.user === 'object' ? form.user.id : form.user
+
+        const data = {
+            user: parseInt(userId),
+            type: form.type,
+            start: form.start,
+            end: form.end,
+            description: form.description
+        }
+
+        if (isEdit.value) {
+            await updateUnavailability(selectedUnavailabilityForDelete.value.id, data)
+        } else {
+            await createUnavailability(data)
+        }
+
+        dialogOpen.value = false
+        refreshList()
+    } catch (err) {
+        console.error('Erreur lors de la sauvegarde:', err)
+    } finally {
+        loading.value = false
+    }
+}
+
+const handleSearch = () => {
+    debouncedSearchUnavailabilities(searchQuery.value)
+}
+
+const handlePageChange = (page) => {
+    currentPage.value = page
+    if (searchQuery.value && searchQuery.value.trim().length >= 2) {
+        searchUnavailabilities(searchQuery.value)
+    } else {
+        fetchUnavailabilitiesList()
+    }
+}
+
+const handleItemsPerPageChange = (itemsCount) => {
+    itemsPerPage.value = parseInt(itemsCount)
+    currentPage.value = 1
+    if (searchQuery.value && searchQuery.value.trim().length >= 2) {
+        searchUnavailabilities(searchQuery.value)
+    } else {
+        fetchUnavailabilitiesList()
+    }
+}
+
+const toggleSelectAll = () => {
+    selectAll.value = !selectAll.value
+}
+
+const toggleUnavailabilitySelection = (unavailabilityId) => {
+    const index = selectedUnavailabilities.value.indexOf(unavailabilityId)
+    if (index > -1) {
+        selectedUnavailabilities.value.splice(index, 1)
+    } else {
+        selectedUnavailabilities.value.push(unavailabilityId)
+    }
+}
+
+const handleDelete = (unavailability) => {
+    bus.trigger('confirm-delete', {
+        title: 'Supprimer l\'absence',
+        message: 'Êtes-vous sûr de vouloir supprimer cette absence ?',
+        itemName: `${unavailability.user?.name || unavailability.user?.email} - ${getUnavailabilityTypeLabel(unavailability.type)}`,
+        confirmationText: 'Cette action est irréversible.',
+        confirmEvent: 'confirm-delete-unavailability:confirmed'
+    })
+
+    selectedUnavailabilityForDelete.value = unavailability
+}
+
+const deleteUnavailabilityItem = async () => {
+    if (!selectedUnavailabilityForDelete.value) return
+
+    try {
+        await deleteUnavailability(selectedUnavailabilityForDelete.value.id)
+        bus.trigger('confirm-delete-dialog:close')
+        refreshList()
+        selectedUnavailabilityForDelete.value = null
+    } catch (err) {
+        console.error('Erreur lors de la suppression:', err)
+        bus.trigger('confirm-delete-dialog:close')
+    }
+}
+
+const refreshList = () => {
+    selectedUnavailabilities.value = []
+    if (searchQuery.value && searchQuery.value.trim().length >= 2) {
+        searchUnavailabilities(searchQuery.value)
+    } else {
+        fetchUnavailabilitiesList()
+    }
 }
 
 const formatDate = (dateStr) => {
@@ -441,90 +619,21 @@ const formatDate = (dateStr) => {
     return date.toLocaleDateString('fr-FR')
 }
 
-const getTypeColor = (type) => {
-    switch (type) {
-        case 'Vacances':
-            return 'bg-blue-100 text-blue-800'
-        case 'Maladie':
-            return 'bg-red-100 text-red-800'
-        case 'Formation':
-            return 'bg-green-100 text-green-800'
-        case 'Autre':
-            return 'bg-neutral-100 text-neutral-800'
-        default:
-            return 'bg-neutral-100 text-neutral-800'
-    }
-}
 
-const technicians = [
-    { id: 1, firstName: 'Pierre', lastName: 'Martin' },
-    { id: 2, firstName: 'Marie', lastName: 'Dubois' },
-    { id: 3, firstName: 'Jean', lastName: 'Dupont' },
-    { id: 4, firstName: 'Sophie', lastName: 'Leroy' },
-    { id: 5, firstName: 'Thomas', lastName: 'Bernard' },
-    { id: 6, firstName: 'Émilie', lastName: 'Moreau' },
-    { id: 7, firstName: 'Nicolas', lastName: 'Rousseau' },
-    { id: 8, firstName: 'Lucie', lastName: 'Simon' }
-]
 
-const absences = [
-    {
-        id: 1,
-        technicianId: 1,
-        technicianName: 'Pierre Martin',
-        type: 'Vacances',
-        startDate: '2025-02-15',
-        endDate: '2025-02-28',
-        duration: 14,
-        reason: 'Congés annuels'
-    },
-    {
-        id: 2,
-        technicianId: 2,
-        technicianName: 'Marie Dubois',
-        type: 'Maladie',
-        startDate: '2025-01-20',
-        endDate: '2025-01-22',
-        duration: 3,
-        reason: 'Grippe'
-    },
-    {
-        id: 3,
-        technicianId: 3,
-        technicianName: 'Jean Dupont',
-        type: 'Formation',
-        startDate: '2025-01-25',
-        endDate: '2025-01-26',
-        duration: 2,
-        reason: 'Formation habilitation électrique'
-    },
-    {
-        id: 4,
-        technicianId: 4,
-        technicianName: 'Sophie Leroy',
-        type: 'Vacances',
-        startDate: '2025-03-01',
-        endDate: '2025-03-07',
-        duration: 7,
-        reason: 'Vacances scolaires'
-    },
-    {
-        id: 5,
-        technicianId: 1,
-        technicianName: 'Pierre Martin',
-        type: 'Maladie',
-        startDate: '2025-01-10',
-        endDate: '2025-01-10',
-        duration: 1,
-        reason: 'Mal de dos'
-    }
-]
+useBus(bus, 'unavailability-saved', () => {
+    refreshList()
+})
 
-const handlePageChange = (page) => {
-    console.log('Page changed to:', page)
-}
+useBus(bus, 'unavailability-created-stay', () => {
+    refreshList()
+})
 
-const handleItemsPerPageChange = (itemsPerPage) => {
-    console.log('Items per page changed to:', itemsPerPage)
-}
+useBus(bus, 'confirm-delete-unavailability:confirmed', () => {
+    deleteUnavailabilityItem()
+})
+
+onMounted(() => {
+    fetchUnavailabilitiesList()
+})
 </script>
