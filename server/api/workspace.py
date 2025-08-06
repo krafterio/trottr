@@ -555,7 +555,7 @@ async def invite_user_to_workspace(
     )
 
     try:
-        register_url = f"{settings.base_url_email}/register?token={invitation.invitation_token}"
+        register_url = f"{settings.base_url_app}/register?token={invitation.invitation_token}"
         await mail_service.send_template(
             template_name="emails/workspace_invitation.html",
             tpl_vals={

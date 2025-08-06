@@ -22,8 +22,8 @@ SMTP_PASSWORD=your-smtp-password
 SMTP_DEFAULT_FROM=Trottr <noreply@trottr.io>
 
 # BASE URL
-BASE_URL=https://domain.tld/api
-BASE_URL_EMAIL=https://domain.tld
+BASE_URL=http://localhost:8003/api
+BASE_URL_APP=http://localhost:5175
 
 # WORKERS
 HTTP_WORKERS

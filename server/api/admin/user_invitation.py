@@ -39,7 +39,7 @@ async def send_invitation_code(
         await invitation.save()
 
     try:
-        register_url = f"{settings.base_url_email}/register/{invitation.invitation_code}"
+        register_url = f"{settings.base_url_app}/register/{invitation.invitation_code}"
         await mail_service.send_template(
             template_name="emails/invitation_code.html",
             tpl_vals={

@@ -54,7 +54,7 @@ async def reset_password_with_token(token: str, new_password: str) -> bool:
 
 async def send_password_reset_email(user: User, token: str, mail_service: MailService):
     settings = get_settings()
-    reset_url = f"{settings.base_url_email}/reset-password?token={token}"
+    reset_url = f"{settings.base_url_app}/reset-password?token={token}"
 
     template_vars = {
         'customer_name': user.name or (user.email.split('@')[0] if user.email else 'Utilisateur'),

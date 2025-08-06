@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     debug_simulate_contact_enrichment: bool = False
     debug_simulate_company_enrichment: bool = False
     base_url: str = ''
-    base_url_email: str = ''
+    base_url_app: str = ''
     smtp_host: str = ''
     smtp_port: int = 587
     smtp_use_tls: bool = True
