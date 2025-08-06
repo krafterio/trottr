@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     mode_preview: bool = False
     mode_preview_notif_email: str | None = None
     data_path: str | None = None
+    chrome_binary: str | None = None
 
     google_client_id: str = ''
     google_client_secret: str = ''

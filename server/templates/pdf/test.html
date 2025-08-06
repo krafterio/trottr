@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+
+{% block stylesheets %}
+<style>
+.document-info {
+    margin: 2rem 0;
+    padding: 1rem;
+    background-color: var(--muted);
+    border-radius: 8px;
+}
+
+.services-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.services-table th,
+.services-table td {
+    border: 1px solid var(--border);
+    padding: 0.75rem;
+    text-align: left;
+}
+
+.services-table th {
+    background-color: var(--muted);
+    font-weight: bold;
+}
+
+.services-table tfoot td {
+    font-weight: bold;
+    background-color: var(--accent);
+}
+
+.services-table td:nth-child(3),
+.services-table td:nth-child(4),
+.services-table td:nth-child(5) {
+    text-align: right;
+}
+</style>
+{% endblock %}
+
+{% block header %}
+<header class="flex flex-row">
+    <div>
+        <img src="{{ asset('common/assets/img/logo.svg') }}" alt="" width="240mm">
+    </div>
+    <div>
+        Header du PDF pour {{ title }}
+    </div>
+</header>
+{% endblock %}
+
+{% block footer %}
+<footer>
+    Footer du PDF
+</footer>
+{% endblock %}
+
+{% block content %}
+<div class="welcome">
+    <h1>{{ title }}</h1>
+    
+    <div class="document-info">
+        <p><strong>Société :</strong> {{ company_name }}</p>
+        <p><strong>Date :</strong> {{ date }}</p>
+        <p><strong>Client :</strong> {{ client_name }}</p>
+        <p><strong>Projet :</strong> {{ project_name }}</p>
+        <p>
+            <strong>Email utilisateur :</strong> {{ current_user.email }}
+            <img src="{{ storage(current_user.avatar) }}" alt="User avatar" width="50px">
+        </p>
+    </div>
+
+    <h2>Services</h2>
+    <table class="services-table">
+        <thead>
+            <tr>
+                <th>Service</th>
+                <th>Description</th>
+                <th>Quantité</th>
+                <th>Prix unitaire</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.description }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ "%.2f"|format(item.price) }} €</td>
+                <td>{{ "%.2f"|format(item.quantity * item.price) }} €</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4"><strong>Total</strong></td>
+                <td><strong>
+                    {% set total = 0 %}
+                    {% for item in items %}
+                        {% set total = total + (item.quantity * item.price) %}
+                    {% endfor %}
+                    {{ "%.2f"|format(total) }} €
+                </strong></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+{% endblock %}

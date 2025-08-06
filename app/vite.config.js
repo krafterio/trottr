@@ -3,6 +3,8 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath, URL } from 'node:url'
 
 import tailwindcss from '@tailwindcss/vite'
+import postcss from 'postcss'
+import postCssImport from 'postcss-import'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
@@ -32,7 +34,7 @@ const swPlugin = () => {
       })
     }
   }
-};
+}
 
 const adminPlugin = () => {
   return {
@@ -54,6 +56,43 @@ const adminPlugin = () => {
   };
 }
 
+const pdfCssPlugin = () => {
+  return {
+    name: 'pdf-css',
+    configureServer(server) {
+      server.middlewares.use('/src/pdf.css', async (req, res, next) => {
+        if (req.method === 'GET') {
+          try {
+            const sass = await import('sass')
+            const scssFile = resolve(cwd, 'src/pdf.scss')
+            const sassResult = sass.compile(scssFile, {
+              loadPaths: [
+                resolve(cwd, 'src'),
+                resolve(cwd, 'node_modules'),
+              ],
+            })
+            const postcssResult = await postcss().use(postCssImport({
+                root: resolve(cwd, 'src'),
+            })).process(sassResult.css, {
+                from: undefined,
+            })
+
+            res.setHeader('Content-Type', 'text/css')
+            res.setHeader('Access-Control-Allow-Origin', '*')
+            res.end(postcssResult.css)
+          } catch (fallbackError) {
+            console.error('PDF CSS Compilation Error', fallbackError)
+            res.statusCode = 500
+            res.end('')
+          }
+        } else {
+          next()
+        }
+      })
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -61,11 +100,14 @@ export default defineConfig({
     tailwindcss(),
     swPlugin(),
     adminPlugin(),
+    pdfCssPlugin(),
   ],
   build: {
     outDir: 'dist',
+    manifest: true,
     rollupOptions: {
       input: {
+        pdf: resolve(cwd, 'src/pdf.scss'),
         main: resolve(cwd, 'index.html'),
         admin: resolve(cwd, 'admin.html')
       }
