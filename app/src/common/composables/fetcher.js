@@ -120,3 +120,7 @@ export function useFetcher(options = undefined) {
         delete: fetchDelete,
     };
 }
+
+export function useFetcherService(options = undefined) {
+    return useFetcher(Object.assign({abortOnUnmounted: false}, options || {}));
+}
