@@ -1,0 +1,74 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Frontend",
+            "type": "node-terminal",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "command": "${workspaceFolder}/.vscode/npm run dev",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
+        },
+        {
+            "name": "Backend",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/server/kt",
+            "args": [
+                "serve"
+            ],
+            "cwd": "${workspaceFolder}/server",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/server"
+            }
+        },
+        {
+            "name": "Task Send Email Welcome",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/server/kt",
+            "args": [
+                "task",
+                "send-email-welcome",
+                "developer@krafter.io"
+            ],
+            "cwd": "${workspaceFolder}/server",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/server"
+            }
+        },
+        {
+            "name": "Server Tests",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/server/kt",
+            "args": [
+                "test"
+            ],
+            "cwd": "${workspaceFolder}/server",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/server"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Fullstack",
+            "configurations": [
+                "Backend",
+                "Frontend"
+            ]
+        }
+    ]
+}
