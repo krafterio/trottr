@@ -1,15 +1,18 @@
 {
   "name": "trottr",
   "private": true,
-  "version": "0.1.0",
+  "version": "3.0.0",
   "type": "module",
-  "web-types": "./web-types.json",
+  "web-types": "./app/web-types.json",
+  "workspaces": [
+    "app"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "NODE_OPTIONS='--max-old-space-size=4096' vite build",
-    "preview": "vite preview",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "dev": "cd app && vite",
+    "build": "cd app && NODE_OPTIONS='--max-old-space-size=4096' vite build",
+    "preview": "cd app && vite preview",
+    "test": "cd app && vitest run",
+    "test:watch": "cd app && vitest"
   },
   "dependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "^1.7.4",

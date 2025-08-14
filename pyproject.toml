@@ -1,0 +1,53 @@
+[project]
+name = "trottr"
+version = "3.0.0"
+description = "The SaaS platform made for Field Services Management. It helps companies with on site job management"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "edgy[postgres]~=0.32",
+    "lilya~=0.16",
+    "bcrypt~=4.3",
+    "fastapi~=0.116",
+    "uvicorn~=0.35",
+    "uvicorn[standard]~=0.35",
+    "python-jose[cryptography]~=3.5",
+    "passlib[bcrypt]~=1.7",
+    "python-multipart~=0.0.20",
+    "python-dotenv~=1.1",
+    "psycopg2-binary~=2.9",
+    "pgvector~=0.4",
+    "alembic~=1.16",
+    "pydantic~=2.11",
+    "pydantic[email]~=2.11",
+    "pydantic-settings~=2.10",
+    "httpx~=0.28",
+    "bs4~=0.0.2",
+    "click~=8.2",
+    "rich~=14.0",
+    "email-validator~=2.2",
+    "aiosmtplib~=4.0",
+    "jinja2~=3.1",
+    "html2text~=2025.4",
+    "sqlparse~=0.5",
+    "openpyxl~=3.1",
+    "pyexcel-ods3~=0.6",
+    "pandas~=2.3",
+    "openai~=1.96",
+    "dateparser~=1.2",
+    "mistralai~=1.9",
+    "assemblyai~=0.42",
+    "google-api-python-client~=2.176",
+    "google-auth~=2.40",
+    "google-auth-oauthlib~=1.2",
+    "email-reply-parser~=0.5",
+    "mail-parser~=4.1",
+    "mail-parser-reply~=1.34",
+    "stripe~=12.3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest~=8.4",
+    "pytest-asyncio~=1.0",
+]

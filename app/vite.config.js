@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 import postcss from 'postcss'
 import postCssImport from 'postcss-import'
 import vue from '@vitejs/plugin-vue'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 
 const cwd = dirname(fileURLToPath(import.meta.url))
 
@@ -94,7 +94,8 @@ const pdfCssPlugin = () => {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
+const config = {
+  envDir: '../',
   plugins: [
     vue(),
     tailwindcss(),
@@ -117,9 +118,20 @@ export default defineConfig({
     port: 5175,
     strictPort: true
   },
+  define: {},
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
+}
+
+export default defineConfig((mode) => {
+  const envDir = resolve(cwd, config.envDir)
+  const env = loadEnv(mode, envDir, '')
+  const viteApiUrl = env.VITE_API_URL || env.BASE_URL || ''
+
+  config.define['import.meta.env.VITE_API_URL'] = JSON.stringify(viteApiUrl)
+
+  return config
 })

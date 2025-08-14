@@ -6,9 +6,9 @@ Trottr is a SaaS platform made for Field Services Management. It helps companies
 ## Prerequisites
 
 - Python 3.13+
-- PIP 25.0+ (Python Package Manager)
-- PostgreSQL 15.0+ (with CLI Tools in PATH)
+- UV (Python Package Manager, see the [installation doc](https://docs.astral.sh/uv/getting-started/installation))
 - NVM for Node.js 22.0+ (see the [installation doc](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating))
+- PostgreSQL 15.0+ (with CLI Tools in PATH)
 
 
 ## Installation
@@ -18,23 +18,25 @@ Trottr is a SaaS platform made for Field Services Management. It helps companies
 git clone git@github.com:krafterio/trottr.git
 ```
 
-2. Create and activate virtual environment:
+2. Install server dependencies:
 ```bash
-python3.13 -m venv .venv
+uv sync
+```
+
+or install server dependencies without dev dependencies:
+```bash
+uv sync --no-dev
+```
+
+3. Restart terminal or activate venv
+```bash
 source .venv/bin/activate  # On macOS/Linux
 # or
 .venv\Scripts\activate     # On Windows
 ```
 
-3. Install server dependencies:
-```bash
-pip install -r server/requirements.txt
-pip install -r server/requirements-dev.txt
-```
-
 4. Install app dependencies:
 ```bash
-cd app
 nvm install 22
 nvm use 22
 npm install
@@ -42,9 +44,8 @@ npm install
 
 5. Configure environment variables:
 ```bash
-cp server/.env.tpl server/.env
-cp app/.env.tpl app/.env
-# Edit .env files with your configurations
+cp .env.tpl .env
+# Edit .env file with your configurations
 ```
 
 
@@ -82,8 +83,7 @@ cp app/.env.tpl app/.env
 
 ### Via CLI
 ```bash
-cd app
-npm run dev 
+npm run dev
 ```
 
 ### Via VS Code

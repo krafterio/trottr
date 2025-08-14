@@ -1,3 +1,8 @@
+# App
+VITE_LOG_LEVEL=info
+VITE_FEATURES_MODE=production
+VITE_MODE_PREVIEW=False
+
 # Database
 DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/trottr
 
@@ -19,7 +24,7 @@ SMTP_PORT=587
 SMTP_USE_TLS=True
 SMTP_USERNAME=your-smtp-username
 SMTP_PASSWORD=your-smtp-password
-SMTP_DEFAULT_FROM=Trottr <noreply@trottr.io>
+SMTP_DEFAULT_FROM="Trottr <noreply@trottr.io>"
 
 # BASE URL
 BASE_URL=http://localhost:8003/api

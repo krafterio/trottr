@@ -3,5 +3,5 @@
 source ~/.nvm/nvm.sh
 nvm install 22
 nvm use 22
-cd "$(dirname "$0")/../app"
+cd "$(dirname "$0")/.."
 npm "$@"

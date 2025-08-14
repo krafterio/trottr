@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     assembly_ai_token: str = ''
 
     model_config = SettingsConfigDict(
-        env_file='.env',
+        env_file='../.env',
         case_sensitive=False,
         env_prefix='',
         extra='ignore',
